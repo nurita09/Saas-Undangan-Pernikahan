@@ -16,6 +16,18 @@ use crate::{
 
 const MAX_SLUG_ATTEMPTS: u32 = 25;
 
+/// Warna default per tema saat wedding dibuat (warna dikunci, tidak bisa
+/// diedit pasangan). Tema baru: tambah lengan match di sini + komponennya di
+/// frontend (components/themes/registry.ts).
+fn default_colors_for_theme(theme_id: i32) -> (&'static str, &'static str) {
+    match theme_id {
+        // Theme 2 - Adat Jawa: cokelat sogan batik + krem lawas.
+        2 => ("#6B4423", "#F3EAD8"),
+        // Theme 1 - Floral Elegant.
+        _ => ("#8D7B68", "#F9F8F4"),
+    }
+}
+
 // Konten placeholder Love Story saat wedding baru dibuat (meniru contoh di desain
 // Figma Section 4) -- baris ini tersimpan nyata di tabel love_stories per wedding_id,
 // jadi begitu ada editor Love Story, pasangan tinggal edit/ganti isi baris yang sudah ada.
@@ -138,12 +150,15 @@ async fn insert_wedding_with_unique_slug(
         // di-rollback, transaksi induk (tx) tetap hidup untuk percobaan berikutnya.
         let mut savepoint = tx.begin().await?;
 
+        let (primary_color, secondary_color) = default_colors_for_theme(theme_id);
         let result = sqlx::query_scalar::<_, Uuid>(
-            "INSERT INTO weddings (subdomain_slug, access_token, theme_id) VALUES ($1, $2, $3) RETURNING id",
+            "INSERT INTO weddings (subdomain_slug, access_token, theme_id, primary_color, secondary_color) VALUES ($1, $2, $3, $4, $5) RETURNING id",
         )
         .bind(&candidate_slug)
         .bind(access_token)
         .bind(theme_id)
+        .bind(primary_color)
+        .bind(secondary_color)
         .fetch_one(&mut *savepoint)
         .await;
 
@@ -184,6 +199,7 @@ pub async fn get_wedding_details(
             w.secondary_color,
             w.music_url,
             w.is_published,
+            w.active_until,
             w.access_token,
             w.theme_settings,
             d.groom_name,
@@ -215,10 +231,12 @@ pub async fn get_wedding_details(
     .await?
     .ok_or(AppError::NotFound)?;
 
-    // Gerbang publish: undangan draft hanya bisa dilihat pemiliknya sendiri
-    // (editor mengirim header X-Access-Token untuk preview). Tamu tanpa token
-    // mendapat 404 generik -- sengaja tidak membocorkan bahwa undangannya ada.
-    if !row.is_published {
+    // Gerbang publish + masa aktif: undangan draft ATAU yang masa aktifnya
+    // lewat hanya bisa dilihat pemiliknya sendiri (editor mengirim header
+    // X-Access-Token untuk preview). Tamu tanpa token mendapat 404 generik --
+    // sengaja tidak membocorkan bahwa undangannya ada.
+    let expired = row.active_until.is_some_and(|until| until < chrono::Utc::now());
+    if !row.is_published || expired {
         let token_ok = headers
             .get("X-Access-Token")
             .and_then(|value| value.to_str().ok())

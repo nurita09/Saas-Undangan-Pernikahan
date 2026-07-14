@@ -35,8 +35,40 @@ pub struct WeddingSummaryDto {
     pub bride_name: String,
     pub theme_id: i32,
     pub is_published: bool,
+    /// Masa aktif undangan; NULL = tanpa batas. Lewat tanggal ini tamu dapat 404.
+    pub active_until: Option<DateTime<Utc>>,
     pub created_at: DateTime<Utc>,
     pub rsvp_count: i64,
+}
+
+/// Query GET /api/admin/weddings?page=1&per_page=10
+#[derive(Debug, Deserialize)]
+pub struct WeddingListQuery {
+    pub page: Option<i64>,
+    pub per_page: Option<i64>,
+}
+
+/// Response GET /api/admin/weddings -- berhalaman.
+#[derive(Debug, Serialize)]
+pub struct WeddingListResponse {
+    pub weddings: Vec<WeddingSummaryDto>,
+    pub total: i64,
+    pub page: i64,
+    pub per_page: i64,
+}
+
+/// PUT /api/admin/weddings/{slug}/active-until -- body {"active_until": "YYYY-MM-DD"}
+/// (null/kosong = tanpa batas). Ditafsirkan sampai akhir hari itu WIB.
+#[derive(Debug, Deserialize)]
+pub struct SetActiveUntilPayload {
+    pub active_until: Option<String>,
+}
+
+/// PUT /api/admin/music/{id} -- ganti judul/artis (file audionya tetap).
+#[derive(Debug, Deserialize)]
+pub struct UpdateMusicPayload {
+    pub title: String,
+    pub artist: Option<String>,
 }
 
 /// PUT /api/admin/weddings/{slug}/publish -- body {"is_published": true/false}.

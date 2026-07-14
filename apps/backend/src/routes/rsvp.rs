@@ -108,8 +108,10 @@ pub async fn get_rsvps(
     // query_as runtime (bukan macro query_as! compile-time) -- konsisten dengan
     // seluruh codebase, dan supaya `cargo build --release` di Docker image prod
     // tidak butuh DATABASE_URL saat compile.
+    // LIMIT 200: halaman undangan menampilkan daftar scroll, tidak perlu memuat
+    // ribuan ucapan sekaligus (dan mencegah response membengkak).
     let rsvps = sqlx::query_as::<_, RsvpResponse>(
-        "SELECT id, guest_name, attendance_status, message, created_at FROM rsvp WHERE wedding_id = $1 ORDER BY created_at DESC",
+        "SELECT id, guest_name, attendance_status, message, created_at FROM rsvp WHERE wedding_id = $1 ORDER BY created_at DESC LIMIT 200",
     )
     .bind(wedding_id)
     .fetch_all(&state.db)

@@ -5,7 +5,7 @@ mod wedding_edit;
 mod rsvp;
 
 use axum::{
-    routing::{get, post, put},
+    routing::{delete, get, post, put},
     Router,
 };
 
@@ -15,8 +15,14 @@ pub fn router() -> Router<AppState> {
     Router::new()
         .route("/api/admin/login", post(admin::login))
         .route("/api/admin/weddings", get(admin::list_weddings))
+        .route("/api/admin/weddings/{slug}", delete(admin::delete_wedding))
         .route("/api/admin/weddings/{slug}/publish", put(admin::set_published))
+        .route("/api/admin/weddings/{slug}/active-until", put(admin::set_active_until))
         .route("/api/admin/music", post(admin::upload_music))
+        .route(
+            "/api/admin/music/{id}",
+            put(admin::update_music).delete(admin::delete_music),
+        )
         .route(
             "/api/admin/settings",
             get(admin::get_settings).put(admin::update_settings),

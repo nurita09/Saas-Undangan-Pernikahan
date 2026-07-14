@@ -8,6 +8,7 @@ import type {
   AdminLoginPayload,
   MusicTrack,
   WeddingSummary,
+  WeddingListResponse,
   ContactSettings,
   UpdateSettingsPayload,
 } from '../types/wedding';
@@ -284,8 +285,13 @@ export async function setWeddingPublished(
   }
 }
 
-export async function fetchAdminWeddings(authHeader: string): Promise<WeddingSummary[]> {
-  const response = await fetch('/api/admin/weddings', {
+export async function fetchAdminWeddings(
+  authHeader: string,
+  page = 1,
+  perPage = 10,
+): Promise<WeddingListResponse> {
+  const params = new URLSearchParams({ page: String(page), per_page: String(perPage) });
+  const response = await fetch(`/api/admin/weddings?${params.toString()}`, {
     headers: { Authorization: `Basic ${authHeader}` },
   });
 
@@ -293,7 +299,78 @@ export async function fetchAdminWeddings(authHeader: string): Promise<WeddingSum
     throw new ApiError('Gagal mengambil daftar undangan', response.status);
   }
 
-  return (await response.json()) as WeddingSummary[];
+  return (await response.json()) as WeddingListResponse;
+}
+
+export async function deleteWedding(authHeader: string, slug: string): Promise<void> {
+  const response = await fetch(`/api/admin/weddings/${encodeURIComponent(slug)}`, {
+    method: 'DELETE',
+    headers: { Authorization: `Basic ${authHeader}` },
+  });
+
+  if (!response.ok) {
+    throw new ApiError('Gagal menghapus undangan', response.status);
+  }
+}
+
+/** activeUntil format "YYYY-MM-DD" (berlaku s.d. akhir hari WIB), null = tanpa batas. */
+export async function setWeddingActiveUntil(
+  authHeader: string,
+  slug: string,
+  activeUntil: string | null,
+): Promise<WeddingSummary> {
+  const response = await fetch(`/api/admin/weddings/${encodeURIComponent(slug)}/active-until`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Basic ${authHeader}`,
+    },
+    body: JSON.stringify({ active_until: activeUntil }),
+  });
+
+  const body: WeddingSummary | ApiErrorBody | null = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    const message = body && 'error' in body ? body.error : 'Gagal mengatur masa aktif';
+    throw new ApiError(message, response.status);
+  }
+
+  return body as WeddingSummary;
+}
+
+export async function updateMusicTrack(
+  authHeader: string,
+  id: string,
+  { title, artist }: { title: string; artist: string },
+): Promise<MusicTrack> {
+  const response = await fetch(`/api/admin/music/${encodeURIComponent(id)}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Basic ${authHeader}`,
+    },
+    body: JSON.stringify({ title, artist: artist || null }),
+  });
+
+  const body: MusicTrack | ApiErrorBody | null = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    const message = body && 'error' in body ? body.error : 'Gagal menyimpan lagu';
+    throw new ApiError(message, response.status);
+  }
+
+  return body as MusicTrack;
+}
+
+export async function deleteMusicTrack(authHeader: string, id: string): Promise<void> {
+  const response = await fetch(`/api/admin/music/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+    headers: { Authorization: `Basic ${authHeader}` },
+  });
+
+  if (!response.ok) {
+    throw new ApiError('Gagal menghapus lagu', response.status);
+  }
 }
 
 export async function fetchSettings(authHeader: string): Promise<ContactSettings> {

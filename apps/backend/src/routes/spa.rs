@@ -156,6 +156,7 @@ async fn inject_og_tags(
         FROM weddings w
         INNER JOIN wedding_details d ON d.wedding_id = w.id
         WHERE w.subdomain_slug = $1 AND w.is_published = true
+          AND (w.active_until IS NULL OR w.active_until > now())
         "#,
     )
     .bind(slug)

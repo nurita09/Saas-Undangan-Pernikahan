@@ -1,9 +1,10 @@
 use axum::{
-    extract::{Multipart, Path, State},
+    extract::{Multipart, Path, Query, State},
     http::{HeaderMap, StatusCode},
     Json,
 };
 use aws_sdk_s3::primitives::ByteStream;
+use chrono::{DateTime, NaiveDate, Utc};
 use uuid::Uuid;
 
 use crate::{
@@ -11,8 +12,9 @@ use crate::{
     error::AppError,
     models::{
         admin::{
-            AdminLoginPayload, AdminLoginResponse, MusicTrackDto, SetPublishedPayload,
-            SetPublishedResponse, UpdateSettingsPayload, WeddingSummaryDto,
+            AdminLoginPayload, AdminLoginResponse, MusicTrackDto, SetActiveUntilPayload,
+            SetPublishedPayload, SetPublishedResponse, UpdateMusicPayload, UpdateSettingsPayload,
+            WeddingListQuery, WeddingListResponse, WeddingSummaryDto,
         },
         wedding::ContactSettingsDto,
     },
@@ -160,13 +162,25 @@ pub async fn upload_music(
     Ok((StatusCode::CREATED, Json(track)))
 }
 
-/// GET /api/admin/weddings
-/// Monitoring: daftar ringkas semua wedding + jumlah RSVP masing-masing.
+const DEFAULT_PER_PAGE: i64 = 10;
+const MAX_PER_PAGE: i64 = 100;
+
+/// GET /api/admin/weddings?page=1&per_page=10
+/// Monitoring: daftar ringkas wedding + jumlah RSVP, berhalaman (terbaru dulu).
 pub async fn list_weddings(
     headers: HeaderMap,
     State(state): State<AppState>,
-) -> Result<Json<Vec<WeddingSummaryDto>>, AppError> {
+    Query(query): Query<WeddingListQuery>,
+) -> Result<Json<WeddingListResponse>, AppError> {
     require_admin_auth(&headers, &state.config)?;
+
+    let page = query.page.unwrap_or(1).max(1);
+    let per_page = query.per_page.unwrap_or(DEFAULT_PER_PAGE).clamp(1, MAX_PER_PAGE);
+    let offset = (page - 1) * per_page;
+
+    let total: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM weddings")
+        .fetch_one(&state.db)
+        .await?;
 
     let weddings = sqlx::query_as::<_, WeddingSummaryDto>(
         r#"
@@ -177,6 +191,7 @@ pub async fn list_weddings(
             d.bride_name,
             w.theme_id,
             w.is_published,
+            w.active_until,
             w.created_at,
             COUNT(r.id) AS rsvp_count
         FROM weddings w
@@ -184,12 +199,221 @@ pub async fn list_weddings(
         LEFT JOIN rsvp r ON r.wedding_id = w.id
         GROUP BY w.id, d.groom_name, d.bride_name
         ORDER BY w.created_at DESC
+        LIMIT $1 OFFSET $2
         "#,
     )
+    .bind(per_page)
+    .bind(offset)
     .fetch_all(&state.db)
     .await?;
 
-    Ok(Json(weddings))
+    Ok(Json(WeddingListResponse {
+        weddings,
+        total,
+        page,
+        per_page,
+    }))
+}
+
+/// DELETE /api/admin/weddings/{slug}
+/// Hapus wedding beserta seluruh data anaknya (details/rsvp/story/galeri/gift
+/// ikut lewat ON DELETE CASCADE) DAN semua objek MinIO miliknya
+/// (prefix weddings/{id}/). Aksi permanen -- konfirmasi ada di sisi UI.
+pub async fn delete_wedding(
+    headers: HeaderMap,
+    State(state): State<AppState>,
+    Path(slug): Path<String>,
+) -> Result<StatusCode, AppError> {
+    require_admin_auth(&headers, &state.config)?;
+
+    let wedding_id: Uuid = sqlx::query_scalar("SELECT id FROM weddings WHERE subdomain_slug = $1")
+        .bind(&slug)
+        .fetch_optional(&state.db)
+        .await?
+        .ok_or(AppError::NotFound)?;
+
+    sqlx::query("DELETE FROM weddings WHERE id = $1")
+        .bind(wedding_id)
+        .execute(&state.db)
+        .await?;
+
+    // Bersihkan storage SETELAH baris DB terhapus; kegagalan di sini cuma
+    // meninggalkan objek yatim (dicatat warn), bukan data setengah terhapus.
+    delete_minio_prefix(&state, &format!("weddings/{wedding_id}/")).await;
+
+    Ok(StatusCode::NO_CONTENT)
+}
+
+/// Hapus semua objek MinIO di bawah sebuah prefix (paginasi list_objects_v2).
+async fn delete_minio_prefix(state: &AppState, prefix: &str) {
+    let mut continuation: Option<String> = None;
+
+    loop {
+        let list = state
+            .s3_client
+            .list_objects_v2()
+            .bucket(&state.config.minio_bucket)
+            .prefix(prefix)
+            .set_continuation_token(continuation.clone())
+            .send()
+            .await;
+
+        let list = match list {
+            Ok(output) => output,
+            Err(err) => {
+                tracing::warn!(error = ?err, prefix, "gagal list objek MinIO untuk dihapus");
+                return;
+            }
+        };
+
+        for object in list.contents() {
+            let Some(key) = object.key() else { continue };
+            if let Err(err) = state
+                .s3_client
+                .delete_object()
+                .bucket(&state.config.minio_bucket)
+                .key(key)
+                .send()
+                .await
+            {
+                tracing::warn!(error = ?err, key, "gagal menghapus objek MinIO");
+            }
+        }
+
+        continuation = list.next_continuation_token().map(str::to_string);
+        if continuation.is_none() {
+            break;
+        }
+    }
+}
+
+/// PUT /api/admin/weddings/{slug}/active-until
+/// Set masa aktif undangan. "YYYY-MM-DD" ditafsirkan sampai 23:59:59 WIB pada
+/// hari itu; null/kosong = tanpa batas.
+pub async fn set_active_until(
+    headers: HeaderMap,
+    State(state): State<AppState>,
+    Path(slug): Path<String>,
+    Json(payload): Json<SetActiveUntilPayload>,
+) -> Result<Json<WeddingSummaryDto>, AppError> {
+    require_admin_auth(&headers, &state.config)?;
+
+    let active_until: Option<DateTime<Utc>> = match payload.active_until.as_deref() {
+        None => None,
+        Some(raw) if raw.trim().is_empty() => None,
+        Some(raw) => {
+            let date = NaiveDate::parse_from_str(raw.trim(), "%Y-%m-%d")
+                .map_err(|_| AppError::InvalidInput("format active_until harus YYYY-MM-DD".to_string()))?;
+            let end_of_day_wib = date.and_hms_opt(23, 59, 59).expect("jam valid");
+            // 23:59:59 WIB = 16:59:59 UTC -- active_until adalah instant sungguhan
+            // (dibandingkan dengan now() di query gating), bukan jam dinding.
+            Some((end_of_day_wib - chrono::Duration::hours(7)).and_utc())
+        }
+    };
+
+    let result = sqlx::query(
+        "UPDATE weddings SET active_until = $1, updated_at = now() WHERE subdomain_slug = $2",
+    )
+    .bind(active_until)
+    .bind(&slug)
+    .execute(&state.db)
+    .await?;
+
+    if result.rows_affected() == 0 {
+        return Err(AppError::NotFound);
+    }
+
+    let summary = sqlx::query_as::<_, WeddingSummaryDto>(
+        r#"
+        SELECT
+            w.subdomain_slug, w.access_token, d.groom_name, d.bride_name,
+            w.theme_id, w.is_published, w.active_until, w.created_at,
+            COUNT(r.id) AS rsvp_count
+        FROM weddings w
+        INNER JOIN wedding_details d ON d.wedding_id = w.id
+        LEFT JOIN rsvp r ON r.wedding_id = w.id
+        WHERE w.subdomain_slug = $1
+        GROUP BY w.id, d.groom_name, d.bride_name
+        "#,
+    )
+    .bind(&slug)
+    .fetch_one(&state.db)
+    .await?;
+
+    Ok(Json(summary))
+}
+
+/// PUT /api/admin/music/{id} -- ganti judul/artis lagu.
+pub async fn update_music(
+    headers: HeaderMap,
+    State(state): State<AppState>,
+    Path(id): Path<Uuid>,
+    Json(payload): Json<UpdateMusicPayload>,
+) -> Result<Json<MusicTrackDto>, AppError> {
+    require_admin_auth(&headers, &state.config)?;
+
+    let title = payload.title.trim().to_string();
+    if title.is_empty() {
+        return Err(AppError::InvalidInput("title wajib diisi".to_string()));
+    }
+    let artist = payload.artist.map(|a| a.trim().to_string()).filter(|a| !a.is_empty());
+
+    let track = sqlx::query_as::<_, MusicTrackDto>(
+        "UPDATE music_library SET title = $1, artist = $2 WHERE id = $3 RETURNING id, title, artist, file_url",
+    )
+    .bind(&title)
+    .bind(&artist)
+    .bind(id)
+    .fetch_optional(&state.db)
+    .await?
+    .ok_or(AppError::NotFound)?;
+
+    Ok(Json(track))
+}
+
+/// DELETE /api/admin/music/{id}
+/// Hapus lagu dari library + objeknya di MinIO. Wedding yang sedang memakai
+/// lagu ini di-reset ke tanpa musik (music_url = NULL) supaya tidak menunjuk
+/// file yang sudah tidak ada.
+pub async fn delete_music(
+    headers: HeaderMap,
+    State(state): State<AppState>,
+    Path(id): Path<Uuid>,
+) -> Result<StatusCode, AppError> {
+    require_admin_auth(&headers, &state.config)?;
+
+    let file_url: String = sqlx::query_scalar("SELECT file_url FROM music_library WHERE id = $1")
+        .bind(id)
+        .fetch_optional(&state.db)
+        .await?
+        .ok_or(AppError::NotFound)?;
+
+    let mut tx = state.db.begin().await?;
+    sqlx::query("UPDATE weddings SET music_url = NULL WHERE music_url = $1")
+        .bind(&file_url)
+        .execute(&mut *tx)
+        .await?;
+    sqlx::query("DELETE FROM music_library WHERE id = $1")
+        .bind(id)
+        .execute(&mut *tx)
+        .await?;
+    tx.commit().await?;
+
+    let bucket_prefix = format!("{}/{}/", state.config.minio_public_url, state.config.minio_bucket);
+    if let Some(key) = file_url.strip_prefix(&bucket_prefix) {
+        if let Err(err) = state
+            .s3_client
+            .delete_object()
+            .bucket(&state.config.minio_bucket)
+            .key(key)
+            .send()
+            .await
+        {
+            tracing::warn!(error = ?err, key, "gagal menghapus file musik dari MinIO");
+        }
+    }
+
+    Ok(StatusCode::NO_CONTENT)
 }
 
 /// PUT /api/admin/weddings/{slug}/publish

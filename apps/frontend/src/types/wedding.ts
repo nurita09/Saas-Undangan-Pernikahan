@@ -270,7 +270,7 @@ export interface MusicTrack {
   file_url: string;
 }
 
-/** Rust: WeddingSummaryDto -- response GET /api/admin/weddings (monitoring) */
+/** Rust: WeddingSummaryDto -- satu baris monitoring di GET /api/admin/weddings */
 export interface WeddingSummary {
   subdomain_slug: string;
   /** Ditampilkan supaya admin bisa salin ulang kalau pasangan lupa token editornya. */
@@ -279,8 +279,18 @@ export interface WeddingSummary {
   bride_name: string;
   theme_id: number;
   is_published: boolean;
+  /** Masa aktif (ISO); null = tanpa batas. Lewat tanggal ini tamu dapat 404. */
+  active_until: string | null;
   created_at: string;
   rsvp_count: number;
+}
+
+/** Rust: WeddingListResponse -- response GET /api/admin/weddings (berhalaman) */
+export interface WeddingListResponse {
+  weddings: WeddingSummary[];
+  total: number;
+  page: number;
+  per_page: number;
 }
 
 /** Rust: UpdateSettingsPayload -- payload PUT /api/admin/settings */

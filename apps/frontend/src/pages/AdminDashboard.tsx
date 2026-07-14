@@ -1,10 +1,14 @@
 import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent, type ReactNode } from 'react';
 import {
   createWedding,
+  deleteMusicTrack,
+  deleteWedding,
   fetchAdminWeddings,
   fetchMusicLibrary,
   fetchSettings,
+  setWeddingActiveUntil,
   setWeddingPublished,
+  updateMusicTrack,
   updateSettings,
   uploadMusicTrack,
   ApiError,
@@ -221,38 +225,41 @@ function StatCard({ label, value }: StatCardProps) {
 
 type StatusFilter = 'all' | 'published' | 'draft';
 
+const WEDDINGS_PER_PAGE = 10;
+
+/** "2027-12-31T16:59:59Z" (instant) -> "YYYY-MM-DD" tanggal WIB untuk <input type="date">. */
+function toWibDateInputValue(iso: string | null): string {
+  if (!iso) return '';
+  const wib = new Date(new Date(iso).getTime() + 7 * 60 * 60 * 1000);
+  return wib.toISOString().slice(0, 10);
+}
+
+function isExpired(activeUntil: string | null): boolean {
+  return activeUntil !== null && new Date(activeUntil).getTime() < Date.now();
+}
+
 function WeddingsTab({ authHeader, onUnauthorized }: TabProps) {
   const [status, setStatus] = useState<LoadStatus>('loading');
   const [weddings, setWeddings] = useState<WeddingSummary[]>([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
-  // Slug yang sedang diproses toggle publish-nya (disable tombol selama request).
-  const [togglingSlug, setTogglingSlug] = useState<string | null>(null);
+  // Slug yang requestnya sedang berjalan (publish/hapus/masa aktif) -- disable kontrolnya.
+  const [busySlug, setBusySlug] = useState<string | null>(null);
+  // Draft nilai <input type="date"> masa aktif per slug (belum tersimpan).
+  const [activeUntilDrafts, setActiveUntilDrafts] = useState<Record<string, string>>({});
 
-  const handleTogglePublish = async (wedding: WeddingSummary) => {
-    setTogglingSlug(wedding.subdomain_slug);
-    try {
-      await setWeddingPublished(authHeader, wedding.subdomain_slug, !wedding.is_published);
-      setWeddings((prev) =>
-        prev.map((w) =>
-          w.subdomain_slug === wedding.subdomain_slug ? { ...w, is_published: !w.is_published } : w,
-        ),
-      );
-    } catch (error) {
-      if (error instanceof ApiError && error.status === 401) {
-        onUnauthorized();
-        return;
-      }
-      alert(error instanceof ApiError ? error.message : 'Gagal mengubah status publish');
-    } finally {
-      setTogglingSlug(null);
-    }
-  };
+  const totalPages = Math.max(1, Math.ceil(total / WEDDINGS_PER_PAGE));
 
-  useEffect(() => {
-    fetchAdminWeddings(authHeader)
+  const loadPage = (targetPage: number) => {
+    setStatus('loading');
+    fetchAdminWeddings(authHeader, targetPage, WEDDINGS_PER_PAGE)
       .then((data) => {
-        setWeddings(data);
+        setWeddings(data.weddings);
+        setTotal(data.total);
+        setPage(data.page);
+        setActiveUntilDrafts({});
         setStatus('loaded');
       })
       .catch((error) => {
@@ -262,8 +269,67 @@ function WeddingsTab({ authHeader, onUnauthorized }: TabProps) {
         }
         setStatus('error');
       });
-  }, [authHeader, onUnauthorized]);
+  };
 
+  useEffect(() => {
+    loadPage(1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authHeader]);
+
+  const runRowAction = async (slug: string, action: () => Promise<void>) => {
+    setBusySlug(slug);
+    try {
+      await action();
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 401) {
+        onUnauthorized();
+        return;
+      }
+      alert(error instanceof ApiError ? error.message : 'Terjadi kesalahan tak terduga');
+    } finally {
+      setBusySlug(null);
+    }
+  };
+
+  const handleTogglePublish = (wedding: WeddingSummary) =>
+    runRowAction(wedding.subdomain_slug, async () => {
+      await setWeddingPublished(authHeader, wedding.subdomain_slug, !wedding.is_published);
+      setWeddings((prev) =>
+        prev.map((w) =>
+          w.subdomain_slug === wedding.subdomain_slug ? { ...w, is_published: !w.is_published } : w,
+        ),
+      );
+    });
+
+  const handleDelete = (wedding: WeddingSummary) => {
+    const confirmed = window.confirm(
+      `Hapus undangan ${wedding.groom_name} & ${wedding.bride_name} (${wedding.subdomain_slug})?\n` +
+        'Semua data (RSVP, foto, love story) ikut terhapus PERMANEN.',
+    );
+    if (!confirmed) return;
+
+    void runRowAction(wedding.subdomain_slug, async () => {
+      await deleteWedding(authHeader, wedding.subdomain_slug);
+      loadPage(weddings.length === 1 && page > 1 ? page - 1 : page);
+    });
+  };
+
+  const handleSaveActiveUntil = (wedding: WeddingSummary) => {
+    const draft = activeUntilDrafts[wedding.subdomain_slug] ?? toWibDateInputValue(wedding.active_until);
+    void runRowAction(wedding.subdomain_slug, async () => {
+      const updated = await setWeddingActiveUntil(authHeader, wedding.subdomain_slug, draft || null);
+      setWeddings((prev) =>
+        prev.map((w) => (w.subdomain_slug === wedding.subdomain_slug ? updated : w)),
+      );
+      setActiveUntilDrafts((prev) => {
+        const next = { ...prev };
+        delete next[wedding.subdomain_slug];
+        return next;
+      });
+    });
+  };
+
+  // Search & filter berlaku di halaman yang sedang dimuat (bukan lintas halaman).
   const filtered = useMemo(() => {
     const query = search.trim().toLowerCase();
 
@@ -284,7 +350,6 @@ function WeddingsTab({ authHeader, onUnauthorized }: TabProps) {
     const published = weddings.filter((w) => w.is_published).length;
     const totalRsvp = weddings.reduce((sum, w) => sum + w.rsvp_count, 0);
     return {
-      total: weddings.length,
       published,
       draft: weddings.length - published,
       totalRsvp,
@@ -302,10 +367,10 @@ function WeddingsTab({ authHeader, onUnauthorized }: TabProps) {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <StatCard label="Total Wedding" value={stats.total} />
-        <StatCard label="Publish" value={stats.published} />
-        <StatCard label="Draft" value={stats.draft} />
-        <StatCard label="Total RSVP" value={stats.totalRsvp} />
+        <StatCard label="Total Wedding" value={total} />
+        <StatCard label="Publish (hal. ini)" value={stats.published} />
+        <StatCard label="Draft (hal. ini)" value={stats.draft} />
+        <StatCard label="RSVP (hal. ini)" value={stats.totalRsvp} />
       </div>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -342,6 +407,7 @@ function WeddingsTab({ authHeader, onUnauthorized }: TabProps) {
                 <th className="px-4 py-3 text-left font-medium text-neutral-600">Slug</th>
                 <th className="px-4 py-3 text-left font-medium text-neutral-600">Tema</th>
                 <th className="px-4 py-3 text-left font-medium text-neutral-600">Status</th>
+                <th className="px-4 py-3 text-left font-medium text-neutral-600">Masa Aktif</th>
                 <th className="px-4 py-3 text-left font-medium text-neutral-600">RSVP</th>
                 <th className="px-4 py-3 text-left font-medium text-neutral-600">Dibuat</th>
                 <th className="px-4 py-3 text-left font-medium text-neutral-600">Access Token</th>
@@ -357,23 +423,57 @@ function WeddingsTab({ authHeader, onUnauthorized }: TabProps) {
                   <td className="px-4 py-3 text-neutral-500">{wedding.subdomain_slug}</td>
                   <td className="px-4 py-3 text-neutral-500">{wedding.theme_id}</td>
                   <td className="px-4 py-3">
-                    <button
-                      type="button"
-                      onClick={() => handleTogglePublish(wedding)}
-                      disabled={togglingSlug === wedding.subdomain_slug}
-                      title={wedding.is_published ? 'Klik untuk jadikan Draft' : 'Klik untuk Publish'}
-                      className={`rounded-full px-2 py-0.5 text-xs font-medium transition disabled:opacity-50 ${
-                        wedding.is_published
-                          ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
-                          : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
-                      }`}
-                    >
-                      {togglingSlug === wedding.subdomain_slug
-                        ? '...'
-                        : wedding.is_published
-                          ? 'Publish'
-                          : 'Draft'}
-                    </button>
+                    <div className="flex flex-col gap-1">
+                      <button
+                        type="button"
+                        onClick={() => handleTogglePublish(wedding)}
+                        disabled={busySlug === wedding.subdomain_slug}
+                        title={wedding.is_published ? 'Klik untuk jadikan Draft' : 'Klik untuk Publish'}
+                        className={`w-fit rounded-full px-2 py-0.5 text-xs font-medium transition disabled:opacity-50 ${
+                          wedding.is_published
+                            ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
+                            : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
+                        }`}
+                      >
+                        {busySlug === wedding.subdomain_slug
+                          ? '...'
+                          : wedding.is_published
+                            ? 'Publish'
+                            : 'Draft'}
+                      </button>
+                      {isExpired(wedding.active_until) && (
+                        <span className="w-fit rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
+                          Kedaluwarsa
+                        </span>
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-1.5">
+                      <input
+                        type="date"
+                        value={
+                          activeUntilDrafts[wedding.subdomain_slug] ??
+                          toWibDateInputValue(wedding.active_until)
+                        }
+                        onChange={(event: ChangeEvent<HTMLInputElement>) =>
+                          setActiveUntilDrafts((prev) => ({
+                            ...prev,
+                            [wedding.subdomain_slug]: event.target.value,
+                          }))
+                        }
+                        title="Kosongkan lalu Set = tanpa batas"
+                        className="rounded-md border border-neutral-200 px-1.5 py-1 text-xs text-neutral-600 focus:border-neutral-400 focus:outline-none"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleSaveActiveUntil(wedding)}
+                        disabled={busySlug === wedding.subdomain_slug}
+                        className="rounded-md border border-neutral-200 px-2 py-1 text-xs font-medium text-neutral-600 hover:border-neutral-400 hover:text-neutral-900 transition disabled:opacity-50"
+                      >
+                        Set
+                      </button>
+                    </div>
                   </td>
                   <td className="px-4 py-3 text-neutral-500">{wedding.rsvp_count}</td>
                   <td className="px-4 py-3 text-neutral-500">
@@ -391,12 +491,46 @@ function WeddingsTab({ authHeader, onUnauthorized }: TabProps) {
                         Link Editor
                       </CopyButton>
                       <CopyButton value={buildInviteUrl(wedding.subdomain_slug)}>Link Undangan</CopyButton>
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(wedding)}
+                        disabled={busySlug === wedding.subdomain_slug}
+                        className="rounded-md border border-red-200 px-2 py-1 text-xs font-medium text-red-600 hover:border-red-400 hover:bg-red-50 transition disabled:opacity-50"
+                      >
+                        Hapus
+                      </button>
                     </div>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-neutral-500">
+            Halaman {page} dari {totalPages} — {total} undangan
+          </p>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => loadPage(page - 1)}
+              disabled={page <= 1}
+              className="rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-sm text-neutral-700 hover:border-neutral-400 transition disabled:opacity-40"
+            >
+              ‹ Sebelumnya
+            </button>
+            <button
+              type="button"
+              onClick={() => loadPage(page + 1)}
+              disabled={page >= totalPages}
+              className="rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-sm text-neutral-700 hover:border-neutral-400 transition disabled:opacity-40"
+            >
+              Berikutnya ›
+            </button>
+          </div>
         </div>
       )}
     </div>
@@ -415,6 +549,11 @@ function MusicTab({ authHeader, onUnauthorized }: TabProps) {
   const [file, setFile] = useState<File | null>(null);
   const [uploadStatus, setUploadStatus] = useState<SubmitStatus>('idle');
   const [uploadError, setUploadError] = useState('');
+  // Track yang sedang diedit judul/artisnya (inline), plus nilai draft-nya.
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editArtist, setEditArtist] = useState('');
+  const [busyId, setBusyId] = useState<string | null>(null);
 
   const loadTracks = () => {
     setStatus('loading');
@@ -427,6 +566,51 @@ function MusicTab({ authHeader, onUnauthorized }: TabProps) {
   };
 
   useEffect(loadTracks, []);
+
+  const startEdit = (track: MusicTrack) => {
+    setEditingId(track.id);
+    setEditTitle(track.title);
+    setEditArtist(track.artist ?? '');
+  };
+
+  const handleSaveEdit = async (id: string) => {
+    setBusyId(id);
+    try {
+      const updated = await updateMusicTrack(authHeader, id, { title: editTitle, artist: editArtist });
+      setTracks((prev) => prev.map((t) => (t.id === id ? updated : t)));
+      setEditingId(null);
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 401) {
+        onUnauthorized();
+        return;
+      }
+      alert(error instanceof ApiError ? error.message : 'Gagal menyimpan lagu');
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const handleDeleteTrack = async (track: MusicTrack) => {
+    const confirmed = window.confirm(
+      `Hapus lagu "${track.title}" dari library?\n` +
+        'Undangan yang sedang memakai lagu ini otomatis jadi tanpa musik.',
+    );
+    if (!confirmed) return;
+
+    setBusyId(track.id);
+    try {
+      await deleteMusicTrack(authHeader, track.id);
+      setTracks((prev) => prev.filter((t) => t.id !== track.id));
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 401) {
+        onUnauthorized();
+        return;
+      }
+      alert(error instanceof ApiError ? error.message : 'Gagal menghapus lagu');
+    } finally {
+      setBusyId(null);
+    }
+  };
 
   const handleUpload = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -525,10 +709,63 @@ function MusicTab({ authHeader, onUnauthorized }: TabProps) {
           <ul className="mt-3 divide-y divide-neutral-100">
             {tracks.map((track) => (
               <li key={track.id} className="space-y-2 py-3">
-                <p className="text-sm text-neutral-800">
-                  {track.title}
-                  {track.artist ? <span className="text-neutral-500"> — {track.artist}</span> : null}
-                </p>
+                {editingId === track.id ? (
+                  <div className="flex flex-wrap items-center gap-2">
+                    <input
+                      type="text"
+                      value={editTitle}
+                      onChange={(event: ChangeEvent<HTMLInputElement>) => setEditTitle(event.target.value)}
+                      placeholder="Judul"
+                      className="flex-1 min-w-40 rounded-lg border border-neutral-300 px-2 py-1.5 text-sm focus:border-neutral-500 focus:outline-none"
+                    />
+                    <input
+                      type="text"
+                      value={editArtist}
+                      onChange={(event: ChangeEvent<HTMLInputElement>) => setEditArtist(event.target.value)}
+                      placeholder="Artis (opsional)"
+                      className="flex-1 min-w-32 rounded-lg border border-neutral-300 px-2 py-1.5 text-sm focus:border-neutral-500 focus:outline-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleSaveEdit(track.id)}
+                      disabled={busyId === track.id || !editTitle.trim()}
+                      className="rounded-md bg-neutral-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-neutral-700 transition disabled:opacity-50"
+                    >
+                      Simpan
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditingId(null)}
+                      className="rounded-md border border-neutral-200 px-3 py-1.5 text-xs font-medium text-neutral-600 hover:border-neutral-400 transition"
+                    >
+                      Batal
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-sm text-neutral-800">
+                      {track.title}
+                      {track.artist ? <span className="text-neutral-500"> — {track.artist}</span> : null}
+                    </p>
+                    <div className="flex shrink-0 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => startEdit(track)}
+                        className="rounded-md border border-neutral-200 px-2 py-1 text-xs font-medium text-neutral-600 hover:border-neutral-400 hover:text-neutral-900 transition"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteTrack(track)}
+                        disabled={busyId === track.id}
+                        className="rounded-md border border-red-200 px-2 py-1 text-xs font-medium text-red-600 hover:border-red-400 hover:bg-red-50 transition disabled:opacity-50"
+                      >
+                        Hapus
+                      </button>
+                    </div>
+                  </div>
+                )}
                 <audio controls src={track.file_url} className="w-full">
                   Browser kamu tidak mendukung pemutar audio.
                 </audio>

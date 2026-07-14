@@ -33,6 +33,9 @@ pub struct WeddingDetailsRow {
     pub secondary_color: String,
     pub music_url: Option<String>,
     pub is_published: bool,
+    /// Masa aktif; NULL = tanpa batas. Lewat tanggal ini undangan diperlakukan
+    /// seperti draft (tamu 404, pemilik ber-token tetap bisa lihat).
+    pub active_until: Option<DateTime<Utc>>,
     /// Dipakai handler untuk mengizinkan pasangan melihat draft-nya sendiri
     /// (header X-Access-Token) -- TIDAK ikut diserialisasi ke response publik.
     pub access_token: String,
