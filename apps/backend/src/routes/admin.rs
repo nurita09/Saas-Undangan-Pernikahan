@@ -1,5 +1,5 @@
 use axum::{
-    extract::{Multipart, State},
+    extract::{Multipart, Path, State},
     http::{HeaderMap, StatusCode},
     Json,
 };
@@ -11,8 +11,8 @@ use crate::{
     error::AppError,
     models::{
         admin::{
-            AdminLoginPayload, AdminLoginResponse, MusicTrackDto, UpdateSettingsPayload,
-            WeddingSummaryDto,
+            AdminLoginPayload, AdminLoginResponse, MusicTrackDto, SetPublishedPayload,
+            SetPublishedResponse, UpdateSettingsPayload, WeddingSummaryDto,
         },
         wedding::ContactSettingsDto,
     },
@@ -189,6 +189,35 @@ pub async fn list_weddings(
     .await?;
 
     Ok(Json(weddings))
+}
+
+/// PUT /api/admin/weddings/{slug}/publish
+/// Gerbang rilis: undangan draft (is_published=false) TIDAK bisa diakses tamu --
+/// GET /api/wedding-details mengembalikan 404 (lihat routes/wedding.rs). Admin
+/// menyalakan ini setelah pesanan beres (mis. sudah dibayar).
+pub async fn set_published(
+    headers: HeaderMap,
+    State(state): State<AppState>,
+    Path(slug): Path<String>,
+    Json(payload): Json<SetPublishedPayload>,
+) -> Result<Json<SetPublishedResponse>, AppError> {
+    require_admin_auth(&headers, &state.config)?;
+
+    let result =
+        sqlx::query("UPDATE weddings SET is_published = $1, updated_at = now() WHERE subdomain_slug = $2")
+            .bind(payload.is_published)
+            .bind(&slug)
+            .execute(&state.db)
+            .await?;
+
+    if result.rows_affected() == 0 {
+        return Err(AppError::NotFound);
+    }
+
+    Ok(Json(SetPublishedResponse {
+        subdomain_slug: slug,
+        is_published: payload.is_published,
+    }))
 }
 
 async fn fetch_contact_settings(state: &AppState) -> Result<ContactSettingsDto, AppError> {

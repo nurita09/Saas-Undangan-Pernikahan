@@ -34,7 +34,9 @@ export function buildInviteUrl(slug: string): string {
 }
 
 /** Sama seperti buildInviteUrl, tapi mengarah ke /edit dengan token terpasang --
- * dipakai admin untuk mengirim ulang link editor kalau pasangan lupa tokennya. */
+ * dipakai admin untuk mengirim ulang link editor kalau pasangan lupa tokennya.
+ * Token ditaruh di fragment (#) karena fragment tidak pernah dikirim ke server,
+ * jadi tidak bocor lewat access log maupun Referer. */
 export function buildEditUrl(slug: string, accessToken: string): string {
-  return `${buildInviteUrl(slug)}/edit?token=${accessToken}`;
+  return `${buildInviteUrl(slug)}/edit#token=${accessToken}`;
 }

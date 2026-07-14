@@ -33,6 +33,9 @@ pub struct WeddingDetailsRow {
     pub secondary_color: String,
     pub music_url: Option<String>,
     pub is_published: bool,
+    /// Dipakai handler untuk mengizinkan pasangan melihat draft-nya sendiri
+    /// (header X-Access-Token) -- TIDAK ikut diserialisasi ke response publik.
+    pub access_token: String,
     pub groom_name: String,
     pub bride_name: String,
     pub wedding_date: Option<DateTime<Utc>>,

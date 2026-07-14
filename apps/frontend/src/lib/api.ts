@@ -28,8 +28,12 @@ export class ApiError extends Error {
   }
 }
 
-export async function fetchWeddingDetails(): Promise<WeddingData> {
-  const response = await fetch('/api/wedding-details');
+/** accessToken opsional: dikirim sebagai header X-Access-Token supaya pasangan
+ *  bisa melihat preview undangannya sendiri yang masih draft (belum publish). */
+export async function fetchWeddingDetails(accessToken?: string | null): Promise<WeddingData> {
+  const response = await fetch('/api/wedding-details', {
+    headers: accessToken ? { 'X-Access-Token': accessToken } : undefined,
+  });
 
   if (response.status === 404) {
     throw new ApiError('Undangan tidak ditemukan', 404);
@@ -106,8 +110,11 @@ export async function adminLogin(username: string, password: string): Promise<vo
 // ---------------------------------------------------------------------------
 
 export async function fetchEditAuth(slug: string, token: string): Promise<WeddingEditData> {
-  const params = new URLSearchParams({ slug, token });
-  const response = await fetch(`/api/wedding/edit-auth?${params.toString()}`);
+  // Token lewat header, bukan query string -- tidak nempel di access log server.
+  const params = new URLSearchParams({ slug });
+  const response = await fetch(`/api/wedding/edit-auth?${params.toString()}`, {
+    headers: { 'X-Access-Token': token },
+  });
 
   if (response.status === 401) {
     throw new ApiError('Token tidak valid', 401);
@@ -255,6 +262,27 @@ export async function uploadMusicTrack(
 // ---------------------------------------------------------------------------
 // Admin: monitoring & setting global
 // ---------------------------------------------------------------------------
+
+export async function setWeddingPublished(
+  authHeader: string,
+  slug: string,
+  isPublished: boolean,
+): Promise<void> {
+  const response = await fetch(`/api/admin/weddings/${encodeURIComponent(slug)}/publish`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Basic ${authHeader}`,
+    },
+    body: JSON.stringify({ is_published: isPublished }),
+  });
+
+  if (!response.ok) {
+    const body: ApiErrorBody | null = await response.json().catch(() => null);
+    const message = body && 'error' in body ? body.error : 'Gagal mengubah status publish';
+    throw new ApiError(message, response.status);
+  }
+}
 
 export async function fetchAdminWeddings(authHeader: string): Promise<WeddingSummary[]> {
   const response = await fetch('/api/admin/weddings', {

@@ -170,6 +170,7 @@ async fn insert_wedding_with_unique_slug(
 /// lalu di-join ke `weddings` + `wedding_details` untuk membentuk response JSON.
 pub async fn get_wedding_details(
     Extension(tenant): Extension<TenantSlug>,
+    headers: HeaderMap,
     State(state): State<AppState>,
 ) -> Result<Json<WeddingDetailsResponse>, AppError> {
     let slug = tenant.0.ok_or(AppError::MissingTenant)?;
@@ -183,6 +184,7 @@ pub async fn get_wedding_details(
             w.secondary_color,
             w.music_url,
             w.is_published,
+            w.access_token,
             w.theme_settings,
             d.groom_name,
             d.bride_name,
@@ -212,6 +214,20 @@ pub async fn get_wedding_details(
     .fetch_optional(&state.db)
     .await?
     .ok_or(AppError::NotFound)?;
+
+    // Gerbang publish: undangan draft hanya bisa dilihat pemiliknya sendiri
+    // (editor mengirim header X-Access-Token untuk preview). Tamu tanpa token
+    // mendapat 404 generik -- sengaja tidak membocorkan bahwa undangannya ada.
+    if !row.is_published {
+        let token_ok = headers
+            .get("X-Access-Token")
+            .and_then(|value| value.to_str().ok())
+            .is_some_and(|token| token == row.access_token);
+
+        if !token_ok {
+            return Err(AppError::NotFound);
+        }
+    }
 
     let wedding_id: Uuid = sqlx::query_scalar("SELECT id FROM weddings WHERE subdomain_slug = $1")
         .bind(&slug)

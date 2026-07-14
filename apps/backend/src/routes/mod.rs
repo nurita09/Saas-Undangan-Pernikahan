@@ -14,6 +14,7 @@ pub fn router() -> Router<AppState> {
     Router::new()
         .route("/api/admin/login", post(admin::login))
         .route("/api/admin/weddings", get(admin::list_weddings))
+        .route("/api/admin/weddings/{slug}/publish", put(admin::set_published))
         .route("/api/admin/music", post(admin::upload_music))
         .route(
             "/api/admin/settings",

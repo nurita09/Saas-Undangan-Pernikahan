@@ -5,6 +5,7 @@ import WeddingEditor from './pages/WeddingEditor.tsx';
 import { fetchWeddingDetails, ApiError } from './lib/api';
 import { getThemeComponent } from './components/themes/registry';
 import { resolveSubdomainSlug } from './utils/subdomain';
+import { readAccessToken } from './utils/token';
 import type { WeddingData } from './types/wedding';
 
 function LoadingScreen() {
@@ -35,7 +36,9 @@ export default function App() {
     let cancelled = false;
     setState({ status: 'loading', data: null });
 
-    fetchWeddingDetails()
+    // Token (kalau ada di URL) diteruskan supaya pasangan bisa melihat preview
+    // undangannya sendiri walau masih draft; tamu biasa tanpa token dapat 404.
+    fetchWeddingDetails(readAccessToken())
       .then((data) => {
         if (!cancelled) setState({ status: 'success', data });
       })

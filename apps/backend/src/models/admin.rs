@@ -39,6 +39,18 @@ pub struct WeddingSummaryDto {
     pub rsvp_count: i64,
 }
 
+/// PUT /api/admin/weddings/{slug}/publish -- body {"is_published": true/false}.
+#[derive(Debug, Deserialize)]
+pub struct SetPublishedPayload {
+    pub is_published: bool,
+}
+
+#[derive(Debug, Serialize)]
+pub struct SetPublishedResponse {
+    pub subdomain_slug: String,
+    pub is_published: bool,
+}
+
 /// PUT /api/admin/settings -- update setting global (tabel platform_settings).
 #[derive(Debug, Deserialize)]
 pub struct UpdateSettingsPayload {

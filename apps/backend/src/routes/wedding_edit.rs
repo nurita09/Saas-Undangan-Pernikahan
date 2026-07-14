@@ -110,18 +110,25 @@ async fn fetch_edit_data(db: &PgPool, wedding_id: Uuid) -> Result<WeddingEditDat
     Ok(data)
 }
 
-/// GET /api/wedding/edit-auth?token=...&slug=...
+/// GET /api/wedding/edit-auth?slug=... + header X-Access-Token.
 /// Validasi token cocok dengan subdomain_slug tertentu. Sekalian kembalikan data
 /// terkini untuk prefill form supaya frontend tidak perlu request kedua.
+/// Token lewat header (bukan query string) supaya tidak tercatat di access log.
 pub async fn edit_auth(
+    headers: HeaderMap,
     State(state): State<AppState>,
     Query(query): Query<EditAuthQuery>,
 ) -> Result<Json<WeddingEditData>, AppError> {
+    let token = headers
+        .get("X-Access-Token")
+        .and_then(|value| value.to_str().ok())
+        .ok_or(AppError::Unauthorized)?;
+
     let wedding_id = sqlx::query_scalar::<_, Uuid>(
         "SELECT id FROM weddings WHERE subdomain_slug = $1 AND access_token = $2",
     )
     .bind(&query.slug)
-    .bind(&query.token)
+    .bind(token)
     .fetch_optional(&state.db)
     .await?
     .ok_or(AppError::Unauthorized)?;

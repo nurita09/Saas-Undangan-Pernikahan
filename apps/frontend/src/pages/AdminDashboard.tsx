@@ -4,6 +4,7 @@ import {
   fetchAdminWeddings,
   fetchMusicLibrary,
   fetchSettings,
+  setWeddingPublished,
   updateSettings,
   uploadMusicTrack,
   ApiError,
@@ -225,6 +226,28 @@ function WeddingsTab({ authHeader, onUnauthorized }: TabProps) {
   const [weddings, setWeddings] = useState<WeddingSummary[]>([]);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  // Slug yang sedang diproses toggle publish-nya (disable tombol selama request).
+  const [togglingSlug, setTogglingSlug] = useState<string | null>(null);
+
+  const handleTogglePublish = async (wedding: WeddingSummary) => {
+    setTogglingSlug(wedding.subdomain_slug);
+    try {
+      await setWeddingPublished(authHeader, wedding.subdomain_slug, !wedding.is_published);
+      setWeddings((prev) =>
+        prev.map((w) =>
+          w.subdomain_slug === wedding.subdomain_slug ? { ...w, is_published: !w.is_published } : w,
+        ),
+      );
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 401) {
+        onUnauthorized();
+        return;
+      }
+      alert(error instanceof ApiError ? error.message : 'Gagal mengubah status publish');
+    } finally {
+      setTogglingSlug(null);
+    }
+  };
 
   useEffect(() => {
     fetchAdminWeddings(authHeader)
@@ -334,15 +357,23 @@ function WeddingsTab({ authHeader, onUnauthorized }: TabProps) {
                   <td className="px-4 py-3 text-neutral-500">{wedding.subdomain_slug}</td>
                   <td className="px-4 py-3 text-neutral-500">{wedding.theme_id}</td>
                   <td className="px-4 py-3">
-                    <span
-                      className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                    <button
+                      type="button"
+                      onClick={() => handleTogglePublish(wedding)}
+                      disabled={togglingSlug === wedding.subdomain_slug}
+                      title={wedding.is_published ? 'Klik untuk jadikan Draft' : 'Klik untuk Publish'}
+                      className={`rounded-full px-2 py-0.5 text-xs font-medium transition disabled:opacity-50 ${
                         wedding.is_published
-                          ? 'bg-emerald-100 text-emerald-700'
-                          : 'bg-neutral-100 text-neutral-600'
+                          ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
+                          : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
                       }`}
                     >
-                      {wedding.is_published ? 'Publish' : 'Draft'}
-                    </span>
+                      {togglingSlug === wedding.subdomain_slug
+                        ? '...'
+                        : wedding.is_published
+                          ? 'Publish'
+                          : 'Draft'}
+                    </button>
                   </td>
                   <td className="px-4 py-3 text-neutral-500">{wedding.rsvp_count}</td>
                   <td className="px-4 py-3 text-neutral-500">

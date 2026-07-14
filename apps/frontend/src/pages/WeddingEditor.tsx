@@ -1,5 +1,6 @@
 import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react';
 import { fetchEditAuth, fetchMusicLibrary, updateWedding, uploadPhoto, ApiError } from '../lib/api';
+import { readAccessToken } from '../utils/token';
 import type { MusicTrack, WeddingEditData } from '../types/wedding';
 
 interface WeddingEditorProps {
@@ -164,7 +165,8 @@ function PhotoField({ label, photoUrl, uploadState, onSelect, compact = false }:
 }
 
 export default function WeddingEditor({ slug }: WeddingEditorProps) {
-  const token = new URLSearchParams(window.location.search).get('token');
+  // Fragment (#token=...) lebih aman dari query string; link lama ?token= tetap didukung.
+  const token = readAccessToken();
 
   const [authState, setAuthState] = useState<AuthState>('checking');
   const [form, setForm] = useState<EditorFormState | null>(null);
@@ -387,9 +389,11 @@ export default function WeddingEditor({ slug }: WeddingEditorProps) {
         <div className="flex flex-col items-center gap-4">
           <div className="relative h-[min(82vh,780px)] aspect-[9/19] overflow-hidden rounded-[2.8rem] border-[10px] border-neutral-900 bg-neutral-900 shadow-2xl">
             <div className="absolute top-0 left-1/2 z-10 h-6 w-28 -translate-x-1/2 rounded-b-2xl bg-neutral-900" />
+            {/* Token dibawa di fragment supaya preview tetap jalan walau undangan
+                masih draft (belum publish) -- fragment tidak dikirim ke server. */}
             <iframe
               key={previewVersion}
-              src="/"
+              src={`/#token=${token ?? ''}`}
               title="Preview undangan"
               className="h-full w-full rounded-[2rem] bg-white"
             />

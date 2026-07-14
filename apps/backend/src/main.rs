@@ -51,6 +51,7 @@ async fn main() -> anyhow::Result<()> {
 
     let app = routes::router()
         .layer(axum_middleware::from_fn(middleware::resolve_tenant))
+        .layer(axum_middleware::from_fn(middleware::limit_admin_auth))
         .layer(cors)
         .layer(DefaultBodyLimit::max(MAX_BODY_BYTES))
         .with_state(state);
@@ -59,7 +60,13 @@ async fn main() -> anyhow::Result<()> {
     tracing::info!("server berjalan di http://{addr}");
 
     let listener = tokio::net::TcpListener::bind(addr).await?;
-    axum::serve(listener, app).await?;
+    // into_make_service_with_connect_info: supaya middleware rate limit bisa
+    // membaca IP koneksi klien lewat extractor ConnectInfo<SocketAddr>.
+    axum::serve(
+        listener,
+        app.into_make_service_with_connect_info::<SocketAddr>(),
+    )
+    .await?;
 
     Ok(())
 }

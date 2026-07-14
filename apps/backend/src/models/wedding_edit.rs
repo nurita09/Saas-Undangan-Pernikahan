@@ -62,10 +62,10 @@ pub struct WeddingEditData {
     pub wedding_gifts: Vec<WeddingGiftEntry>,
 }
 
-/// Query GET /api/wedding/edit-auth?token=...&slug=...
+/// Query GET /api/wedding/edit-auth?slug=... -- token TIDAK lewat query string
+/// (supaya tidak nempel di access log/referrer), melainkan header X-Access-Token.
 #[derive(Debug, Deserialize)]
 pub struct EditAuthQuery {
-    pub token: String,
     pub slug: String,
 }
 
