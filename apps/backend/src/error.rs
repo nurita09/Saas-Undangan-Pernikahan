@@ -17,6 +17,8 @@ pub enum AppError {
     SlugGenerationFailed,
     #[error("akses ditolak: kredensial tidak valid")]
     Unauthorized,
+    #[error("{0}")]
+    Conflict(String),
     #[error("gagal mengunggah file")]
     UploadFailed,
     #[error("kesalahan database: {0}")]
@@ -34,6 +36,7 @@ impl IntoResponse for AppError {
                 (StatusCode::INTERNAL_SERVER_ERROR, self.to_string())
             }
             AppError::Unauthorized => (StatusCode::UNAUTHORIZED, self.to_string()),
+            AppError::Conflict(_) => (StatusCode::CONFLICT, self.to_string()),
             AppError::UploadFailed => {
                 tracing::error!("gagal upload file ke MinIO");
                 (StatusCode::BAD_GATEWAY, self.to_string())

@@ -197,6 +197,8 @@ export interface WeddingEditData {
   resepsi_maps_url: string | null;
   gallery_video_url: string | null;
   theme_settings?: Record<string, any> | null;
+  /** Versi data untuk optimistic locking -- kirim balik sebagai expected_updated_at. */
+  updated_at: string;
   love_stories: LoveStoryEntry[];
   gallery_photos: string[];
   wedding_gifts: WeddingGiftEntry[];
@@ -229,6 +231,9 @@ export interface UpdateWeddingPayload {
   resepsi_maps_url: string | null;
   gallery_video_url: string | null;
   theme_settings?: Record<string, any> | null;
+  /** updated_at yang diterima saat memuat form; backend menolak 409 kalau
+   *  nilainya sudah tidak cocok (data diubah dari tempat lain). */
+  expected_updated_at: string | null;
   love_stories: LoveStoryEntry[];
   gallery_photos: string[];
   wedding_gifts: WeddingGiftEntry[];

@@ -54,6 +54,10 @@ pub struct WeddingEditData {
     pub resepsi_maps_url: Option<String>,
     pub gallery_video_url: Option<String>,
     pub theme_settings: Option<serde_json::Value>,
+    /// Versi data untuk optimistic locking -- frontend mengirim balik nilai ini
+    /// sebagai expected_updated_at saat menyimpan; kalau tidak cocok berarti ada
+    /// perubahan dari tempat lain (mis. tab kedua) dan simpan ditolak 409.
+    pub updated_at: DateTime<Utc>,
     #[sqlx(skip)]
     pub love_stories: Vec<LoveStoryEntry>,
     #[sqlx(skip)]
@@ -104,6 +108,9 @@ pub struct UpdateWeddingPayload {
     pub resepsi_maps_url: Option<String>,
     pub gallery_video_url: Option<String>,
     pub theme_settings: Option<serde_json::Value>,
+    /// Nilai updated_at yang diterima klien saat memuat form. None = lewati
+    /// pemeriksaan (kompatibilitas), Some = tolak 409 kalau tidak cocok dengan DB.
+    pub expected_updated_at: Option<DateTime<Utc>>,
     #[serde(default)]
     pub love_stories: Vec<LoveStoryEntry>,
     #[serde(default)]

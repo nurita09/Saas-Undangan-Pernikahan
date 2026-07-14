@@ -52,6 +52,7 @@ async fn main() -> anyhow::Result<()> {
     let app = routes::router()
         .layer(axum_middleware::from_fn(middleware::resolve_tenant))
         .layer(axum_middleware::from_fn(middleware::limit_admin_auth))
+        .layer(axum_middleware::from_fn(middleware::limit_rsvp_submissions))
         .layer(cors)
         .layer(DefaultBodyLimit::max(MAX_BODY_BYTES))
         .with_state(state);

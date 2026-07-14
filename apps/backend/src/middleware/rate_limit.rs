@@ -20,9 +20,20 @@ use serde_json::json;
 const MAX_FAILURES: usize = 5;
 const WINDOW: Duration = Duration::from_secs(15 * 60);
 
+/// Maksimal kiriman RSVP per IP per jendela -- endpoint-nya publik tanpa auth,
+/// jadi ini satu-satunya rem terhadap spam ucapan. Dihitung SEMUA kiriman
+/// (bukan cuma yang gagal): tamu wajar paling mengirim 1-2 ucapan.
+const MAX_RSVP_PER_WINDOW: usize = 5;
+const RSVP_WINDOW: Duration = Duration::from_secs(10 * 60);
+
 /// Timestamp kegagalan per IP. In-memory (hilang saat restart) -- cukup untuk
 /// memperlambat brute force; bukan pengganti password yang kuat.
 static FAILURES: LazyLock<Mutex<HashMap<IpAddr, Vec<Instant>>>> =
+    LazyLock::new(|| Mutex::new(HashMap::new()));
+
+/// Timestamp kiriman RSVP per IP -- map terpisah dari FAILURES karena
+/// kebijakannya beda (hitung semua request, jendela lebih pendek).
+static RSVP_SUBMISSIONS: LazyLock<Mutex<HashMap<IpAddr, Vec<Instant>>>> =
     LazyLock::new(|| Mutex::new(HashMap::new()));
 
 /// IP klien: pakai hop pertama X-Forwarded-For kalau ada (diisi reverse proxy
@@ -90,4 +101,47 @@ pub async fn limit_admin_auth(
     }
 
     response
+}
+
+/// Catat satu kiriman dan laporkan apakah IP ini sudah melewati kuota.
+/// Sliding window sederhana: timestamp kedaluwarsa dibuang setiap dicek.
+fn rsvp_over_quota(ip: IpAddr) -> bool {
+    let mut submissions = RSVP_SUBMISSIONS.lock().expect("rate limit mutex poisoned");
+    let now = Instant::now();
+    let timestamps = submissions.entry(ip).or_default();
+
+    timestamps.retain(|t| now.duration_since(*t) < RSVP_WINDOW);
+    if timestamps.len() >= MAX_RSVP_PER_WINDOW {
+        return true;
+    }
+
+    timestamps.push(now);
+    false
+}
+
+/// Middleware anti-spam kiriman RSVP: hanya menyentuh POST /api/rsvp.
+/// GET /api/rsvp (baca daftar ucapan) tidak dibatasi.
+pub async fn limit_rsvp_submissions(
+    ConnectInfo(connect_addr): ConnectInfo<SocketAddr>,
+    request: Request<Body>,
+    next: Next,
+) -> Response {
+    let is_rsvp_post =
+        request.method() == axum::http::Method::POST && request.uri().path() == "/api/rsvp";
+
+    if !is_rsvp_post {
+        return next.run(request).await;
+    }
+
+    let ip = client_ip(&request, connect_addr);
+
+    if rsvp_over_quota(ip) {
+        return (
+            StatusCode::TOO_MANY_REQUESTS,
+            Json(json!({ "error": "terlalu banyak kiriman, coba lagi beberapa menit lagi" })),
+        )
+            .into_response();
+    }
+
+    next.run(request).await
 }

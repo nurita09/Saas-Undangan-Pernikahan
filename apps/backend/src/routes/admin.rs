@@ -17,6 +17,7 @@ use crate::{
         wedding::ContactSettingsDto,
     },
     state::AppState,
+    utils::url::validate_optional_url,
 };
 
 const MAX_MUSIC_UPLOAD_BYTES: usize = 15 * 1024 * 1024;
@@ -247,6 +248,9 @@ pub async fn update_settings(
     Json(payload): Json<UpdateSettingsPayload>,
 ) -> Result<Json<ContactSettingsDto>, AppError> {
     require_admin_auth(&headers, &state.config)?;
+
+    validate_optional_url("contact_instagram_url", &payload.contact_instagram_url)?;
+    validate_optional_url("contact_whatsapp_url", &payload.contact_whatsapp_url)?;
 
     sqlx::query(
         r#"

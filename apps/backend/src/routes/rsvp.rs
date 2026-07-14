@@ -25,6 +25,12 @@ pub struct RsvpResponse {
     pub created_at: DateTime<Utc>,
 }
 
+// Batas panjang input tamu: guest_name mengikuti kolom VARCHAR(150), message
+// dibatasi di aplikasi (kolomnya TEXT) supaya endpoint publik ini tidak bisa
+// dipakai menimbun data raksasa.
+const MAX_GUEST_NAME_CHARS: usize = 150;
+const MAX_MESSAGE_CHARS: usize = 1000;
+
 pub async fn submit_rsvp(
     Extension(tenant): Extension<TenantSlug>,
     State(state): State<AppState>,
@@ -38,6 +44,28 @@ pub async fn submit_rsvp(
         .await?
         .ok_or(AppError::NotFound)?;
 
+    let guest_name = payload.guest_name.trim().to_string();
+    if guest_name.is_empty() {
+        return Err(AppError::InvalidInput("nama wajib diisi".to_string()));
+    }
+    if guest_name.chars().count() > MAX_GUEST_NAME_CHARS {
+        return Err(AppError::InvalidInput(format!(
+            "nama maksimal {MAX_GUEST_NAME_CHARS} karakter"
+        )));
+    }
+
+    let message = payload
+        .message
+        .map(|m| m.trim().to_string())
+        .filter(|m| !m.is_empty());
+    if let Some(ref m) = message {
+        if m.chars().count() > MAX_MESSAGE_CHARS {
+            return Err(AppError::InvalidInput(format!(
+                "ucapan maksimal {MAX_MESSAGE_CHARS} karakter"
+            )));
+        }
+    }
+
     let attendance_status = match payload.attendance_status.as_str() {
         "attending" | "not_attending" | "maybe" => payload.attendance_status,
         _ => return Err(AppError::InvalidInput("Invalid attendance status".to_string())),
@@ -47,9 +75,9 @@ pub async fn submit_rsvp(
         "INSERT INTO rsvp (wedding_id, guest_name, attendance_status, message) VALUES ($1, $2, $3, $4) RETURNING id, created_at"
     )
     .bind(wedding_id)
-    .bind(&payload.guest_name)
+    .bind(&guest_name)
     .bind(&attendance_status)
-    .bind(&payload.message)
+    .bind(&message)
     .fetch_one(&state.db)
     .await?;
 
@@ -57,9 +85,9 @@ pub async fn submit_rsvp(
         StatusCode::CREATED,
         Json(RsvpResponse {
             id: row.0,
-            guest_name: payload.guest_name,
+            guest_name,
             attendance_status,
-            message: payload.message,
+            message,
             created_at: row.1,
         }),
     ))

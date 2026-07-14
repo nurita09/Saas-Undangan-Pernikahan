@@ -15,6 +15,7 @@ use crate::{
         WeddingGiftEntry,
     },
     state::AppState,
+    utils::url::validate_optional_url,
 };
 
 const MAX_UPLOAD_BYTES: usize = 10 * 1024 * 1024;
@@ -75,7 +76,8 @@ async fn fetch_edit_data(db: &PgPool, wedding_id: Uuid) -> Result<WeddingEditDat
             d.resepsi_location,
             d.resepsi_maps_url,
             d.gallery_video_url,
-            w.theme_settings
+            w.theme_settings,
+            w.updated_at
         FROM weddings w
         INNER JOIN wedding_details d ON d.wedding_id = w.id
         WHERE w.id = $1
@@ -166,6 +168,28 @@ fn parse_wedding_date(raw: &Option<String>) -> Result<Option<DateTime<Utc>>, App
     }
 }
 
+/// Semua field URL dari input user wajib berskema http(s) -- nilai seperti
+/// "javascript:..." dirender frontend sebagai href dan bisa jadi vektor XSS.
+fn validate_urls(payload: &UpdateWeddingPayload) -> Result<(), AppError> {
+    validate_optional_url("maps_url", &payload.maps_url)?;
+    validate_optional_url("akad_maps_url", &payload.akad_maps_url)?;
+    validate_optional_url("resepsi_maps_url", &payload.resepsi_maps_url)?;
+    validate_optional_url("gallery_video_url", &payload.gallery_video_url)?;
+    validate_optional_url("cover_photo_url", &payload.cover_photo_url)?;
+    validate_optional_url("music_url", &payload.music_url)?;
+    validate_optional_url("groom_photo_url", &payload.groom_photo_url)?;
+    validate_optional_url("bride_photo_url", &payload.bride_photo_url)?;
+
+    for story in &payload.love_stories {
+        validate_optional_url("love_stories.photo_url", &story.photo_url)?;
+    }
+    for url in &payload.gallery_photos {
+        validate_optional_url("gallery_photos", &Some(url.clone()))?;
+    }
+
+    Ok(())
+}
+
 fn validate_arrays(payload: &UpdateWeddingPayload) -> Result<(), AppError> {
     if payload.love_stories.len() > MAX_LOVE_STORIES {
         return Err(AppError::InvalidInput(format!(
@@ -213,12 +237,35 @@ pub async fn update_wedding(
     validate_hex_color(&payload.primary_color)?;
     validate_hex_color(&payload.secondary_color)?;
     validate_arrays(&payload)?;
+    validate_urls(&payload)?;
 
     let wedding_date = parse_wedding_date(&payload.wedding_date)?;
     let akad_date = parse_wedding_date(&payload.akad_date)?;
     let resepsi_date = parse_wedding_date(&payload.resepsi_date)?;
 
+    // Snapshot data lama SEBELUM update -- dipakai setelah commit untuk
+    // menghapus objek MinIO yang tidak direferensikan lagi (foto diganti/dihapus).
+    let old_data = fetch_edit_data(&state.db, wedding_id).await?;
+
     let mut tx = state.db.begin().await?;
+
+    // Optimistic locking: FOR UPDATE mengunci baris sampai commit, lalu versi
+    // yang dipegang klien dibandingkan dengan versi DB. Kalau beda, berarti ada
+    // simpanan lain sejak form dimuat (mis. tab kedua) -- tolak, jangan timpa.
+    let current_updated_at = sqlx::query_scalar::<_, DateTime<Utc>>(
+        "SELECT updated_at FROM weddings WHERE id = $1 FOR UPDATE",
+    )
+    .bind(wedding_id)
+    .fetch_one(&mut *tx)
+    .await?;
+
+    if let Some(expected) = payload.expected_updated_at {
+        if expected != current_updated_at {
+            return Err(AppError::Conflict(
+                "data undangan sudah berubah di tempat lain (mis. tab lain). Muat ulang halaman ini dulu, lalu ulangi perubahanmu".to_string(),
+            ));
+        }
+    }
 
     sqlx::query(
         "UPDATE weddings SET primary_color = $1, secondary_color = $2, theme_settings = $3, music_url = $4, updated_at = now() WHERE id = $5",
@@ -274,8 +321,76 @@ pub async fn update_wedding(
 
     tx.commit().await?;
 
+    // Setelah DB commit sukses, bersihkan objek MinIO yang tak lagi dirujuk.
+    // Kegagalan hapus tidak menggagalkan request (data sudah tersimpan benar).
+    cleanup_orphaned_photos(&state, wedding_id, &old_data, &payload).await;
+
     let data = fetch_edit_data(&state.db, wedding_id).await?;
     Ok(Json(data))
+}
+
+/// Kumpulkan semua URL foto yang dirujuk data lama, bandingkan dengan payload
+/// baru, lalu hapus dari MinIO yang hilang -- HANYA objek milik wedding ini
+/// (prefix weddings/{id}/) supaya tidak mungkin menghapus aset wedding lain
+/// atau lagu di music library (music_url sengaja tidak ikut dihitung).
+async fn cleanup_orphaned_photos(
+    state: &AppState,
+    wedding_id: Uuid,
+    old_data: &WeddingEditData,
+    payload: &UpdateWeddingPayload,
+) {
+    fn theme_photo_urls(settings: &Option<serde_json::Value>) -> Vec<String> {
+        let mut urls = Vec::new();
+        if let Some(obj) = settings.as_ref().and_then(|v| v.as_object()) {
+            for key in ["section1_photo_url", "section2_photo_url"] {
+                if let Some(url) = obj.get(key).and_then(|v| v.as_str()) {
+                    urls.push(url.to_string());
+                }
+            }
+        }
+        urls
+    }
+
+    let mut old_urls: Vec<String> = Vec::new();
+    old_urls.extend(old_data.cover_photo_url.clone());
+    old_urls.extend(old_data.groom_photo_url.clone());
+    old_urls.extend(old_data.bride_photo_url.clone());
+    old_urls.extend(old_data.love_stories.iter().filter_map(|s| s.photo_url.clone()));
+    old_urls.extend(old_data.gallery_photos.iter().cloned());
+    old_urls.extend(theme_photo_urls(&old_data.theme_settings));
+
+    let mut new_urls: Vec<String> = Vec::new();
+    new_urls.extend(payload.cover_photo_url.clone());
+    new_urls.extend(payload.groom_photo_url.clone());
+    new_urls.extend(payload.bride_photo_url.clone());
+    new_urls.extend(payload.love_stories.iter().filter_map(|s| s.photo_url.clone()));
+    new_urls.extend(payload.gallery_photos.iter().cloned());
+    new_urls.extend(theme_photo_urls(&payload.theme_settings));
+
+    let owned_prefix = format!(
+        "{}/{}/weddings/{wedding_id}/",
+        state.config.minio_public_url, state.config.minio_bucket
+    );
+
+    for url in old_urls {
+        if new_urls.contains(&url) || !url.starts_with(&owned_prefix) {
+            continue;
+        }
+
+        // "{public_url}/{bucket}/{key}" -> ambil bagian key-nya saja.
+        let key = &url[format!("{}/{}/", state.config.minio_public_url, state.config.minio_bucket).len()..];
+
+        if let Err(err) = state
+            .s3_client
+            .delete_object()
+            .bucket(&state.config.minio_bucket)
+            .key(key)
+            .send()
+            .await
+        {
+            tracing::warn!(error = ?err, key, "gagal menghapus objek MinIO yatim");
+        }
+    }
 }
 
 async fn replace_love_stories(

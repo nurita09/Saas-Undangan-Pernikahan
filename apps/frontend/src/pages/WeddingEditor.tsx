@@ -178,6 +178,9 @@ export default function WeddingEditor({ slug }: WeddingEditorProps) {
   // Nomor versi preview: dinaikkan setiap simpan sukses supaya iframe di-mount
   // ulang (key berubah) dan memuat data terbaru dari API.
   const [previewVersion, setPreviewVersion] = useState(0);
+  // Versi data untuk optimistic locking -- dikirim balik saat simpan; kalau
+  // sudah basi (ada simpanan dari tab lain), backend menolak 409.
+  const [updatedAt, setUpdatedAt] = useState<string | null>(null);
 
   useEffect(() => {
     if (!token) {
@@ -188,6 +191,7 @@ export default function WeddingEditor({ slug }: WeddingEditorProps) {
     fetchEditAuth(slug, token)
       .then((data) => {
         setForm(toFormState(data));
+        setUpdatedAt(data.updated_at);
         setAuthState('authorized');
       })
       .catch(() => setAuthState('denied'));
@@ -336,6 +340,7 @@ export default function WeddingEditor({ slug }: WeddingEditorProps) {
         resepsi_location: form.resepsi_location || null,
         resepsi_maps_url: form.resepsi_maps_url || null,
         gallery_video_url: form.gallery_video_url || null,
+        expected_updated_at: updatedAt,
         theme_settings: {
           section1_photo_url: form.section1_photo_url || null,
           section2_photo_url: form.section2_photo_url || null,
@@ -347,6 +352,7 @@ export default function WeddingEditor({ slug }: WeddingEditorProps) {
         wedding_gifts: weddingGifts,
       });
       setForm(toFormState(updated));
+      setUpdatedAt(updated.updated_at);
       setSaveState('success');
       setPreviewVersion((v) => v + 1);
     } catch (error) {
