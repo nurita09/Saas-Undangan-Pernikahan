@@ -1,0 +1,13 @@
+ALTER TABLE wedding_details ADD COLUMN IF NOT EXISTS groom_photo_url TEXT;
+ALTER TABLE wedding_details ADD COLUMN IF NOT EXISTS bride_photo_url TEXT;
+ALTER TABLE wedding_details ADD COLUMN IF NOT EXISTS groom_parents VARCHAR(255);
+ALTER TABLE wedding_details ADD COLUMN IF NOT EXISTS bride_parents VARCHAR(255);
+ALTER TABLE wedding_details ADD COLUMN IF NOT EXISTS groom_ig VARCHAR(100);
+ALTER TABLE wedding_details ADD COLUMN IF NOT EXISTS bride_ig VARCHAR(100);
+ALTER TABLE wedding_details ADD COLUMN IF NOT EXISTS akad_date TIMESTAMPTZ;
+ALTER TABLE wedding_details ADD COLUMN IF NOT EXISTS akad_location TEXT;
+ALTER TABLE wedding_details ADD COLUMN IF NOT EXISTS akad_maps_url TEXT;
+ALTER TABLE wedding_details ADD COLUMN IF NOT EXISTS resepsi_date TIMESTAMPTZ;
+ALTER TABLE wedding_details ADD COLUMN IF NOT EXISTS resepsi_location TEXT;
+ALTER TABLE wedding_details ADD COLUMN IF NOT EXISTS resepsi_maps_url TEXT;
+ALTER TABLE wedding_details ADD COLUMN IF NOT EXISTS gallery_video_url TEXT;

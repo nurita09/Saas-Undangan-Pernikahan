@@ -1,0 +1,13 @@
+# env
+.env
+
+# rust
+apps/backend/target/
+
+# node
+apps/frontend/node_modules/
+apps/frontend/dist/
+apps/frontend/*.tsbuildinfo
+
+# os
+.DS_Store

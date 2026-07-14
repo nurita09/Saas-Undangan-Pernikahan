@@ -1,0 +1,157 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Poppins", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Playfair Display", ui-serif, Georgia, serif;
+  --font-script: "Great Vibes", cursive;
+
+  --animate-fade-up: fade-up 0.9s ease-out forwards;
+  --animate-fade-in-scale: fade-in-scale 1.4s ease-out forwards;
+  --animate-fade-in: fade-in 0.8s ease-out forwards;
+}
+
+body {
+  @apply font-sans text-neutral-800 antialiased;
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in-scale {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes float-sway {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(1.2deg);
+  }
+}
+
+/* Dekorasi bunga sudut: muncul sekali (fade-in-scale), lalu lanjut melayang
+   pelan tanpa henti (float-sway). Dua animasi digabung lewat properti
+   longhand supaya bisa jalan bersamaan pada elemen yang sama -- delay tiap
+   bagian diatur per elemen lewat inline style `animationDelay` (format
+   "delay-masuk, delay-melayang", dipasangkan urut dengan animation-name).
+   Ukuran gerakan sengaja kecil (10px, ~1 derajat) supaya halus, bukan
+   mengganggu kesan elegan undangannya. */
+.corner-float {
+  opacity: 0;
+  animation-name: fade-in-scale, float-sway;
+  animation-duration: 1.4s, 7s;
+  animation-timing-function: ease-out, ease-in-out;
+  animation-fill-mode: forwards, none;
+  animation-iteration-count: 1, infinite;
+}
+
+/* ---------------------------------------------------------------------------
+   Scroll reveal (dipakai komponen <Reveal> di themes/theme1/components).
+   Elemen mulai tersembunyi sesuai varian arahnya; saat masuk viewport,
+   IntersectionObserver menambahkan .is-visible dan transition membawanya ke
+   posisi final. Pakai transition (bukan animation) supaya delay per elemen
+   cukup lewat inline `transition-delay` untuk efek stagger.
+   --------------------------------------------------------------------------- */
+.reveal {
+  opacity: 0;
+  transition:
+    opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.9s cubic-bezier(0.22, 1, 0.36, 1),
+    filter 0.9s ease-out;
+  will-change: opacity, transform;
+}
+
+.reveal-up {
+  transform: translateY(28px);
+}
+
+.reveal-left {
+  transform: translateX(-32px);
+}
+
+.reveal-right {
+  transform: translateX(32px);
+}
+
+.reveal-zoom {
+  transform: scale(0.9);
+}
+
+.reveal-blur {
+  transform: translateY(12px);
+  filter: blur(8px);
+}
+
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+  filter: none;
+}
+
+/* Garis timeline Love Story "menggambar dirinya" dari atas ke bawah begitu
+   wrapper Reveal-nya terlihat (selector turunan .is-visible). */
+.timeline-line {
+  transform: scaleY(0);
+  transform-origin: top;
+  transition: transform 1.6s cubic-bezier(0.22, 1, 0.36, 1) 0.3s;
+}
+
+.reveal.is-visible .timeline-line {
+  transform: scaleY(1);
+}
+
+/* Dekorasi sudut di section dalam (bukan cover): melayang pelan terus-menerus.
+   Durasi/delay divariasikan per elemen lewat inline style supaya tidak serempak. */
+.deco-float {
+  animation: float-sway 8s ease-in-out infinite;
+}
+
+/* Elemen ber-animasi mulai tak terlihat sebelum animasi jalan (fill-mode: forwards
+   dimulai dari keyframe "from"). Kalau user minta reduced motion, langsung
+   tampilkan final state tanpa animasi sama sekali. */
+@media (prefers-reduced-motion: reduce) {
+  [class*="animate-fade-up"],
+  [class*="animate-fade-in-scale"],
+  [class*="animate-fade-in"],
+  [class*="animate-ping"],
+  .corner-float,
+  .deco-float,
+  .reveal {
+    animation: none !important;
+    transition: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+  }
+
+  .timeline-line {
+    transform: scaleY(1) !important;
+    transition: none !important;
+  }
+}

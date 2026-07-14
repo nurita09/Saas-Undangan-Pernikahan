@@ -1,0 +1,19 @@
+# Image dev-only: source di-mount sebagai volume oleh docker-compose,
+# cargo-watch yang rebuild & restart otomatis tiap ada perubahan file.
+# Untuk image production (multi-stage, binary kecil) akan dibuat terpisah nanti.
+FROM rust:1-slim-bookworm
+
+# sqlx (native-tls) butuh OpenSSL untuk link saat build
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    pkg-config \
+    libssl-dev \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN cargo install cargo-watch --locked
+
+WORKDIR /app
+
+# Watch path dibatasi eksplisit supaya perubahan di target/ (hasil build) tidak
+# memicu rebuild loop tak berujung.
+CMD ["cargo", "watch", "-w", "src", "-w", "Cargo.toml", "-w", "migrations", "-x", "run"]
