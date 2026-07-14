@@ -108,10 +108,10 @@ function buildOgTags({ title, description, imageUrl, pageUrl }: OgData): string 
  * link polos. Crawler socmed tidak menjalankan JavaScript, jadi meta HARUS
  * sudah ada di HTML yang diserve server, bukan di-set client-side.
  *
- * CATATAN PRODUCTION: plugin ini hanya jalan di Vite dev server. Saat nanti
- * production (vite build + nginx/backend yang serve HTML statis), logika yang
- * sama perlu dipindah ke layer yang men-serve index.html (nginx sub_filter /
- * handler backend).
+ * CATATAN PRODUCTION: plugin ini hanya jalan di Vite dev server. Padanan
+ * production-nya ada di backend (apps/backend/src/routes/spa.rs) -- aktif saat
+ * FRONTEND_DIST_DIR di-set, menyajikan hasil `vite build` + OG injection yang
+ * sama. Kalau mengubah bentuk OG di sini, ubah juga di sana.
  */
 function ogTagsPlugin(): Plugin {
   return {

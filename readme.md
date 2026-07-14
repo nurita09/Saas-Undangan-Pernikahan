@@ -278,13 +278,74 @@ Backend **tidak** punya variabel domain (`APP_BASE_DOMAIN` sudah dihapus) — UR
 
 ---
 
+## Production Deployment
+
+Stack production memakai **satu image aplikasi** (`infra/Dockerfile.prod`): frontend
+di-`vite build` lalu disajikan langsung oleh backend Rust — termasuk inject OG meta
+tags per wedding (padanan production dari plugin Vite dev, lihat
+`apps/backend/src/routes/spa.rs`). Tidak ada Vite/nginx untuk HTML di production.
+
+### Menjalankan
+
+```bash
+# dari root repo; pastikan .env berisi nilai production (lihat bawah)
+docker compose -p undangan-prod --env-file .env -f infra/docker-compose.prod.yml up -d --build
+```
+
+Env WAJIB untuk production (di samping yang sudah ada di `.env.example`):
+
+| Variabel | Contoh | Catatan |
+| --- | --- | --- |
+| `ADMIN_PASSWORD` | (acak panjang) | Jangan pakai default. |
+| `POSTGRES_PASSWORD` | (acak panjang) | |
+| `MINIO_ROOT_USER` / `MINIO_ROOT_PASSWORD` | (acak) | |
+| `MINIO_PUBLIC_URL` | `https://assets.domainmu.com` | URL publik asset yang bisa diakses browser tamu — URL foto/lagu yang tersimpan memakai base ini. |
+| `APP_PORT` | `8080` | Port host untuk container app. |
+
+### DNS & TLS (wajib di depan stack)
+
+1. **DNS wildcard**: arahkan `domainmu.com` dan `*.domainmu.com` (A record) ke server.
+2. **Reverse proxy ber-TLS** — Basic Auth admin & token editor hanya aman di belakang
+   HTTPS. Dua opsi mudah:
+   - **Cloudflare** (paling praktis): proxy oranye untuk `domainmu.com`, `*.domainmu.com`
+     (wildcard butuh plan yang mendukung / Advanced Certificate), dan
+     `assets.domainmu.com` → origin port `APP_PORT` / `MINIO_API_PORT`.
+   - **Caddy** di server yang sama (wildcard cert via DNS challenge):
+     ```
+     *.domainmu.com, domainmu.com {
+         reverse_proxy localhost:8080
+     }
+     assets.domainmu.com {
+         reverse_proxy localhost:9000
+     }
+     ```
+3. Backend me-resolve tenant dari `Host` header, jadi proxy harus meneruskan Host
+   apa adanya (perilaku default Cloudflare & Caddy `reverse_proxy`).
+
+### Backup
+
+```bash
+# Postgres: dump harian (contoh cron 03:00)
+0 3 * * * docker exec undangan-prod-postgres pg_dump -U undangan undangan | gzip > /backup/undangan-$(date +\%F).sql.gz
+
+# MinIO: mirror bucket asset ke folder backup
+docker run --rm --network undangan-prod-net -v /backup/minio:/backup minio/mc:latest \
+  sh -c "mc alias set local http://minio:9000 $MINIO_ROOT_USER $MINIO_ROOT_PASSWORD && mc mirror local/undangan-assets /backup"
+```
+
+Migrasi database berjalan otomatis saat container app start (ter-embed di binary
+via `sqlx::migrate!`).
+
 ## Keterbatasan & Langkah Selanjutnya
 
 Hal-hal yang secara sadar disederhanakan untuk MVP, dan bisa jadi prioritas iterasi berikutnya:
 
-- **RSVP belum ada endpoint API** — skema tabel sudah siap, form di desain Figma (Section 7) sudah ada, tinggal dibangun `POST/GET /api/rsvp`.
-- **Timezone `wedding_date`** — disimpan apa adanya dari `<input type="datetime-local">` tanpa konversi timezone sungguhan (angka jam dianggap WIB, disimpan sebagai UTC tanpa geser). Cukup untuk round-trip tampilan, belum akurat lintas timezone.
-- **Section Figma yang belum dibangun**: Love Story timeline, galeri foto, Wedding Gift (rekening/kado), Bride & Groom detail (orang tua, Instagram) — perlu kolom skema baru sebelum diimplementasi (sengaja tidak diisi data palsu/lorem-ipsum).
+- **Timezone = WIB tunggal** — konvensi platform: semua timestamp acara adalah jam
+  dinding WIB (lihat `apps/frontend/src/utils/formatDate.ts`). Countdown & file .ics
+  sudah benar untuk tamu di timezone mana pun, tapi belum ada dukungan acara di
+  WITA/WIT (perlu kolom timezone per wedding kalau dibutuhkan).
 - **Basic Auth admin** aman hanya di belakang HTTPS (Cloudflare/nginx TLS termination) — jangan expose port 8080 backend langsung ke internet tanpa TLS di depannya.
 - **Hanya Theme 1** yang punya komponen — `registry.ts` & `theme_id` di skema sudah didesain skalabel untuk Theme 2, 3, dst.
 - **Root domain ccSLD** (mis. `undangan.co.id`, 3 label) belum didukung oleh heuristik hitung-label subdomain (butuh public suffix list kalau nanti dipakai domain seperti itu).
+- **Belum ada billing/masa aktif** — gerbang publish sudah ada (admin toggle), tapi alur bayar/expired/perpanjang belum.
+- **Belum ada hapus wedding & kelola lagu (hapus/edit) dari Admin UI** — masih lewat SQL manual.

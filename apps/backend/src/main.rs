@@ -49,7 +49,17 @@ async fn main() -> anyhow::Result<()> {
         .allow_methods(Any)
         .allow_headers(Any);
 
-    let app = routes::router()
+    let mut app = routes::router();
+
+    // Mode production: sajikan SPA hasil `vite build` (+ OG tags per wedding)
+    // dari backend, tanpa Vite dev server. Fallback dipasang SEBELUM .layer()
+    // supaya middleware tenant tetap membungkusnya.
+    if config.frontend_dist_dir.is_some() {
+        app = app.fallback(axum::routing::get(routes::spa::serve_spa));
+        tracing::info!("mode production: menyajikan SPA dari FRONTEND_DIST_DIR");
+    }
+
+    let app = app
         .layer(axum_middleware::from_fn(middleware::resolve_tenant))
         .layer(axum_middleware::from_fn(middleware::limit_admin_auth))
         .layer(axum_middleware::from_fn(middleware::limit_rsvp_submissions))

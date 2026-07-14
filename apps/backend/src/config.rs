@@ -16,6 +16,10 @@ pub struct AppConfig {
     /// belakang HTTPS (TLS di-terminate Cloudflare/nginx).
     pub admin_username: String,
     pub admin_password: String,
+    /// Mode production: path direktori hasil `vite build` (mis. "/app/dist").
+    /// Kalau di-set, backend ikut menyajikan SPA + inject OG tags per wedding
+    /// (menggantikan Vite dev server). Kosong = mode dev, API saja.
+    pub frontend_dist_dir: Option<String>,
 }
 
 impl AppConfig {
@@ -36,6 +40,7 @@ impl AppConfig {
             admin_username: env::var("ADMIN_USERNAME").unwrap_or_else(|_| "admin".to_string()),
             admin_password: env::var("ADMIN_PASSWORD")
                 .expect("ADMIN_PASSWORD harus di-set di .env"),
+            frontend_dist_dir: env::var("FRONTEND_DIST_DIR").ok().filter(|v| !v.is_empty()),
         }
     }
 }

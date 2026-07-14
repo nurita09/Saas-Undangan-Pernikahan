@@ -1,4 +1,5 @@
 mod admin;
+pub mod spa;
 mod wedding;
 mod wedding_edit;
 mod rsvp;

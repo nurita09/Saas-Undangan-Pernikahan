@@ -1,0 +1,106 @@
+# Stack PRODUCTION: satu container "app" (backend Rust yang juga menyajikan SPA
+# hasil vite build + OG tags), Postgres, dan MinIO. Jalankan dari root repo:
+#
+#   docker compose -p undangan-prod --env-file .env -f infra/docker-compose.prod.yml up -d --build
+#
+# Yang WAJIB di depan stack ini saat production sungguhan (lihat readme.md
+# bagian "Production Deployment"):
+#   - Reverse proxy ber-TLS (Caddy/nginx/Cloudflare) untuk *.domainmu -> app:8080
+#     dan assets.domainmu -> minio:9000 (MINIO_PUBLIC_URL harus URL publik itu).
+#   - DNS wildcard *.domainmu mengarah ke server ini.
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: undangan-prod-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-undangan}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD harus di-set}
+      POSTGRES_DB: ${POSTGRES_DB:-undangan}
+    volumes:
+      - postgres_prod_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-undangan} -d ${POSTGRES_DB:-undangan}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - undangan-prod-net
+
+  minio:
+    image: minio/minio:latest
+    container_name: undangan-prod-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:?MINIO_ROOT_USER harus di-set}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?MINIO_ROOT_PASSWORD harus di-set}
+    # Hanya API MinIO yang diekspos (untuk reverse proxy asset); console 9001
+    # sengaja tidak dipublikasikan -- akses lewat SSH tunnel kalau perlu.
+    ports:
+      - "${MINIO_API_PORT:-9000}:9000"
+    volumes:
+      - minio_prod_data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - undangan-prod-net
+
+  minio-init:
+    image: minio/mc:latest
+    container_name: undangan-prod-minio-init
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set local http://minio:9000 ${MINIO_ROOT_USER} ${MINIO_ROOT_PASSWORD};
+      mc mb --ignore-existing local/${MINIO_BUCKET:-undangan-assets};
+      mc anonymous set download local/${MINIO_BUCKET:-undangan-assets};
+      exit 0;
+      "
+    networks:
+      - undangan-prod-net
+
+  app:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile.prod
+    container_name: undangan-prod-app
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-undangan}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD harus di-set}@postgres:5432/${POSTGRES_DB:-undangan}
+      SERVER_PORT: 8080
+      RUST_LOG: info
+      MINIO_ENDPOINT: http://minio:9000
+      # WAJIB URL publik yang bisa diakses browser tamu, mis.
+      # https://assets.domainmu.com (di-proxy TLS ke minio:9000).
+      MINIO_PUBLIC_URL: ${MINIO_PUBLIC_URL:?MINIO_PUBLIC_URL harus di-set (URL publik asset)}
+      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER}
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD}
+      MINIO_BUCKET: ${MINIO_BUCKET:-undangan-assets}
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?ADMIN_PASSWORD harus di-set}
+      # Sudah di-set di image (Dockerfile.prod), ditulis eksplisit biar terlihat.
+      FRONTEND_DIST_DIR: /app/dist
+    ports:
+      - "${APP_PORT:-8080}:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    networks:
+      - undangan-prod-net
+
+networks:
+  undangan-prod-net:
+    driver: bridge
+
+volumes:
+  postgres_prod_data:
+  minio_prod_data:
