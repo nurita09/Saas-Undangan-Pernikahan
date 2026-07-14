@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { parseWibDate } from '../utils/formatDate';
 
 export interface TimeLeft {
   total: number;
@@ -20,12 +21,14 @@ function computeTimeLeft(targetDate: Date): TimeLeft {
 }
 
 /**
- * Hitung mundur menuju `targetDateString` (ISO string), update tiap detik.
- * Mengembalikan null kalau targetDateString kosong (mis. wedding_date belum diisi).
+ * Hitung mundur menuju `targetDateString` (jam dinding WIB dari backend, lihat
+ * konvensi di utils/formatDate.ts), update tiap detik. Target diparse lewat
+ * parseWibDate supaya tamu di timezone mana pun menghitung mundur ke instant
+ * yang sama. Mengembalikan null kalau targetDateString kosong.
  */
 export function useCountdown(targetDateString: string | null | undefined): TimeLeft | null {
   const [timeLeft, setTimeLeft] = useState<TimeLeft | null>(() =>
-    targetDateString ? computeTimeLeft(new Date(targetDateString)) : null,
+    targetDateString ? computeTimeLeft(parseWibDate(targetDateString)) : null,
   );
 
   useEffect(() => {
@@ -34,7 +37,7 @@ export function useCountdown(targetDateString: string | null | undefined): TimeL
       return;
     }
 
-    const target = new Date(targetDateString);
+    const target = parseWibDate(targetDateString);
     setTimeLeft(computeTimeLeft(target));
 
     const interval = setInterval(() => {

@@ -143,11 +143,15 @@ function ogTagsPlugin(): Plugin {
           if (!data) return next();
 
           const pageTitle = `The Wedding of ${data.couple.groom_name} & ${data.couple.bride_name}`;
+          // Timestamp backend = jam dinding WIB (konvensi platform, lihat
+          // src/utils/formatDate.ts) -- parse dengan offset +07:00 eksplisit
+          // dan format di zona Asia/Jakarta supaya tidak geser di Node (UTC).
           const dateText = data.event.wedding_date
-            ? new Date(data.event.wedding_date).toLocaleDateString('id-ID', {
+            ? new Date(`${data.event.wedding_date.slice(0, 16)}:00+07:00`).toLocaleDateString('id-ID', {
                 day: 'numeric',
                 month: 'long',
                 year: 'numeric',
+                timeZone: 'Asia/Jakarta',
               })
             : null;
           const description = [

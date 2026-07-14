@@ -17,3 +17,33 @@ pub fn validate_optional_url(field: &str, value: &Option<String>) -> Result<(), 
     }
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn accepts_http_https_empty_and_none() {
+        assert!(validate_optional_url("u", &None).is_ok());
+        assert!(validate_optional_url("u", &Some("".to_string())).is_ok());
+        assert!(validate_optional_url("u", &Some("   ".to_string())).is_ok());
+        assert!(validate_optional_url("u", &Some("http://a.com/x".to_string())).is_ok());
+        assert!(validate_optional_url("u", &Some("https://a.com/x?y=1".to_string())).is_ok());
+    }
+
+    #[test]
+    fn rejects_dangerous_schemes() {
+        for bad in ["javascript:alert(1)", "data:text/html,x", "ftp://a.com", "//evil.com", "vbscript:x"] {
+            assert!(
+                validate_optional_url("u", &Some(bad.to_string())).is_err(),
+                "harusnya menolak: {bad}"
+            );
+        }
+    }
+
+    #[test]
+    fn error_message_names_the_field() {
+        let err = validate_optional_url("maps_url", &Some("javascript:x".to_string())).unwrap_err();
+        assert!(err.to_string().contains("maps_url"));
+    }
+}

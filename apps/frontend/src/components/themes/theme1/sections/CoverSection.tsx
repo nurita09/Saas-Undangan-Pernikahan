@@ -1,3 +1,4 @@
+import { formatCoverDate } from '../../../../utils/formatDate';
 import type { CoupleInfo } from '../../../../types/wedding';
 import cornerTopLeft from '../../../../assets/theme1/cover-cropped/th1-cover-ataskiri.png';
 import cornerTopRight from '../../../../assets/theme1/cover-cropped/th1-cover-ataskanan.png';
@@ -69,9 +70,7 @@ export default function CoverSection({
 
         {weddingDate && (
           <p className="opacity-0 animate-fade-up [animation-delay:600ms] mt-8 font-serif italic text-2xl text-neutral-600 tracking-widest">
-            {new Date(weddingDate)
-              .toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' })
-              .replace(/\//g, '. ')}
+            {formatCoverDate(weddingDate)}
           </p>
         )}
 

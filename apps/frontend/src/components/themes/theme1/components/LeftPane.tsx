@@ -1,3 +1,4 @@
+import { formatCoverDate } from '../../../../utils/formatDate';
 import type { CoupleInfo } from '../../../../types/wedding';
 
 interface LeftPaneProps {
@@ -28,9 +29,7 @@ export default function LeftPane({ couple, weddingDate, coverPhotoUrl }: LeftPan
         </h1>
         {weddingDate && (
           <p className="mt-6 font-serif italic text-2xl tracking-[0.2em] text-white/90 drop-shadow-md">
-            {new Date(weddingDate)
-              .toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' })
-              .replace(/\//g, '. ')}
+            {formatCoverDate(weddingDate)}
           </p>
         )}
       </div>

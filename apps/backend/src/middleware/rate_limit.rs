@@ -119,6 +119,72 @@ fn rsvp_over_quota(ip: IpAddr) -> bool {
     false
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // Catatan: FAILURES/RSVP_SUBMISSIONS adalah state global se-proses, jadi
+    // setiap test memakai IP unik miliknya sendiri agar tidak saling ganggu
+    // (cargo test menjalankan test paralel dalam satu proses).
+
+    fn ip(last: u8) -> IpAddr {
+        IpAddr::from([10, 99, 0, last])
+    }
+
+    #[test]
+    fn admin_ip_blocked_only_after_max_failures() {
+        let addr = ip(1);
+        assert!(!is_blocked(addr));
+
+        for _ in 0..MAX_FAILURES {
+            record_failure(addr);
+        }
+        assert!(is_blocked(addr));
+    }
+
+    #[test]
+    fn admin_ip_below_threshold_not_blocked() {
+        let addr = ip(2);
+        for _ in 0..(MAX_FAILURES - 1) {
+            record_failure(addr);
+        }
+        assert!(!is_blocked(addr));
+    }
+
+    #[test]
+    fn unknown_ip_never_blocked() {
+        assert!(!is_blocked(ip(3)));
+    }
+
+    #[test]
+    fn rsvp_quota_allows_then_blocks() {
+        let addr = ip(4);
+        for i in 0..MAX_RSVP_PER_WINDOW {
+            assert!(!rsvp_over_quota(addr), "kiriman ke-{} harusnya lolos", i + 1);
+        }
+        assert!(rsvp_over_quota(addr), "kiriman melewati kuota harusnya diblok");
+    }
+
+    #[test]
+    fn client_ip_prefers_first_x_forwarded_for_hop() {
+        let request = Request::builder()
+            .header("x-forwarded-for", "203.0.113.7, 10.0.0.1")
+            .body(Body::empty())
+            .unwrap();
+        let connect = SocketAddr::from(([172, 18, 0, 5], 40000));
+
+        assert_eq!(client_ip(&request, connect), "203.0.113.7".parse::<IpAddr>().unwrap());
+    }
+
+    #[test]
+    fn client_ip_falls_back_to_connection_address() {
+        let request = Request::builder().body(Body::empty()).unwrap();
+        let connect = SocketAddr::from(([172, 18, 0, 5], 40000));
+
+        assert_eq!(client_ip(&request, connect), connect.ip());
+    }
+}
+
 /// Middleware anti-spam kiriman RSVP: hanya menyentuh POST /api/rsvp.
 /// GET /api/rsvp (baca daftar ucapan) tidak dibatasi.
 pub async fn limit_rsvp_submissions(

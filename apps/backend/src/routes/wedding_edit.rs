@@ -19,11 +19,35 @@ use crate::{
 };
 
 const MAX_UPLOAD_BYTES: usize = 10 * 1024 * 1024;
-const ALLOWED_CONTENT_TYPES: &[(&str, &str)] = &[
-    ("image/jpeg", "jpg"),
-    ("image/png", "png"),
-    ("image/webp", "webp"),
-];
+const ALLOWED_CONTENT_TYPES: &[&str] = &["image/jpeg", "image/png", "image/webp"];
+
+/// Sisi terpanjang maksimal setelah resize -- foto kamera/HP (4000px+, bisa
+/// 10MB) diperkecil supaya undangan tidak berat dimuat tamu. 1920px masih
+/// tajam untuk layar mana pun yang dipakai menampilkan undangan.
+const MAX_IMAGE_DIMENSION: u32 = 1920;
+const JPEG_QUALITY: u8 = 82;
+
+/// Decode -> resize (kalau kegedean) -> re-encode JPEG. Semua foto keluar
+/// sebagai JPEG terkompresi; transparansi PNG tidak dibutuhkan untuk foto
+/// undangan, dan ini memangkas ukuran file drastis (10MB -> ratusan KB).
+fn process_image(bytes: &[u8]) -> Result<Vec<u8>, AppError> {
+    let img = image::load_from_memory(bytes)
+        .map_err(|_| AppError::InvalidInput("file bukan gambar yang valid".to_string()))?;
+
+    let img = if img.width() > MAX_IMAGE_DIMENSION || img.height() > MAX_IMAGE_DIMENSION {
+        img.thumbnail(MAX_IMAGE_DIMENSION, MAX_IMAGE_DIMENSION)
+    } else {
+        img
+    };
+
+    let mut out = std::io::Cursor::new(Vec::new());
+    let encoder = image::codecs::jpeg::JpegEncoder::new_with_quality(&mut out, JPEG_QUALITY);
+    img.to_rgb8()
+        .write_with_encoder(encoder)
+        .map_err(|_| AppError::InvalidInput("gagal memproses gambar".to_string()))?;
+
+    Ok(out.into_inner())
+}
 
 // Batas jumlah baris per wedding -- selaras dengan batas render di Theme1
 // (MAX_LOVE_STORIES=5, MAX_GALLERY_PHOTOS=10) supaya tidak ada data tersimpan
@@ -469,16 +493,9 @@ async fn replace_wedding_gifts(
     Ok(())
 }
 
-fn extension_for_content_type(content_type: &str) -> Option<&'static str> {
-    ALLOWED_CONTENT_TYPES
-        .iter()
-        .find(|(ct, _)| *ct == content_type)
-        .map(|(_, ext)| *ext)
-}
-
 /// POST /api/wedding/upload
-/// Wajib header X-Access-Token. Terima multipart field "file", upload ke MinIO,
-/// lalu kembalikan URL publiknya untuk disimpan frontend ke state foto.
+/// Wajib header X-Access-Token. Terima multipart field "file", optimalkan
+/// (resize + kompres JPEG), upload ke MinIO, lalu kembalikan URL publiknya.
 pub async fn upload_photo(
     headers: HeaderMap,
     State(state): State<AppState>,
@@ -496,8 +513,11 @@ pub async fn upload_photo(
         }
 
         let content_type = field.content_type().unwrap_or_default().to_string();
-        let extension = extension_for_content_type(&content_type)
-            .ok_or_else(|| AppError::InvalidInput("tipe file harus JPEG, PNG, atau WEBP".to_string()))?;
+        if !ALLOWED_CONTENT_TYPES.contains(&content_type.as_str()) {
+            return Err(AppError::InvalidInput(
+                "tipe file harus JPEG, PNG, atau WEBP".to_string(),
+            ));
+        }
 
         let bytes = field
             .bytes()
@@ -508,15 +528,21 @@ pub async fn upload_photo(
             return Err(AppError::InvalidInput("ukuran file maksimal 10MB".to_string()));
         }
 
-        let object_key = format!("weddings/{wedding_id}/{}.{extension}", Uuid::new_v4());
+        // Decode + resize + encode itu CPU-bound (bisa ~detik untuk foto besar)
+        // -- jalankan di blocking thread pool supaya tidak menyandera runtime async.
+        let processed = tokio::task::spawn_blocking(move || process_image(&bytes))
+            .await
+            .map_err(|_| AppError::UploadFailed)??;
+
+        let object_key = format!("weddings/{wedding_id}/{}.jpg", Uuid::new_v4());
 
         state
             .s3_client
             .put_object()
             .bucket(&state.config.minio_bucket)
             .key(&object_key)
-            .body(ByteStream::from(bytes))
-            .content_type(content_type)
+            .body(ByteStream::from(processed))
+            .content_type("image/jpeg")
             .send()
             .await
             .map_err(|err| {
@@ -533,4 +559,71 @@ pub async fn upload_photo(
     }
 
     Err(AppError::InvalidInput("field 'file' tidak ditemukan".to_string()))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn hex_color_accepts_valid_and_rejects_invalid() {
+        assert!(validate_hex_color("#8B4513").is_ok());
+        assert!(validate_hex_color("#abcdef").is_ok());
+
+        for bad in ["8B4513", "#8B451", "#8B45133", "#GGGGGG", "", "#8B451Z"] {
+            assert!(validate_hex_color(bad).is_err(), "harusnya menolak: {bad}");
+        }
+    }
+
+    #[test]
+    fn wedding_date_parses_datetime_local_format() {
+        let parsed = parse_wedding_date(&Some("2026-12-01T08:30".to_string())).unwrap();
+        assert_eq!(parsed.unwrap().to_rfc3339(), "2026-12-01T08:30:00+00:00");
+    }
+
+    #[test]
+    fn wedding_date_empty_and_none_become_none() {
+        assert!(parse_wedding_date(&None).unwrap().is_none());
+        assert!(parse_wedding_date(&Some("".to_string())).unwrap().is_none());
+        assert!(parse_wedding_date(&Some("   ".to_string())).unwrap().is_none());
+    }
+
+    #[test]
+    fn wedding_date_rejects_garbage() {
+        assert!(parse_wedding_date(&Some("besok sore".to_string())).is_err());
+        assert!(parse_wedding_date(&Some("2026-13-45T99:99".to_string())).is_err());
+    }
+
+    fn png_bytes(width: u32, height: u32) -> Vec<u8> {
+        let img = image::DynamicImage::ImageRgb8(image::RgbImage::from_pixel(
+            width,
+            height,
+            image::Rgb([120, 30, 60]),
+        ));
+        let mut out = std::io::Cursor::new(Vec::new());
+        img.write_to(&mut out, image::ImageFormat::Png).unwrap();
+        out.into_inner()
+    }
+
+    #[test]
+    fn process_image_reencodes_small_image_as_jpeg_without_resize() {
+        let processed = process_image(&png_bytes(100, 80)).unwrap();
+        let result = image::load_from_memory(&processed).unwrap();
+
+        assert_eq!(&processed[..2], &[0xFF, 0xD8], "harus JPEG (magic bytes)");
+        assert_eq!((result.width(), result.height()), (100, 80));
+    }
+
+    #[test]
+    fn process_image_resizes_oversized_image() {
+        let processed = process_image(&png_bytes(3000, 1500)).unwrap();
+        let result = image::load_from_memory(&processed).unwrap();
+
+        assert_eq!((result.width(), result.height()), (1920, 960));
+    }
+
+    #[test]
+    fn process_image_rejects_non_image_bytes() {
+        assert!(process_image(b"bukan gambar sama sekali").is_err());
+    }
 }
