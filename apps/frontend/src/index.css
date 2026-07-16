@@ -6,6 +6,8 @@
   --font-script: "Great Vibes", cursive;
   /* Kaligrafi arab-estetik (bismillah/kutipan) -- dipakai Theme 4 Islami Modern */
   --font-arabic: "Amiri", "Scheherazade New", serif;
+  /* Display bold-kasual ala 70-an -- dipakai Theme 5 Retro Pop */
+  --font-retro: "Righteous", "Poppins", sans-serif;
 
   --animate-fade-up: fade-up 0.9s ease-out forwards;
   --animate-fade-in-scale: fade-in-scale 1.4s ease-out forwards;

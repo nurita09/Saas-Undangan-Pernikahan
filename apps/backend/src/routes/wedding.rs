@@ -28,6 +28,8 @@ fn default_colors_for_theme(theme_id: i32) -> (&'static str, &'static str) {
         3 => ("#D4AF37", "#10131C"),
         // Theme 4 - Islami Modern: sage green + putih bersih.
         4 => ("#7C9070", "#FAFBF7"),
+        // Theme 5 - Retro Pop: terracotta + krem hangat 70-an.
+        5 => ("#C75B39", "#FBF3E4"),
         // Theme 1 - Floral Elegant.
         _ => ("#8D7B68", "#F9F8F4"),
     }
