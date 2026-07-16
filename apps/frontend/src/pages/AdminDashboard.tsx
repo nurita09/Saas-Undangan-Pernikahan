@@ -90,6 +90,10 @@ function GenerateTab({ authHeader, onUnauthorized }: TabProps) {
   const [status, setStatus] = useState<SubmitStatus>('idle');
   const [errorMessage, setErrorMessage] = useState('');
   const [result, setResult] = useState<CreateWeddingResponse | null>(null);
+  // Undangan baru selalu lahir sebagai Draft (tamu dapat 404 sampai
+  // dipublish) -- state ini untuk tombol "Publish Sekarang" di kotak hasil.
+  const [isPublished, setIsPublished] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -99,6 +103,7 @@ function GenerateTab({ authHeader, onUnauthorized }: TabProps) {
     try {
       const wedding = await createWedding({ groomName, brideName, themeId }, authHeader);
       setResult(wedding);
+      setIsPublished(wedding.is_published);
       setStatus('success');
     } catch (error) {
       if (error instanceof ApiError && error.status === 401) {
@@ -110,11 +115,29 @@ function GenerateTab({ authHeader, onUnauthorized }: TabProps) {
     }
   };
 
+  const handlePublishNow = async () => {
+    if (!result) return;
+    setIsPublishing(true);
+    try {
+      await setWeddingPublished(authHeader, result.subdomain_slug, true);
+      setIsPublished(true);
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 401) {
+        onUnauthorized();
+        return;
+      }
+      alert(error instanceof ApiError ? error.message : 'Gagal mem-publish undangan');
+    } finally {
+      setIsPublishing(false);
+    }
+  };
+
   const handleReset = () => {
     setGroomName('');
     setBrideName('');
     setThemeId(THEME_OPTIONS[0].id);
     setResult(null);
+    setIsPublished(false);
     setStatus('idle');
   };
 
@@ -188,9 +211,37 @@ function GenerateTab({ authHeader, onUnauthorized }: TabProps) {
             ✓ Undangan {result.groom_name} & {result.bride_name} berhasil dibuat
           </p>
 
+          {/* Tanpa penjelasan ini, admin buka Invite URL lalu bingung kenapa
+              404 -- undangan baru memang Draft sampai dipublish. */}
+          {isPublished ? (
+            <p className="rounded-lg bg-emerald-100 px-3 py-2 text-sm text-emerald-800">
+              ✓ Sudah <strong>Publish</strong> — Invite URL bisa dibuka tamu.
+            </p>
+          ) : (
+            <div className="space-y-2 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2.5">
+              <p className="text-sm text-amber-800">
+                Status masih <strong>Draft</strong> — Invite URL akan menampilkan &ldquo;tidak
+                ditemukan&rdquo; ke tamu sampai di-publish. Gunakan <strong>Link Editor</strong> untuk
+                melihat &amp; mengisi undangan lebih dulu.
+              </p>
+              <button
+                type="button"
+                onClick={handlePublishNow}
+                disabled={isPublishing}
+                className="rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-amber-700 transition disabled:opacity-50"
+              >
+                {isPublishing ? 'Mem-publish...' : 'Publish Sekarang'}
+              </button>
+            </div>
+          )}
+
           <CopyableField label="Subdomain Slug" value={result.subdomain_slug} />
           <CopyableField label="Access Token" value={result.access_token} />
-          <CopyableField label="Invite URL" value={buildInviteUrl(result.subdomain_slug)} />
+          <CopyableField
+            label="Link Editor (untuk pasangan, bisa dibuka walau Draft)"
+            value={buildEditUrl(result.subdomain_slug, result.access_token)}
+          />
+          <CopyableField label="Invite URL (untuk tamu, setelah Publish)" value={buildInviteUrl(result.subdomain_slug)} />
 
           <button
             type="button"
