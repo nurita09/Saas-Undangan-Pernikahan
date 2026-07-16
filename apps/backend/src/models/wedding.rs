@@ -79,12 +79,16 @@ pub struct WeddingDetailsResponse {
 }
 
 /// Setting GLOBAL platform (tabel `platform_settings`, satu baris untuk semua
-/// wedding) -- dipakai footer "Hubungi Kami", diatur lewat Admin Dashboard.
+/// wedding) -- dipakai footer "Hubungi Kami" di undangan DAN landing page
+/// (link toko), diatur lewat Admin Dashboard.
 #[derive(Debug, Default, Serialize, sqlx::FromRow)]
 pub struct ContactSettingsDto {
     pub contact_instagram_url: Option<String>,
     pub contact_whatsapp_url: Option<String>,
     pub contact_handle: Option<String>,
+    pub shopee_url: Option<String>,
+    pub tokopedia_url: Option<String>,
+    pub tiktok_url: Option<String>,
 }
 
 #[derive(Debug, Serialize)]

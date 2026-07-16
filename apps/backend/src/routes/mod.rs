@@ -28,6 +28,7 @@ pub fn router() -> Router<AppState> {
             get(admin::get_settings).put(admin::update_settings),
         )
         .route("/api/music", get(admin::list_music))
+        .route("/api/settings", get(admin::get_public_settings))
         .route("/api/weddings", post(wedding::create_wedding))
         .route("/api/wedding-details", get(wedding::get_wedding_details))
         .route("/api/wedding/edit-auth", get(wedding_edit::edit_auth))

@@ -839,6 +839,9 @@ function SettingsTab({ authHeader, onUnauthorized }: TabProps) {
     contact_instagram_url: '',
     contact_whatsapp_url: '',
     contact_handle: '',
+    shopee_url: '',
+    tokopedia_url: '',
+    tiktok_url: '',
   });
   const [saveStatus, setSaveStatus] = useState<SubmitStatus>('idle');
   const [errorMessage, setErrorMessage] = useState('');
@@ -872,6 +875,9 @@ function SettingsTab({ authHeader, onUnauthorized }: TabProps) {
         contact_instagram_url: form.contact_instagram_url || null,
         contact_whatsapp_url: form.contact_whatsapp_url || null,
         contact_handle: form.contact_handle || null,
+        shopee_url: form.shopee_url || null,
+        tokopedia_url: form.tokopedia_url || null,
+        tiktok_url: form.tiktok_url || null,
       });
       setForm(updated);
       setSaveStatus('success');
@@ -941,6 +947,57 @@ function SettingsTab({ authHeader, onUnauthorized }: TabProps) {
           onChange={(event: ChangeEvent<HTMLInputElement>) =>
             updateField('contact_whatsapp_url', event.target.value)
           }
+          className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none"
+        />
+      </div>
+
+      <div className="border-t border-neutral-100 pt-4">
+        <p className="text-sm font-semibold text-neutral-800">Link Toko (Landing Page)</p>
+        <p className="mt-1 text-xs text-neutral-500">
+          Tombol pemesanan di landing page — hanya yang diisi yang tampil.
+        </p>
+      </div>
+
+      <div>
+        <label htmlFor="shopee_url" className="block text-xs font-medium text-neutral-600">
+          Link Shopee
+        </label>
+        <input
+          id="shopee_url"
+          type="url"
+          placeholder="https://shopee.co.id/..."
+          value={form.shopee_url ?? ''}
+          onChange={(event: ChangeEvent<HTMLInputElement>) => updateField('shopee_url', event.target.value)}
+          className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none"
+        />
+      </div>
+
+      <div>
+        <label htmlFor="tokopedia_url" className="block text-xs font-medium text-neutral-600">
+          Link Tokopedia
+        </label>
+        <input
+          id="tokopedia_url"
+          type="url"
+          placeholder="https://www.tokopedia.com/..."
+          value={form.tokopedia_url ?? ''}
+          onChange={(event: ChangeEvent<HTMLInputElement>) =>
+            updateField('tokopedia_url', event.target.value)
+          }
+          className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none"
+        />
+      </div>
+
+      <div>
+        <label htmlFor="tiktok_url" className="block text-xs font-medium text-neutral-600">
+          Link TikTok
+        </label>
+        <input
+          id="tiktok_url"
+          type="url"
+          placeholder="https://www.tiktok.com/@..."
+          value={form.tiktok_url ?? ''}
+          onChange={(event: ChangeEvent<HTMLInputElement>) => updateField('tiktok_url', event.target.value)}
           className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none"
         />
       </div>

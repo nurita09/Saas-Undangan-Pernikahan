@@ -447,7 +447,7 @@ pub async fn set_published(
 
 async fn fetch_contact_settings(state: &AppState) -> Result<ContactSettingsDto, AppError> {
     let settings = sqlx::query_as::<_, ContactSettingsDto>(
-        "SELECT contact_instagram_url, contact_whatsapp_url, contact_handle FROM platform_settings LIMIT 1",
+        "SELECT contact_instagram_url, contact_whatsapp_url, contact_handle, shopee_url, tokopedia_url, tiktok_url FROM platform_settings LIMIT 1",
     )
     .fetch_optional(&state.db)
     .await?
@@ -465,6 +465,15 @@ pub async fn get_settings(
     Ok(Json(fetch_contact_settings(&state).await?))
 }
 
+/// GET /api/settings
+/// Publik (tanpa auth) -- dipakai landing page untuk menampilkan tombol
+/// WA/Shopee/Tokopedia/TikTok. Isinya memang untuk konsumsi publik.
+pub async fn get_public_settings(
+    State(state): State<AppState>,
+) -> Result<Json<ContactSettingsDto>, AppError> {
+    Ok(Json(fetch_contact_settings(&state).await?))
+}
+
 /// PUT /api/admin/settings
 pub async fn update_settings(
     headers: HeaderMap,
@@ -475,17 +484,24 @@ pub async fn update_settings(
 
     validate_optional_url("contact_instagram_url", &payload.contact_instagram_url)?;
     validate_optional_url("contact_whatsapp_url", &payload.contact_whatsapp_url)?;
+    validate_optional_url("shopee_url", &payload.shopee_url)?;
+    validate_optional_url("tokopedia_url", &payload.tokopedia_url)?;
+    validate_optional_url("tiktok_url", &payload.tiktok_url)?;
 
     sqlx::query(
         r#"
         UPDATE platform_settings
-        SET contact_instagram_url = $1, contact_whatsapp_url = $2, contact_handle = $3, updated_at = now()
+        SET contact_instagram_url = $1, contact_whatsapp_url = $2, contact_handle = $3,
+            shopee_url = $4, tokopedia_url = $5, tiktok_url = $6, updated_at = now()
         WHERE id = true
         "#,
     )
     .bind(&payload.contact_instagram_url)
     .bind(&payload.contact_whatsapp_url)
     .bind(&payload.contact_handle)
+    .bind(&payload.shopee_url)
+    .bind(&payload.tokopedia_url)
+    .bind(&payload.tiktok_url)
     .execute(&state.db)
     .await?;
 

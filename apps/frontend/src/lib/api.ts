@@ -373,6 +373,17 @@ export async function deleteMusicTrack(authHeader: string, id: string): Promise<
   }
 }
 
+/** Publik -- dipakai landing page untuk tombol WA/Shopee/Tokopedia/TikTok. */
+export async function fetchPublicSettings(): Promise<ContactSettings> {
+  const response = await fetch('/api/settings');
+
+  if (!response.ok) {
+    throw new ApiError('Gagal mengambil pengaturan', response.status);
+  }
+
+  return (await response.json()) as ContactSettings;
+}
+
 export async function fetchSettings(authHeader: string): Promise<ContactSettings> {
   const response = await fetch('/api/admin/settings', {
     headers: { Authorization: `Basic ${authHeader}` },

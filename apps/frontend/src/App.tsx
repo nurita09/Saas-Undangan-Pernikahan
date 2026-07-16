@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import AdminGate from './pages/AdminGate.tsx';
 import InvitationNotFound from './pages/InvitationNotFound.tsx';
+import LandingPage from './pages/LandingPage.tsx';
 import WeddingEditor from './pages/WeddingEditor.tsx';
 import { fetchWeddingDetails, ApiError } from './lib/api';
 import { getThemeComponent } from './components/themes/registry';
@@ -56,8 +57,11 @@ export default function App() {
     };
   }, [slug, isEditRoute]);
 
+  // Root domain (tanpa subdomain tenant): "/" = landing page publik,
+  // "/admin" = Admin Dashboard (dulu di "/", digeser karena root sekarang
+  // jadi etalase Nurita Undangan).
   if (slug === null) {
-    return <AdminGate />;
+    return pathname === '/admin' ? <AdminGate /> : <LandingPage />;
   }
 
   if (isEditRoute) {

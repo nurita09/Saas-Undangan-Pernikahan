@@ -295,7 +295,7 @@ pub async fn get_wedding_details(
     // migrations/0008) -- fetch_optional + default sebagai jaga-jaga kalau
     // baris itu ternyata belum/tidak ada, supaya endpoint ini tidak ikut error.
     let contact = sqlx::query_as::<_, ContactSettingsDto>(
-        "SELECT contact_instagram_url, contact_whatsapp_url, contact_handle FROM platform_settings LIMIT 1",
+        "SELECT contact_instagram_url, contact_whatsapp_url, contact_handle, shopee_url, tokopedia_url, tiktok_url FROM platform_settings LIMIT 1",
     )
     .fetch_optional(&state.db)
     .await?

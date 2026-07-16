@@ -89,4 +89,10 @@ pub struct UpdateSettingsPayload {
     pub contact_instagram_url: Option<String>,
     pub contact_whatsapp_url: Option<String>,
     pub contact_handle: Option<String>,
+    #[serde(default)]
+    pub shopee_url: Option<String>,
+    #[serde(default)]
+    pub tokopedia_url: Option<String>,
+    #[serde(default)]
+    pub tiktok_url: Option<String>,
 }

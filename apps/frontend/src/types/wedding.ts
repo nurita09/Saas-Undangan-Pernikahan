@@ -106,6 +106,10 @@ export interface ContactSettings {
   contact_instagram_url: string | null;
   contact_whatsapp_url: string | null;
   contact_handle: string | null;
+  /** Link toko/kanal penjualan -- dipakai landing page, diatur admin. */
+  shopee_url: string | null;
+  tokopedia_url: string | null;
+  tiktok_url: string | null;
 }
 
 /** Rust: WeddingDetailsResponse -- response GET /api/wedding-details */
@@ -298,4 +302,7 @@ export interface UpdateSettingsPayload {
   contact_instagram_url: string | null;
   contact_whatsapp_url: string | null;
   contact_handle: string | null;
+  shopee_url: string | null;
+  tokopedia_url: string | null;
+  tiktok_url: string | null;
 }
