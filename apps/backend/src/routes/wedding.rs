@@ -23,6 +23,9 @@ fn default_colors_for_theme(theme_id: i32) -> (&'static str, &'static str) {
     match theme_id {
         // Theme 2 - Adat Jawa: cokelat sogan batik + krem lawas.
         2 => ("#6B4423", "#F3EAD8"),
+        // Theme 3 - Modern Elegant (Dark): emas murni + deep charcoal-navy
+        // (primary = aksen/tombol, secondary = warna LATAR gelap).
+        3 => ("#D4AF37", "#10131C"),
         // Theme 1 - Floral Elegant.
         _ => ("#8D7B68", "#F9F8F4"),
     }

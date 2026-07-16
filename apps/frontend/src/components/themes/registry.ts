@@ -1,6 +1,7 @@
 import type { ComponentType } from 'react';
 import Theme1 from './theme1/index.tsx';
 import Theme2 from './theme2/index.tsx';
+import Theme3 from './theme3/index.tsx';
 import type { ThemeComponentProps } from '../../types/wedding';
 
 // Tambah tema baru: import komponennya di atas, lalu daftarkan di sini.
@@ -10,6 +11,7 @@ import type { ThemeComponentProps } from '../../types/wedding';
 const THEME_COMPONENTS: Record<number, ComponentType<ThemeComponentProps>> = {
   1: Theme1,
   2: Theme2,
+  3: Theme3,
 };
 
 export interface ThemeOption {
@@ -20,6 +22,7 @@ export interface ThemeOption {
 export const THEME_OPTIONS: ThemeOption[] = [
   { id: 1, label: 'Theme 1 - Floral Elegant' },
   { id: 2, label: 'Theme 2 - Adat Jawa' },
+  { id: 3, label: 'Theme 3 - Modern Elegant (Dark)' },
 ];
 
 export function getThemeComponent(themeId: number): ComponentType<ThemeComponentProps> {
