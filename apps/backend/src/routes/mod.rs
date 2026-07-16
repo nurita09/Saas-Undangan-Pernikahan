@@ -1,6 +1,7 @@
 mod admin;
 pub mod spa;
-mod wedding;
+// pub(crate): default_colors_for_theme dipakai seeder demo (src/seed.rs).
+pub(crate) mod wedding;
 mod wedding_edit;
 mod rsvp;
 

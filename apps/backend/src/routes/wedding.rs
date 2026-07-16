@@ -18,8 +18,9 @@ const MAX_SLUG_ATTEMPTS: u32 = 25;
 
 /// Warna default per tema saat wedding dibuat (warna dikunci, tidak bisa
 /// diedit pasangan). Tema baru: tambah lengan match di sini + komponennya di
-/// frontend (components/themes/registry.ts).
-fn default_colors_for_theme(theme_id: i32) -> (&'static str, &'static str) {
+/// frontend (components/themes/registry.ts). pub(crate) karena dipakai juga
+/// oleh seeder demo (src/seed.rs).
+pub(crate) fn default_colors_for_theme(theme_id: i32) -> (&'static str, &'static str) {
     match theme_id {
         // Theme 2 - Adat Jawa: cokelat sogan batik + krem lawas.
         2 => ("#6B4423", "#F3EAD8"),

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import Reveal from '../components/shared/Reveal';
 import { fetchPublicSettings } from '../lib/api';
+import { buildInviteUrl } from '../utils/subdomain';
 import type { ContactSettings } from '../types/wedding';
 import logoUrl from '../assets/icons/ic_logo.png';
 
@@ -21,12 +22,15 @@ interface ThemeShowcase {
   accent: string;
   fontClass: string;
   ornament: string;
+  /** Slug wedding demo yang di-seed backend saat startup (src/seed.rs). */
+  demoSlug: string;
   dark?: boolean;
 }
 
 const THEMES: ThemeShowcase[] = [
   {
     id: 1,
+    demoSlug: 'demo-floral',
     name: 'Floral Elegant',
     vibe: 'Klasik, hangat, dan romantis',
     audience: 'Cocok untuk pernikahan intim yang timeless',
@@ -38,6 +42,7 @@ const THEMES: ThemeShowcase[] = [
   },
   {
     id: 2,
+    demoSlug: 'demo-jawa',
     name: 'Adat Jawa',
     vibe: 'Anggun berbalut budaya',
     audience: 'Cocok untuk pernikahan adat & keluarga besar',
@@ -49,6 +54,7 @@ const THEMES: ThemeShowcase[] = [
   },
   {
     id: 3,
+    demoSlug: 'demo-dark',
     name: 'Modern Elegant Dark',
     vibe: 'Mewah, misterius, premium',
     audience: 'Cocok untuk resepsi malam & ballroom',
@@ -61,6 +67,7 @@ const THEMES: ThemeShowcase[] = [
   },
   {
     id: 4,
+    demoSlug: 'demo-islami',
     name: 'Islami Modern',
     vibe: 'Suci, damai, dan bersih',
     audience: "Cocok untuk akad & walimatul 'ursy",
@@ -72,6 +79,7 @@ const THEMES: ThemeShowcase[] = [
   },
   {
     id: 5,
+    demoSlug: 'demo-retro',
     name: 'Retro Pop',
     vibe: 'Ceria, unik, anti-mainstream',
     audience: 'Cocok untuk pasangan gen-Z yang santai',
@@ -144,6 +152,23 @@ function ThemeCard({ theme }: { theme: ThemeShowcase }) {
         <p className="font-semibold text-neutral-900">{theme.name}</p>
         <p className="mt-0.5 text-sm text-neutral-500">{theme.vibe}</p>
         <p className="mt-1 text-xs text-neutral-400">{theme.audience}</p>
+        {/* Demo = undangan sungguhan di subdomain demo (di-seed backend),
+            bukan sekadar gambar -- tamu bisa scroll, RSVP, dengar musik. */}
+        <a
+          href={buildInviteUrl(theme.demoSlug)}
+          target="_blank"
+          rel="noreferrer"
+          className="mt-3 inline-flex items-center gap-1.5 rounded-full border px-5 py-2 text-sm font-semibold transition hover:text-white"
+          style={{ borderColor: BRAND, color: BRAND }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = BRAND;
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = 'transparent';
+          }}
+        >
+          Lihat Demo →
+        </a>
       </div>
     </div>
   );

@@ -6,6 +6,7 @@ mod middleware;
 mod models;
 mod routes;
 mod s3;
+mod seed;
 mod state;
 mod utils;
 
@@ -33,6 +34,10 @@ async fn main() -> anyhow::Result<()> {
     let pool = db::create_pool(&config.database_url).await?;
 
     sqlx::migrate!("./migrations").run(&pool).await?;
+
+    // Wedding demo per tema untuk tombol "Lihat Demo" di landing page --
+    // idempotent, yang terhapus dibuat ulang saat restart berikutnya.
+    seed::ensure_demo_weddings(&pool).await?;
 
     let s3_client = s3::create_s3_client(&config);
 
