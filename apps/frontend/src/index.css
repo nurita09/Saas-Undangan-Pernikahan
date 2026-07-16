@@ -4,6 +4,8 @@
   --font-sans: "Poppins", ui-sans-serif, system-ui, sans-serif;
   --font-serif: "Playfair Display", ui-serif, Georgia, serif;
   --font-script: "Great Vibes", cursive;
+  /* Kaligrafi arab-estetik (bismillah/kutipan) -- dipakai Theme 4 Islami Modern */
+  --font-arabic: "Amiri", "Scheherazade New", serif;
 
   --animate-fade-up: fade-up 0.9s ease-out forwards;
   --animate-fade-in-scale: fade-in-scale 1.4s ease-out forwards;

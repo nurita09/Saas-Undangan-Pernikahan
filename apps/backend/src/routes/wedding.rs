@@ -26,6 +26,8 @@ fn default_colors_for_theme(theme_id: i32) -> (&'static str, &'static str) {
         // Theme 3 - Modern Elegant (Dark): emas murni + deep charcoal-navy
         // (primary = aksen/tombol, secondary = warna LATAR gelap).
         3 => ("#D4AF37", "#10131C"),
+        // Theme 4 - Islami Modern: sage green + putih bersih.
+        4 => ("#7C9070", "#FAFBF7"),
         // Theme 1 - Floral Elegant.
         _ => ("#8D7B68", "#F9F8F4"),
     }
