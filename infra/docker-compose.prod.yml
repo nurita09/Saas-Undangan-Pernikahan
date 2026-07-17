@@ -70,9 +70,15 @@ services:
     build:
       context: ..
       dockerfile: infra/Dockerfile.prod
+      args:
+        # Root domain eksplisit -- WAJIB kalau lebih dari 2 label
+        # (mis. undangan.nurita.id). Dibake ke bundle frontend saat build.
+        VITE_BASE_DOMAIN: ${APP_BASE_DOMAIN:-}
     container_name: undangan-prod-app
     restart: unless-stopped
     environment:
+      # Padanan runtime untuk backend (resolusi tenant dari Host header).
+      APP_BASE_DOMAIN: ${APP_BASE_DOMAIN:-}
       DATABASE_URL: postgres://${POSTGRES_USER:-undangan}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD harus di-set}@postgres:5432/${POSTGRES_DB:-undangan}
       SERVER_PORT: 8080
       RUST_LOG: info

@@ -1,12 +1,33 @@
 const RESERVED_SUBDOMAINS = new Set(['www', 'admin']);
 
+/** Root domain eksplisit dari build-time env (mis. "undangan.nurita.id").
+ *  WAJIB di-set saat build production kalau root domain-nya lebih dari 2 label
+ *  -- heuristik hitung-label tidak bisa membedakannya dari subdomain tenant.
+ *  Di-supply lewat ARG VITE_BASE_DOMAIN (lihat infra/Dockerfile.prod). */
+const BASE_DOMAIN: string | undefined = (import.meta.env.VITE_BASE_DOMAIN as string | undefined)
+  ?.trim()
+  .replace(/^\.+|\.+$/g, '')
+  .toLowerCase() || undefined;
+
 /**
  * Cermin dari backend `extract_subdomain` (apps/backend/src/middleware/tenant.rs):
- * pecah hostname berdasarkan titik, ambil label pertama sebagai slug. Root domain
- * dianggap 2 label, KECUALI ".localhost" yang root-nya 1 label (supaya
- * "ivan-aura.localhost" tetap ter-resolve saat dev lokal).
+ * kalau BASE_DOMAIN di-set, "slug.base" -> slug dan "base"/"www./admin." -> null;
+ * selain itu pecah hostname berdasarkan titik, ambil label pertama sebagai slug.
+ * Root domain dianggap 2 label, KECUALI ".localhost" yang root-nya 1 label
+ * (supaya "ivan-aura.localhost" tetap ter-resolve saat dev lokal).
  */
 export function resolveSubdomainSlug(hostname: string): string | null {
+  if (BASE_DOMAIN) {
+    const host = hostname.toLowerCase();
+    if (host === BASE_DOMAIN) return null;
+    if (host.endsWith(`.${BASE_DOMAIN}`)) {
+      const prefix = host.slice(0, -(BASE_DOMAIN.length + 1));
+      if (!prefix || prefix.includes('.') || RESERVED_SUBDOMAINS.has(prefix)) return null;
+      return prefix;
+    }
+    // Host di luar base domain -> lanjut ke heuristik di bawah.
+  }
+
   const labels = hostname.split('.');
   const isLocalhostRoot = labels[labels.length - 1]?.toLowerCase() === 'localhost';
   const rootLabelCount = isLocalhostRoot ? 1 : 2;
