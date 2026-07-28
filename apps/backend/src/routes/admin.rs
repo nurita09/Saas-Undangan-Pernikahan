@@ -12,8 +12,9 @@ use crate::{
     error::AppError,
     models::{
         admin::{
-            AdminLoginPayload, AdminLoginResponse, MusicTrackDto, SetActiveUntilPayload,
-            SetPublishedPayload, SetPublishedResponse, UpdateMusicPayload, UpdateSettingsPayload,
+            AdminLoginPayload, AdminLoginResponse, AdminStatsResponse, ExpiringWeddingDto,
+            MonthlyCountDto, MusicTrackDto, SetActiveUntilPayload, SetPublishedPayload,
+            SetPublishedResponse, ThemeCountDto, UpdateMusicPayload, UpdateSettingsPayload,
             WeddingListQuery, WeddingListResponse, WeddingSummaryDto,
         },
         wedding::ContactSettingsDto,
@@ -212,6 +213,109 @@ pub async fn list_weddings(
         total,
         page,
         per_page,
+    }))
+}
+
+/// GET /api/admin/stats
+/// Agregat monitoring SaaS lintas semua wedding: hitungan status, tren undangan
+/// baru per bulan (6 bulan WIB terakhir), distribusi tema, ringkasan RSVP, dan
+/// daftar undangan yang masa aktifnya segera berakhir (bahan follow-up
+/// perpanjangan oleh reseller).
+pub async fn get_stats(
+    headers: HeaderMap,
+    State(state): State<AppState>,
+) -> Result<Json<AdminStatsResponse>, AppError> {
+    require_admin_auth(&headers, &state.config)?;
+
+    let (total_weddings, published, draft, expired, new_last_30d) =
+        sqlx::query_as::<_, (i64, i64, i64, i64, i64)>(
+            r#"
+            SELECT
+                COUNT(*),
+                COUNT(*) FILTER (WHERE is_published),
+                COUNT(*) FILTER (WHERE NOT is_published),
+                COUNT(*) FILTER (WHERE active_until IS NOT NULL AND active_until < now()),
+                COUNT(*) FILTER (WHERE created_at >= now() - interval '30 days')
+            FROM weddings
+            "#,
+        )
+        .fetch_one(&state.db)
+        .await?;
+
+    let (total_rsvp, rsvp_attending, rsvp_not_attending, rsvp_maybe, rsvp_last_7d) =
+        sqlx::query_as::<_, (i64, i64, i64, i64, i64)>(
+            r#"
+            SELECT
+                COUNT(*),
+                COUNT(*) FILTER (WHERE attendance_status = 'attending'),
+                COUNT(*) FILTER (WHERE attendance_status = 'not_attending'),
+                COUNT(*) FILTER (WHERE attendance_status = 'maybe'),
+                COUNT(*) FILTER (WHERE created_at >= now() - interval '7 days')
+            FROM rsvp
+            "#,
+        )
+        .fetch_one(&state.db)
+        .await?;
+
+    // Bulan dihitung pada jam dinding WIB (konvensi timezone platform) --
+    // generate_series memastikan bulan tanpa undangan tetap muncul (count 0).
+    let monthly_new = sqlx::query_as::<_, MonthlyCountDto>(
+        r#"
+        WITH months AS (
+            SELECT generate_series(
+                date_trunc('month', now() AT TIME ZONE 'Asia/Jakarta') - interval '5 months',
+                date_trunc('month', now() AT TIME ZONE 'Asia/Jakarta'),
+                interval '1 month'
+            ) AS month_start
+        )
+        SELECT
+            to_char(m.month_start, 'YYYY-MM') AS month,
+            COUNT(w.id) AS count
+        FROM months m
+        LEFT JOIN weddings w
+            ON date_trunc('month', w.created_at AT TIME ZONE 'Asia/Jakarta') = m.month_start
+        GROUP BY m.month_start
+        ORDER BY m.month_start
+        "#,
+    )
+    .fetch_all(&state.db)
+    .await?;
+
+    let theme_distribution = sqlx::query_as::<_, ThemeCountDto>(
+        r#"SELECT theme_id, COUNT(*) AS count FROM weddings GROUP BY theme_id ORDER BY theme_id"#,
+    )
+    .fetch_all(&state.db)
+    .await?;
+
+    let expiring_soon = sqlx::query_as::<_, ExpiringWeddingDto>(
+        r#"
+        SELECT w.subdomain_slug, d.groom_name, d.bride_name, w.active_until, w.is_published
+        FROM weddings w
+        INNER JOIN wedding_details d ON d.wedding_id = w.id
+        WHERE w.active_until IS NOT NULL
+          AND w.active_until >= now()
+          AND w.active_until <= now() + interval '14 days'
+        ORDER BY w.active_until ASC
+        LIMIT 10
+        "#,
+    )
+    .fetch_all(&state.db)
+    .await?;
+
+    Ok(Json(AdminStatsResponse {
+        total_weddings,
+        published,
+        draft,
+        expired,
+        new_last_30d,
+        total_rsvp,
+        rsvp_attending,
+        rsvp_not_attending,
+        rsvp_maybe,
+        rsvp_last_7d,
+        monthly_new,
+        theme_distribution,
+        expiring_soon,
     }))
 }
 

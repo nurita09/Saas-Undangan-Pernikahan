@@ -57,6 +57,51 @@ pub struct WeddingListResponse {
     pub per_page: i64,
 }
 
+/// GET /api/admin/stats -- agregat monitoring lintas SEMUA wedding (bukan cuma
+/// halaman yang sedang dibuka seperti GET /api/admin/weddings).
+#[derive(Debug, Serialize)]
+pub struct AdminStatsResponse {
+    pub total_weddings: i64,
+    pub published: i64,
+    pub draft: i64,
+    /// Punya active_until yang sudah lewat (tamu dapat 404 walau berstatus publish).
+    pub expired: i64,
+    pub new_last_30d: i64,
+    pub total_rsvp: i64,
+    pub rsvp_attending: i64,
+    pub rsvp_not_attending: i64,
+    pub rsvp_maybe: i64,
+    pub rsvp_last_7d: i64,
+    /// 6 bulan kalender WIB terakhir (termasuk bulan berjalan), bulan kosong ikut
+    /// dikirim dengan count 0 supaya sumbu chart di frontend tidak bolong.
+    pub monthly_new: Vec<MonthlyCountDto>,
+    pub theme_distribution: Vec<ThemeCountDto>,
+    /// Masa aktif berakhir <= 14 hari ke depan -- bahan follow-up perpanjangan.
+    pub expiring_soon: Vec<ExpiringWeddingDto>,
+}
+
+/// Satu titik tren bulanan; `month` = "YYYY-MM" bulan kalender WIB.
+#[derive(Debug, Serialize, sqlx::FromRow)]
+pub struct MonthlyCountDto {
+    pub month: String,
+    pub count: i64,
+}
+
+#[derive(Debug, Serialize, sqlx::FromRow)]
+pub struct ThemeCountDto {
+    pub theme_id: i32,
+    pub count: i64,
+}
+
+#[derive(Debug, Serialize, sqlx::FromRow)]
+pub struct ExpiringWeddingDto {
+    pub subdomain_slug: String,
+    pub groom_name: String,
+    pub bride_name: String,
+    pub active_until: DateTime<Utc>,
+    pub is_published: bool,
+}
+
 /// PUT /api/admin/weddings/{slug}/active-until -- body {"active_until": "YYYY-MM-DD"}
 /// (null/kosong = tanpa batas). Ditafsirkan sampai akhir hari itu WIB.
 #[derive(Debug, Deserialize)]

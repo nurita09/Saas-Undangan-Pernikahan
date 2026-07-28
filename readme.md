@@ -228,6 +228,7 @@ Base path semua endpoint: `/api`. Tidak ada versioning (`/v1`, dst) — MVP.
 | Method | Path | Auth | Deskripsi |
 |---|---|---|---|
 | `POST` | `/admin/login` | — | Validasi username/password admin konstan (feedback UI saja, tidak menerbitkan sesi) |
+| `GET` | `/admin/stats` | `Authorization: Basic` (admin) | Agregat monitoring lintas semua wedding: hitungan status, tren bulanan (6 bulan WIB), distribusi tema, ringkasan RSVP, daftar segera kedaluwarsa — dipakai tab Dashboard admin |
 | `POST` | `/weddings` | `Authorization: Basic` (admin) | Buat undangan baru: generate slug unik + access_token, simpan `weddings` + `wedding_details` |
 | `GET` | `/wedding-details` | — (tenant dari `Host` header) | Data publik undangan (tema, pasangan, acara) untuk halaman tamu |
 | `GET` | `/wedding/edit-auth?slug=&token=` | query `token` + `slug` | Validasi akses editor, sekaligus mengembalikan data lengkap untuk prefill form |

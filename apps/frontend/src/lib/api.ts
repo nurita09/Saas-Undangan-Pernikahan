@@ -6,6 +6,7 @@ import type {
   UpdateWeddingPayload,
   UploadResponse,
   AdminLoginPayload,
+  AdminStats,
   MusicTrack,
   WeddingSummary,
   WeddingListResponse,
@@ -283,6 +284,19 @@ export async function setWeddingPublished(
     const message = body && 'error' in body ? body.error : 'Gagal mengubah status publish';
     throw new ApiError(message, response.status);
   }
+}
+
+/** Agregat monitoring lintas SEMUA wedding -- dipakai tab Dashboard admin. */
+export async function fetchAdminStats(authHeader: string): Promise<AdminStats> {
+  const response = await fetch('/api/admin/stats', {
+    headers: { Authorization: `Basic ${authHeader}` },
+  });
+
+  if (!response.ok) {
+    throw new ApiError('Gagal mengambil statistik platform', response.status);
+  }
+
+  return (await response.json()) as AdminStats;
 }
 
 export async function fetchAdminWeddings(

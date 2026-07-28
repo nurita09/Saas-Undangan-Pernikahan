@@ -15,6 +15,7 @@ use crate::state::AppState;
 pub fn router() -> Router<AppState> {
     Router::new()
         .route("/api/admin/login", post(admin::login))
+        .route("/api/admin/stats", get(admin::get_stats))
         .route("/api/admin/weddings", get(admin::list_weddings))
         .route("/api/admin/weddings/{slug}", delete(admin::delete_wedding))
         .route("/api/admin/weddings/{slug}/publish", put(admin::set_published))

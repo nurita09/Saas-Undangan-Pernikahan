@@ -297,6 +297,45 @@ export interface WeddingListResponse {
   per_page: number;
 }
 
+/** Rust: MonthlyCountDto -- satu titik tren bulanan; `month` = "YYYY-MM" (bulan WIB). */
+export interface MonthlyCount {
+  month: string;
+  count: number;
+}
+
+/** Rust: ThemeCountDto -- jumlah wedding per tema. */
+export interface ThemeCount {
+  theme_id: number;
+  count: number;
+}
+
+/** Rust: ExpiringWeddingDto -- undangan yang masa aktifnya berakhir <= 14 hari lagi. */
+export interface ExpiringWedding {
+  subdomain_slug: string;
+  groom_name: string;
+  bride_name: string;
+  /** ISO instant; batas akhir masa aktif. */
+  active_until: string;
+  is_published: boolean;
+}
+
+/** Rust: AdminStatsResponse -- response GET /api/admin/stats (agregat SEMUA wedding). */
+export interface AdminStats {
+  total_weddings: number;
+  published: number;
+  draft: number;
+  expired: number;
+  new_last_30d: number;
+  total_rsvp: number;
+  rsvp_attending: number;
+  rsvp_not_attending: number;
+  rsvp_maybe: number;
+  rsvp_last_7d: number;
+  monthly_new: MonthlyCount[];
+  theme_distribution: ThemeCount[];
+  expiring_soon: ExpiringWedding[];
+}
+
 /** Rust: UpdateSettingsPayload -- payload PUT /api/admin/settings */
 export interface UpdateSettingsPayload {
   contact_instagram_url: string | null;

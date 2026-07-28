@@ -3,6 +3,7 @@ import {
   createWedding,
   deleteMusicTrack,
   deleteWedding,
+  fetchAdminStats,
   fetchAdminWeddings,
   fetchMusicLibrary,
   fetchSettings,
@@ -15,7 +16,16 @@ import {
 } from '../lib/api';
 import { THEME_OPTIONS } from '../components/themes/registry';
 import { buildEditUrl, buildInviteUrl } from '../utils/subdomain';
-import type { ContactSettings, CreateWeddingResponse, MusicTrack, WeddingSummary } from '../types/wedding';
+import type {
+  AdminStats,
+  ContactSettings,
+  CreateWeddingResponse,
+  ExpiringWedding,
+  MonthlyCount,
+  MusicTrack,
+  ThemeCount,
+  WeddingSummary,
+} from '../types/wedding';
 
 interface CopyableFieldProps {
   label: string;
@@ -77,6 +87,343 @@ type LoadStatus = 'loading' | 'loaded' | 'error';
 interface TabProps {
   authHeader: string;
   onUnauthorized: () => void;
+}
+
+// ---------------------------------------------------------------------------
+// Tab: Dashboard (monitoring SaaS)
+// ---------------------------------------------------------------------------
+
+// Palet data-viz (light mode). Biru = satu-satunya hue magnitude (chart bulanan
+// & distribusi tema); tiga slot kategorikal hanya untuk segmen RSVP yang
+// identitasnya dibawa legend. Jangan ganti dengan warna status (emerald/amber).
+const VIZ_SERIES_1 = '#2a78d6';
+const VIZ_SERIES_2 = '#eb6834';
+const VIZ_SERIES_3 = '#1baf7a';
+const VIZ_BASELINE = '#c3c2b7';
+const VIZ_MUTED = '#898781';
+
+const MONTH_LABELS_ID = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+
+/** "2026-07" -> "Jul"; tahun ('26) ikut ditulis di kolom pertama & tiap Januari. */
+function formatMonthTick(ym: string, withYear: boolean): string {
+  const [year, month] = ym.split('-');
+  const label = MONTH_LABELS_ID[Number(month) - 1] ?? ym;
+  return withYear || month === '01' ? `${label} '${year.slice(2)}` : label;
+}
+
+function formatWibDate(iso: string): string {
+  return new Date(iso).toLocaleDateString('id-ID', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    timeZone: 'Asia/Jakarta',
+  });
+}
+
+function daysUntil(iso: string): number {
+  return Math.max(0, Math.ceil((new Date(iso).getTime() - Date.now()) / 86_400_000));
+}
+
+interface StatTileProps {
+  label: string;
+  value: number;
+  sub?: string;
+  subTone?: 'up' | 'warn' | 'muted';
+}
+
+function StatTile({ label, value, sub, subTone = 'muted' }: StatTileProps) {
+  const toneClass =
+    subTone === 'up' ? 'text-emerald-700' : subTone === 'warn' ? 'text-amber-700' : 'text-neutral-400';
+
+  return (
+    <div className="rounded-2xl bg-white p-4 shadow-sm">
+      <p className="text-xs font-medium uppercase tracking-wide text-neutral-500">{label}</p>
+      <p className="mt-1 text-2xl font-semibold text-neutral-900">{value.toLocaleString('id-ID')}</p>
+      {sub && <p className={`mt-1 text-xs ${toneClass}`}>{sub}</p>}
+    </div>
+  );
+}
+
+interface ChartCardProps {
+  title: string;
+  subtitle: string;
+  children: ReactNode;
+}
+
+function ChartCard({ title, subtitle, children }: ChartCardProps) {
+  return (
+    <div className="rounded-2xl bg-white p-6 shadow-sm">
+      <p className="text-sm font-semibold text-neutral-800">{title}</p>
+      <p className="mt-0.5 text-xs text-neutral-500">{subtitle}</p>
+      <div className="mt-4">{children}</div>
+    </div>
+  );
+}
+
+/** Kolom undangan baru per bulan. Nilai ditulis di puncak tiap kolom, jadi
+ *  sumbu Y tidak dibutuhkan; hover cukup memperjelas, bukan satu-satunya akses. */
+function MonthlyChart({ data }: { data: MonthlyCount[] }) {
+  const max = Math.max(1, ...data.map((d) => d.count));
+
+  return (
+    <div>
+      <div className="flex items-end gap-3" style={{ height: 150 }}>
+        {data.map((d) => (
+          <div
+            key={d.month}
+            className="group flex h-full flex-1 flex-col items-center justify-end"
+            title={`${formatMonthTick(d.month, true)}: ${d.count} undangan baru`}
+          >
+            <span className="mb-1 text-xs font-medium text-neutral-700">{d.count}</span>
+            <div
+              className="w-full rounded-t transition-opacity group-hover:opacity-75"
+              style={{
+                maxWidth: 24,
+                height: d.count === 0 ? 0 : Math.max(4, Math.round((d.count / max) * 118)),
+                backgroundColor: VIZ_SERIES_1,
+              }}
+            />
+          </div>
+        ))}
+      </div>
+      <div className="border-t" style={{ borderColor: VIZ_BASELINE }} />
+      <div className="mt-1.5 flex gap-3">
+        {data.map((d, index) => (
+          <p key={d.month} className="flex-1 text-center text-xs" style={{ color: VIZ_MUTED }}>
+            {formatMonthTick(d.month, index === 0)}
+          </p>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** "Theme 3 - Modern Elegant (Dark)" -> "Modern Elegant (Dark)". */
+function themeShortLabel(themeId: number): string {
+  const option = THEME_OPTIONS.find((t) => t.id === themeId);
+  if (!option) return `Tema ${themeId}`;
+  return option.label.split(' - ')[1] ?? option.label;
+}
+
+/** Bar horizontal jumlah undangan per tema -- satu seri, satu warna (bukan
+ *  ramp gelap-terang: kategori tema tidak punya urutan nilai). */
+function ThemeBars({ data }: { data: ThemeCount[] }) {
+  if (data.length === 0) {
+    return <p className="text-sm text-neutral-500">Belum ada undangan yang dibuat.</p>;
+  }
+
+  const max = Math.max(1, ...data.map((d) => d.count));
+
+  return (
+    <ul className="space-y-3">
+      {data.map((d) => (
+        <li key={d.theme_id} title={`${themeShortLabel(d.theme_id)}: ${d.count} undangan`}>
+          <p className="text-xs text-neutral-600">{themeShortLabel(d.theme_id)}</p>
+          <div className="mt-1 flex items-center gap-1.5">
+            <div
+              className="h-3 shrink-0 rounded-r"
+              style={{
+                // maks 85% supaya angka di ujung bar selalu kebagian tempat
+                width: `${Math.max(1.5, (d.count / max) * 85)}%`,
+                backgroundColor: VIZ_SERIES_1,
+              }}
+            />
+            <span className="text-xs font-medium text-neutral-700">{d.count}</span>
+          </div>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/** Satu stacked bar proporsi kehadiran + legend berisi nilai (part-to-whole). */
+function RsvpBreakdown({ stats }: { stats: AdminStats }) {
+  if (stats.total_rsvp === 0) {
+    return <p className="text-sm text-neutral-500">Belum ada RSVP yang masuk dari tamu.</p>;
+  }
+
+  const segments = [
+    { key: 'Hadir', value: stats.rsvp_attending, color: VIZ_SERIES_1 },
+    { key: 'Tidak Hadir', value: stats.rsvp_not_attending, color: VIZ_SERIES_2 },
+    { key: 'Ragu-ragu', value: stats.rsvp_maybe, color: VIZ_SERIES_3 },
+  ];
+
+  return (
+    <div>
+      {/* gap-0.5 = celah 2px warna surface antar segmen (pemisah tanpa border) */}
+      <div className="flex h-3 w-full gap-0.5 overflow-hidden rounded">
+        {segments
+          .filter((segment) => segment.value > 0)
+          .map((segment) => (
+            <div
+              key={segment.key}
+              title={`${segment.key}: ${segment.value}`}
+              style={{ flexGrow: segment.value, flexBasis: 0, backgroundColor: segment.color }}
+            />
+          ))}
+      </div>
+      <ul className="mt-4 space-y-2">
+        {segments.map((segment) => (
+          <li key={segment.key} className="flex items-center justify-between text-sm">
+            <span className="flex items-center gap-2 text-neutral-600">
+              <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: segment.color }} />
+              {segment.key}
+            </span>
+            <span className="font-medium text-neutral-800">
+              {segment.value.toLocaleString('id-ID')}
+              <span className="ml-1.5 text-xs font-normal text-neutral-400">
+                ({Math.round((segment.value / stats.total_rsvp) * 100)}%)
+              </span>
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function ExpiringList({ items }: { items: ExpiringWedding[] }) {
+  if (items.length === 0) {
+    return (
+      <p className="text-sm text-neutral-500">
+        Tidak ada undangan yang masa aktifnya berakhir dalam 14 hari ke depan.
+      </p>
+    );
+  }
+
+  return (
+    <ul className="divide-y divide-neutral-100">
+      {items.map((item) => {
+        const days = daysUntil(item.active_until);
+        return (
+          <li key={item.subdomain_slug} className="flex items-center justify-between gap-3 py-2.5">
+            <div className="min-w-0">
+              <p className="truncate text-sm text-neutral-800">
+                {item.groom_name} &amp; {item.bride_name}
+              </p>
+              <p className="truncate text-xs text-neutral-500">
+                {item.subdomain_slug} · s.d. {formatWibDate(item.active_until)}
+                {!item.is_published && ' · Draft'}
+              </p>
+            </div>
+            <span
+              className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${
+                days <= 3 ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-800'
+              }`}
+            >
+              {days === 0 ? 'berakhir hari ini' : `${days} hari lagi`}
+            </span>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+function DashboardTab({ authHeader, onUnauthorized }: TabProps) {
+  const [status, setStatus] = useState<LoadStatus>('loading');
+  const [stats, setStats] = useState<AdminStats | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const load = (mode: 'initial' | 'refresh') => {
+    if (mode === 'refresh') setIsRefreshing(true);
+    else setStatus('loading');
+
+    fetchAdminStats(authHeader)
+      .then((data) => {
+        setStats(data);
+        setStatus('loaded');
+      })
+      .catch((error) => {
+        if (error instanceof ApiError && error.status === 401) {
+          onUnauthorized();
+          return;
+        }
+        if (mode === 'initial') setStatus('error');
+        else alert('Gagal memuat ulang statistik');
+      })
+      .finally(() => setIsRefreshing(false));
+  };
+
+  useEffect(() => {
+    load('initial');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authHeader]);
+
+  if (status === 'loading') {
+    return <p className="text-sm text-neutral-500">Memuat statistik platform...</p>;
+  }
+
+  if (status === 'error' || !stats) {
+    return <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">Gagal memuat statistik platform.</p>;
+  }
+
+  const attendingPct =
+    stats.total_rsvp > 0 ? Math.round((stats.rsvp_attending / stats.total_rsvp) * 100) : 0;
+
+  return (
+    // Saat refresh, render lama ditahan dengan opacity turun -- tidak ada
+    // flash "Memuat..." yang bikin layout lompat.
+    <div className={`space-y-6 transition-opacity ${isRefreshing ? 'opacity-60' : ''}`}>
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-sm text-neutral-500">Agregat seluruh platform (bukan per halaman).</p>
+        <button
+          type="button"
+          onClick={() => load('refresh')}
+          disabled={isRefreshing}
+          className="shrink-0 rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-sm text-neutral-700 hover:border-neutral-400 transition disabled:opacity-50"
+        >
+          {isRefreshing ? 'Memuat...' : 'Muat Ulang'}
+        </button>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+        <StatTile
+          label="Total Undangan"
+          value={stats.total_weddings}
+          sub={`+${stats.new_last_30d} dalam 30 hari terakhir`}
+          subTone={stats.new_last_30d > 0 ? 'up' : 'muted'}
+        />
+        <StatTile label="Publish" value={stats.published} sub="tayang untuk tamu" />
+        <StatTile label="Draft" value={stats.draft} sub="belum dipublish" />
+        <StatTile
+          label="Kedaluwarsa"
+          value={stats.expired}
+          sub={stats.expired > 0 ? 'tawarkan perpanjangan' : 'semua masa aktif aman'}
+          subTone={stats.expired > 0 ? 'warn' : 'muted'}
+        />
+        <StatTile
+          label="Total RSVP"
+          value={stats.total_rsvp}
+          sub={`+${stats.rsvp_last_7d} dalam 7 hari terakhir`}
+          subTone={stats.rsvp_last_7d > 0 ? 'up' : 'muted'}
+        />
+        <StatTile
+          label="Konfirmasi Hadir"
+          value={stats.rsvp_attending}
+          sub={stats.total_rsvp > 0 ? `${attendingPct}% dari total RSVP` : 'belum ada RSVP'}
+        />
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <ChartCard title="Undangan Baru per Bulan" subtitle="6 bulan kalender terakhir (WIB)">
+          <MonthlyChart data={stats.monthly_new} />
+        </ChartCard>
+        <ChartCard title="Distribusi Tema" subtitle="Jumlah undangan per tema — kelihatan tema mana yang laris">
+          <ThemeBars data={stats.theme_distribution} />
+        </ChartCard>
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <ChartCard title="RSVP Tamu" subtitle="Konfirmasi kehadiran lintas semua undangan">
+          <RsvpBreakdown stats={stats} />
+        </ChartCard>
+        <ChartCard title="Segera Berakhir" subtitle="Masa aktif habis ≤ 14 hari ke depan — bahan follow-up perpanjangan">
+          <ExpiringList items={stats.expiring_soon} />
+        </ChartCard>
+      </div>
+    </div>
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -1024,9 +1371,10 @@ function SettingsTab({ authHeader, onUnauthorized }: TabProps) {
 // Dashboard: layout sidebar
 // ---------------------------------------------------------------------------
 
-type TabKey = 'generate' | 'weddings' | 'musik' | 'settings';
+type TabKey = 'dashboard' | 'generate' | 'weddings' | 'musik' | 'settings';
 
 const TABS: { key: TabKey; label: string; description: string }[] = [
+  { key: 'dashboard', label: 'Dashboard', description: 'Monitoring ringkas seluruh platform' },
   { key: 'generate', label: 'Generate Undangan', description: 'Buat undangan baru untuk pelanggan' },
   { key: 'weddings', label: 'Daftar Wedding', description: 'Monitoring semua undangan & RSVP' },
   { key: 'musik', label: 'Musik', description: 'Kelola library lagu global' },
@@ -1039,7 +1387,7 @@ interface AdminDashboardProps {
 }
 
 export default function AdminDashboard({ authHeader, onLogout }: AdminDashboardProps) {
-  const [activeTab, setActiveTab] = useState<TabKey>('generate');
+  const [activeTab, setActiveTab] = useState<TabKey>('dashboard');
   const activeMeta = TABS.find((tab) => tab.key === activeTab)!;
 
   const tabProps: TabProps = { authHeader, onUnauthorized: onLogout };
@@ -1088,6 +1436,7 @@ export default function AdminDashboard({ authHeader, onLogout }: AdminDashboardP
           </div>
 
           <div className="mt-6">
+            {activeTab === 'dashboard' && <DashboardTab {...tabProps} />}
             {activeTab === 'generate' && <GenerateTab {...tabProps} />}
             {activeTab === 'weddings' && <WeddingsTab {...tabProps} />}
             {activeTab === 'musik' && <MusicTab {...tabProps} />}
