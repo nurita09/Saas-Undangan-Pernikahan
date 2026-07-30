@@ -75,6 +75,63 @@ body {
   animation-iteration-count: 1, infinite;
 }
 
+/* Foto cover ber-"ken burns": zoom pelan bolak-balik terus-menerus supaya
+   cover terasa hidup meski tanpa interaksi (terutama di layar sentuh). */
+@keyframes kenburns-zoom {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.1);
+  }
+}
+
+.kenburns {
+  animation: kenburns-zoom 12s ease-in-out infinite alternate;
+}
+
+/* Tombol "Buka Undangan": denyut membesar-mengecil pada tombolnya sendiri
+   (menggantikan lingkaran ping di belakang tombol). */
+@keyframes pulse-scale {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.07);
+  }
+}
+
+.btn-pulse {
+  animation: pulse-scale 1.6s ease-in-out infinite;
+}
+
+/* Transisi buka undangan: cover memudar sambil sedikit membesar (exit),
+   lalu konten masuk dengan fade-up yang lebih lambat dari fade-in biasa.
+   Durasi .cover-exit harus sinkron dengan COVER_EXIT_MS di theme1/index.tsx. */
+@keyframes cover-exit {
+  to {
+    opacity: 0;
+    transform: scale(1.05);
+  }
+}
+
+.cover-exit {
+  animation: cover-exit 0.7s ease-in forwards;
+  pointer-events: none;
+}
+
+.content-enter {
+  animation: fade-up 1.2s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Lapisan parallax di cover: digeser beberapa px lewat inline transform
+   mengikuti posisi mouse; transition membuat gesernya mengalun, bukan patah. */
+.parallax-layer {
+  transition: transform 0.4s ease-out;
+  will-change: transform;
+}
+
 /* ---------------------------------------------------------------------------
    Scroll reveal (dipakai komponen <Reveal> di themes/theme1/components).
    Elemen mulai tersembunyi sesuai varian arahnya; saat masuk viewport,
@@ -146,6 +203,11 @@ body {
   [class*="animate-ping"],
   .corner-float,
   .deco-float,
+  .kenburns,
+  .btn-pulse,
+  .cover-exit,
+  .content-enter,
+  .parallax-layer,
   .reveal {
     animation: none !important;
     transition: none !important;

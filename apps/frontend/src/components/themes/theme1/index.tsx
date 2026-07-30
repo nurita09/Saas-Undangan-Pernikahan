@@ -1,4 +1,4 @@
-import { useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import type { ThemeComponentProps } from '../../../types/wedding';
 import LeftPane from './components/LeftPane';
 import CoverSection from './sections/CoverSection';
@@ -18,6 +18,10 @@ const DEFAULT_SECONDARY_COLOR = '#F9F8F4';
 
 const FALLBACK_COVER_URL =
   'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80';
+
+/* Durasi animasi keluar cover (.cover-exit di index.css) -- konten baru
+   di-mount setelah animasi ini selesai supaya transisinya terasa. */
+const COVER_EXIT_MS = 700;
 
 interface ThemeCssVars extends CSSProperties {
   '--color-primary': string;
@@ -49,22 +53,80 @@ export default function Theme1({ data, guestName }: ThemeComponentProps) {
   const secondaryColor = theme.secondary_color || DEFAULT_SECONDARY_COLOR;
 
   const [isOpened, setIsOpened] = useState(false);
+  const [isCoverExiting, setIsCoverExiting] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
 
   const audioRef = useRef<HTMLAudioElement>(null);
-  const contentRef = useRef<HTMLDivElement>(null);
+  /* Apakah musik sedang berbunyi saat tab ditinggalkan -- dipakai untuk
+     memutuskan resume ketika tab kembali aktif (jangan resume kalau user
+     memang mem-pause manual). */
+  const wasPlayingRef = useRef(false);
 
-  const handleOpenInvitation = () => {
-    setIsOpened(true);
-    if (musicUrl && audioRef.current) {
+  const playMusic = () => {
+    audioRef.current
+      ?.play()
+      .then(() => setIsPlaying(true))
+      .catch(() => {});
+  };
+
+  /* Musik menyala otomatis tanpa perlu menekan tombol. Browser memblokir
+     autoplay beraudio sebelum ada gesture, jadi: coba langsung; kalau ditolak,
+     mulai pada interaksi pertama apa pun (tap/klik/tombol keyboard). */
+  useEffect(() => {
+    if (!musicUrl || !audioRef.current) return;
+
+    const startOnFirstGesture = () => {
       audioRef.current
-        .play()
+        ?.play()
         .then(() => setIsPlaying(true))
         .catch(() => {});
-    }
-    setTimeout(() => {
-      contentRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, 100);
+    };
+
+    audioRef.current
+      .play()
+      .then(() => setIsPlaying(true))
+      .catch(() => {
+        document.addEventListener('pointerdown', startOnFirstGesture, { once: true });
+        document.addEventListener('keydown', startOnFirstGesture, { once: true });
+      });
+
+    return () => {
+      document.removeEventListener('pointerdown', startOnFirstGesture);
+      document.removeEventListener('keydown', startOnFirstGesture);
+    };
+  }, [musicUrl]);
+
+  /* Musik hanya berbunyi selama tab undangan aktif: pindah tab -> pause,
+     kembali -> resume (hanya kalau sebelumnya memang sedang berbunyi). */
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      const audio = audioRef.current;
+      if (!audio) return;
+      if (document.hidden) {
+        wasPlayingRef.current = !audio.paused;
+        audio.pause();
+        setIsPlaying(false);
+      } else if (wasPlayingRef.current) {
+        audio
+          .play()
+          .then(() => setIsPlaying(true))
+          .catch(() => {});
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
+
+  const handleOpenInvitation = () => {
+    if (isCoverExiting || isOpened) return;
+    setIsCoverExiting(true);
+    if (musicUrl && audioRef.current?.paused) playMusic();
+    // Cover diberi waktu menyelesaikan animasi keluarnya dulu, baru konten
+    // di-mount (dengan animasi masuknya sendiri, .content-enter).
+    window.setTimeout(() => {
+      setIsOpened(true);
+      window.scrollTo({ top: 0 });
+    }, COVER_EXIT_MS);
   };
 
   const toggleMusic = () => {
@@ -73,8 +135,7 @@ export default function Theme1({ data, guestName }: ThemeComponentProps) {
       audioRef.current.pause();
       setIsPlaying(false);
     } else {
-      audioRef.current.play();
-      setIsPlaying(true);
+      playMusic();
     }
   };
 
@@ -108,12 +169,13 @@ export default function Theme1({ data, guestName }: ThemeComponentProps) {
             weddingDate={event.wedding_date}
             coverPhotoUrl={coverPhotoUrl}
             guestName={guestName}
+            isExiting={isCoverExiting}
             onOpen={handleOpenInvitation}
           />
         )}
 
         {isOpened && (
-          <div ref={contentRef} className="animate-fade-in">
+          <div className="content-enter">
             <QuoteSection
               photoUrl={section1PhotoUrl}
               quoteText={data.theme_settings?.quote_text}
