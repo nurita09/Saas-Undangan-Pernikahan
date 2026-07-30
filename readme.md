@@ -323,6 +323,29 @@ Env WAJIB untuk production (di samping yang sudah ada di `.env.example`):
 3. Backend me-resolve tenant dari `Host` header, jadi proxy harus meneruskan Host
    apa adanya (perilaku default Cloudflare & Caddy `reverse_proxy`).
 
+### CI/CD (GitHub Actions)
+
+Workflow `.github/workflows/ci-cd.yml` — push ke `main` menjalankan test frontend
+(typecheck + vitest + build) dan backend (`cargo test`, tanpa database karena query
+sqlx runtime-checked), lalu kalau semuanya hijau: SSH ke server production,
+`git reset --hard origin/main`, dan `docker compose ... up -d --build`. PR ke `main`
+hanya menjalankan CI (tanpa deploy). Deploy tidak pernah tumpang-tindih (push
+beruntun antre satu per satu).
+
+Secrets yang wajib di-set (repo Settings → Secrets and variables → Actions):
+
+| Secret | Isi |
+| --- | --- |
+| `DEPLOY_HOST` | IP/host server production |
+| `DEPLOY_USER` | User SSH di server (anggota grup `docker`) |
+| `DEPLOY_SSH_KEY` | Private key OpenSSH; pasangan publiknya ada di `~/.ssh/authorized_keys` server |
+| `DEPLOY_PATH` | Path clone repo di server, mis. `/opt/Saas-Undangan-Pernikahan` |
+| `DEPLOY_PORT` | (Opsional) port SSH, default 22 |
+
+Prasyarat sekali-setup di server: repo sudah di-clone di `DEPLOY_PATH` (pakai deploy
+key read-only supaya bisa `git fetch`), `.env` production ada di root clone tersebut
+(untracked, tidak tersentuh `git reset --hard`), dan Docker terinstal.
+
 ### Backup
 
 ```bash

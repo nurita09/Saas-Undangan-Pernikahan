@@ -1,0 +1,86 @@
+# CI/CD: tiap push ke main -> test frontend + backend -> deploy ke server
+# (SSH: git pull + docker compose build ulang). PR ke main hanya menjalankan CI.
+#
+# Secrets yang wajib di-set di GitHub (Settings > Secrets and variables > Actions):
+#   DEPLOY_HOST      IP/host server production
+#   DEPLOY_USER      user SSH di server (harus anggota grup docker)
+#   DEPLOY_SSH_KEY   private key OpenSSH untuk user tsb (pasangan publiknya di authorized_keys server)
+#   DEPLOY_PATH      path clone repo di server, mis. /opt/Saas-Undangan-Pernikahan
+#   DEPLOY_PORT      (opsional) port SSH, default 22
+#
+# Prasyarat di server: repo sudah di-clone di DEPLOY_PATH (dengan deploy key yang
+# bisa pull), file .env production sudah ada di root repo, dan Docker terinstal.
+name: CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  frontend:
+    name: Frontend (typecheck + test + build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: apps/frontend/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+
+  backend:
+    name: Backend (cargo test)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: apps/backend
+      # Query sqlx di codebase ini runtime-checked (bukan macro compile-time),
+      # jadi build & test tidak butuh database.
+      - run: cargo test --locked
+
+  deploy:
+    name: Deploy ke server production
+    needs: [frontend, backend]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+    # Deploy tidak boleh tumpang-tindih ataupun dibatalkan di tengah jalan;
+    # push beruntun akan antre satu per satu.
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: false
+    steps:
+      - name: SSH ke server, pull, dan build ulang
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: ${{ secrets.DEPLOY_PORT || 22 }}
+          command_timeout: 30m
+          script: |
+            set -e
+            cd "${{ secrets.DEPLOY_PATH }}"
+            git fetch origin main
+            git reset --hard origin/main
+            docker compose -p undangan-prod --env-file .env -f infra/docker-compose.prod.yml up -d --build
+            docker image prune -f
