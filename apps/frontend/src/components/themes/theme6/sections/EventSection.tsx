@@ -1,7 +1,8 @@
 import { formatLongDate, formatTime } from '../../../../utils/formatDate';
 import type { EventInfo } from '../../../../types/wedding';
 import Reveal from '../../../shared/Reveal';
-import { CalendarIcon, ClockIcon, MapPinIcon, SectionTitle, VenueArt } from '../components/ornaments';
+import { CalendarIcon, ClockIcon, MapPinIcon, SectionTitle } from '../components/ornaments';
+import venueLine from '../../../../assets/theme6/venue-line.png';
 
 interface EventSectionProps {
   event: EventInfo;
@@ -56,7 +57,13 @@ export default function EventSection({ event }: EventSectionProps) {
     <section className="px-7 py-20">
       <Reveal variant="up">
         <SectionTitle kicker="Save The Date" title="Detail Acara" />
-        <VenueArt className="mx-auto mt-4 w-full max-w-[17rem] text-[var(--color-primary)] opacity-90" />
+        <img
+          src={venueLine}
+          alt=""
+          aria-hidden="true"
+          loading="lazy"
+          className="mx-auto mt-4 w-full max-w-[19rem] opacity-90"
+        />
       </Reveal>
       <div className="mt-6 space-y-5">
         <EventCard

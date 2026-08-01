@@ -1,8 +1,18 @@
 import type { GalleryPhotoInfo } from '../../../../types/wedding';
 import Reveal from '../../../shared/Reveal';
 import { PlayIcon, SectionTitle } from '../components/ornaments';
+import gallery1 from '../../../../assets/theme6/gallery-1.jpg';
+import gallery2 from '../../../../assets/theme6/gallery-2.jpg';
+import gallery3 from '../../../../assets/theme6/gallery-3.jpg';
+import gallery4 from '../../../../assets/theme6/gallery-4.jpg';
 
 const MAX_GALLERY_PHOTOS = 10;
+
+/* Grid fallback bawaan tema saat pasangan belum mengunggah foto galeri --
+   section tetap tampil seperti desain asalnya, bukan hilang. */
+const FALLBACK_GALLERY: GalleryPhotoInfo[] = [gallery1, gallery2, gallery3, gallery4].map(
+  (photo_url) => ({ photo_url }),
+);
 
 interface GallerySectionProps {
   photos: GalleryPhotoInfo[];
@@ -19,9 +29,7 @@ function getYoutubeId(url: string): string | null {
 /** Section 5: galeri -- video prewedding + grid foto dengan rasio berselang. */
 export default function GallerySection({ photos, videoUrl }: GallerySectionProps) {
   const youtubeId = videoUrl ? getYoutubeId(videoUrl) : null;
-  const hasPhotos = photos && photos.length > 0;
-
-  if (!youtubeId && !hasPhotos) return null;
+  const galleryPhotos = photos && photos.length > 0 ? photos : FALLBACK_GALLERY;
 
   return (
     <section className="px-7 py-20">
@@ -46,22 +54,20 @@ export default function GallerySection({ photos, videoUrl }: GallerySectionProps
         )}
       </Reveal>
 
-      {hasPhotos && (
-        <div className="mt-7 grid grid-cols-2 gap-3">
-          {photos.slice(0, MAX_GALLERY_PHOTOS).map((photo, idx) => (
-            <Reveal key={idx} variant="zoom" delay={(idx % 2) * 70}>
-              <img
-                src={photo.photo_url}
-                alt={`Foto galeri ${idx + 1}`}
-                loading="lazy"
-                className={`w-full border border-[var(--color-primary)]/25 object-cover shadow-md transition-transform duration-500 hover:scale-[1.03] ${
-                  idx % 3 === 0 ? 'aspect-[3/4]' : 'aspect-square'
-                }`}
-              />
-            </Reveal>
-          ))}
-        </div>
-      )}
+      <div className="mt-7 grid grid-cols-2 gap-3">
+        {galleryPhotos.slice(0, MAX_GALLERY_PHOTOS).map((photo, idx) => (
+          <Reveal key={idx} variant="zoom" delay={(idx % 2) * 70}>
+            <img
+              src={photo.photo_url}
+              alt={`Foto galeri ${idx + 1}`}
+              loading="lazy"
+              className={`w-full border border-[var(--color-primary)]/25 object-cover shadow-md transition-transform duration-500 hover:scale-[1.03] ${
+                idx % 3 === 0 ? 'aspect-[3/4]' : 'aspect-square'
+              }`}
+            />
+          </Reveal>
+        ))}
+      </div>
     </section>
   );
 }

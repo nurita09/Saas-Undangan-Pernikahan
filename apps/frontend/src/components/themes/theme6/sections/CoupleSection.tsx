@@ -1,10 +1,11 @@
 import type { CoupleInfo } from '../../../../types/wedding';
 import Reveal from '../../../shared/Reveal';
 import { InstagramIcon, SectionTitle } from '../components/ornaments';
+import fallbackGroomPhoto from '../../../../assets/theme6/groom.jpg';
+import fallbackBridePhoto from '../../../../assets/theme6/bride.jpg';
 
 interface CoupleSectionProps {
   couple: CoupleInfo;
-  fallbackPhotoUrl: string;
 }
 
 interface PersonProps {
@@ -50,8 +51,9 @@ function Person({ role, name, photoUrl, parents, instagram, delay }: PersonProps
   );
 }
 
-/** Section 2b: profil kedua mempelai. */
-export default function CoupleSection({ couple, fallbackPhotoUrl }: CoupleSectionProps) {
+/** Section 2b: profil kedua mempelai. Foto fallback ikut asset bawaan tema
+ *  (bukan foto cover/global) supaya tampilan default sama dengan desain asalnya. */
+export default function CoupleSection({ couple }: CoupleSectionProps) {
   return (
     <section className="bg-[var(--sage-soft)] px-7 pt-16 pb-20">
       <div className="space-y-12">
@@ -61,7 +63,7 @@ export default function CoupleSection({ couple, fallbackPhotoUrl }: CoupleSectio
         <Person
           role="Mempelai Pria"
           name={couple.groom_name}
-          photoUrl={couple.groom_photo_url || fallbackPhotoUrl}
+          photoUrl={couple.groom_photo_url || fallbackGroomPhoto}
           parents={couple.groom_parents}
           instagram={couple.groom_ig}
           delay={0}
@@ -69,7 +71,7 @@ export default function CoupleSection({ couple, fallbackPhotoUrl }: CoupleSectio
         <Person
           role="Mempelai Wanita"
           name={couple.bride_name}
-          photoUrl={couple.bride_photo_url || fallbackPhotoUrl}
+          photoUrl={couple.bride_photo_url || fallbackBridePhoto}
           parents={couple.bride_parents}
           instagram={couple.bride_ig}
           delay={100}

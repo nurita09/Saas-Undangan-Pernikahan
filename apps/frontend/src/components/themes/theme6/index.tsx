@@ -13,12 +13,10 @@ import GiftSection from './sections/GiftSection';
 import RsvpSection from './sections/RsvpSection';
 import ThankYouSection from './sections/ThankYouSection';
 import FooterSection from './sections/FooterSection';
+import fallbackCover from '../../../assets/theme6/cover.jpg';
 
 const DEFAULT_PRIMARY_COLOR = '#5F7D66'; // sage lawas
 const DEFAULT_SECONDARY_COLOR = '#F5F1E6'; // krem kertas
-
-const FALLBACK_COVER_URL =
-  'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80';
 
 /* Durasi animasi keluar cover (.cover-exit-up di index.css) -- konten baru
    di-mount setelah animasi ini selesai supaya transisinya terasa. */
@@ -159,7 +157,7 @@ export default function Theme6({ data, guestName }: ThemeComponentProps) {
     '--t6-muted': '#71786C',
   };
 
-  const coverPhotoUrl = data.cover_photo_url || FALLBACK_COVER_URL;
+  const coverPhotoUrl = data.cover_photo_url || fallbackCover;
 
   return (
     <div
@@ -195,7 +193,7 @@ export default function Theme6({ data, guestName }: ThemeComponentProps) {
               quoteSource={data.theme_settings?.quote_source}
             />
             <SaveTheDateSection couple={couple} event={event} />
-            <CoupleSection couple={couple} fallbackPhotoUrl={coverPhotoUrl} />
+            <CoupleSection couple={couple} />
             <EventSection event={event} />
             <LoveStorySection stories={love_stories} />
             <GallerySection photos={gallery_photos} videoUrl={gallery_video_url} />

@@ -54,34 +54,6 @@ export function SectionTitle({ kicker, title }: { kicker: string; title: string 
   );
 }
 
-/** Ilustrasi garis venue (pengganti venue-line.png): gerbang lengkung + juntai daun. */
-export function VenueArt({ className = '' }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 240 120"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.4"
-      strokeLinecap="round"
-      aria-hidden="true"
-      className={className}
-    >
-      {/* gerbang */}
-      <path d="M40 112 V54 C40 22 70 10 120 10 C170 10 200 22 200 54 V112" />
-      <path d="M52 112 V56 C52 30 78 20 120 20 C162 20 188 30 188 56 V112" />
-      {/* lantai */}
-      <path d="M20 112 H220" />
-      {/* juntai daun kiri-kanan */}
-      <path d="M56 34 C60 48 58 62 50 74 M56 34 C50 42 48 52 50 62 M56 34 C62 40 66 50 64 60" />
-      <path d="M184 34 C180 48 182 62 190 74 M184 34 C190 42 192 52 190 62 M184 34 C178 40 174 50 176 60" />
-      {/* hati kecil di puncak */}
-      <path d="M120 40 C117 35 111 35 111 40 C111 44 116 46 120 50 C124 46 129 44 129 40 C129 35 123 35 120 40 Z" />
-      {/* lampion gantung */}
-      <path d="M86 22 V34 M86 34 a4 5 0 1 0 0.01 0 M154 22 V34 M154 34 a4 5 0 1 0 0.01 0" />
-    </svg>
-  );
-}
-
 // ---------------------------------------------------------------------------
 // Ikon stroke ringan (pengganti lucide-react -- proyek ini tanpa dependensi ikon)
 // ---------------------------------------------------------------------------

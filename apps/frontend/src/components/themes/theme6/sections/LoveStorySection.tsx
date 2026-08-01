@@ -1,8 +1,15 @@
 import type { LoveStoryInfo } from '../../../../types/wedding';
 import Reveal from '../../../shared/Reveal';
 import { HeartIcon, SectionTitle } from '../components/ornaments';
+import story1 from '../../../../assets/theme6/story-1.jpg';
+import story2 from '../../../../assets/theme6/story-2.jpg';
+import story3 from '../../../../assets/theme6/story-3.jpg';
 
 const MAX_LOVE_STORIES = 5;
+
+/* Foto fallback bawaan tema, dipakai bergiliran kalau milestone belum punya
+   foto sendiri -- timeline selalu tampil lengkap seperti desain asalnya. */
+const FALLBACK_STORY_PHOTOS = [story1, story2, story3];
 
 interface LoveStorySectionProps {
   stories: LoveStoryInfo[];
@@ -29,14 +36,12 @@ export default function LoveStorySection({ stories }: LoveStorySectionProps) {
                   {story.date}
                 </p>
               )}
-              {story.photo_url && (
-                <img
-                  src={story.photo_url}
-                  alt="Kisah cinta"
-                  loading="lazy"
-                  className="mt-3 aspect-[4/3] w-full border border-[var(--color-primary)]/25 object-cover shadow-md"
-                />
-              )}
+              <img
+                src={story.photo_url || FALLBACK_STORY_PHOTOS[idx % FALLBACK_STORY_PHOTOS.length]}
+                alt="Kisah cinta"
+                loading="lazy"
+                className="mt-3 aspect-[4/3] w-full border border-[var(--color-primary)]/25 object-cover shadow-md"
+              />
               {story.description && (
                 <p className="mt-3 text-sm leading-relaxed text-[var(--t6-muted)]">
                   {story.description}
