@@ -31,6 +31,8 @@ pub(crate) fn default_colors_for_theme(theme_id: i32) -> (&'static str, &'static
         4 => ("#7C9070", "#FAFBF7"),
         // Theme 5 - Retro Pop: terracotta + krem hangat 70-an.
         5 => ("#C75B39", "#FBF3E4"),
+        // Theme 6 - Vintage Monogram: sage lawas + krem kertas.
+        6 => ("#5F7D66", "#F5F1E6"),
         // Theme 1 - Floral Elegant.
         _ => ("#8D7B68", "#F9F8F4"),
     }

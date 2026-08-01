@@ -32,7 +32,7 @@ const GALLERY: [&str; 4] = [
     "https://images.unsplash.com/photo-1606216794074-735e91aa2c92?w=1200&q=80",
 ];
 
-const DEMOS: [DemoSpec; 5] = [
+const DEMOS: [DemoSpec; 6] = [
     DemoSpec {
         slug: "demo-floral",
         theme_id: 1,
@@ -88,6 +88,16 @@ const DEMOS: [DemoSpec; 5] = [
             "Kata orang jodoh itu di tangan Tuhan — untung banget Tuhan nulis nama kita bersebelahan.",
         ),
         quote_source: Some("Kata Kami Berdua"),
+    },
+    DemoSpec {
+        slug: "demo-vintage",
+        theme_id: 6,
+        groom: "Arka",
+        bride: "Renata",
+        groom_parents: "Putra dari Bapak Sutrisno Wijaya & Ibu Sri Wahyuni",
+        bride_parents: "Putri dari Bapak Bambang Hartono & Ibu Endah Kusumawati",
+        quote_text: None, // pakai default Qs. Ar-Rum: 21
+        quote_source: None,
     },
 ];
 

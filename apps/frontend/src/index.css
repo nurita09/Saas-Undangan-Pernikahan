@@ -8,6 +8,9 @@
   --font-arabic: "Amiri", "Scheherazade New", serif;
   /* Display bold-kasual ala 70-an -- dipakai Theme 5 Retro Pop */
   --font-retro: "Righteous", "Poppins", sans-serif;
+  /* Serif klasik + script halus -- dipakai Theme 6 Vintage Monogram */
+  --font-vintage: "Cormorant Garamond", Georgia, serif;
+  --font-vintage-script: "Parisienne", cursive;
 
   --animate-fade-up: fade-up 0.9s ease-out forwards;
   --animate-fade-in-scale: fade-in-scale 1.4s ease-out forwards;
@@ -133,6 +136,62 @@ body {
 }
 
 /* ---------------------------------------------------------------------------
+   Theme 6 - Vintage Monogram. Ornamen berbasis CSS murni (tanpa file asset):
+   garis pembatas kicker, tekstur kertas titik-titik, dan transisi cover yang
+   menggeser seluruh layar ke atas ala kertas undangan diangkat.
+   --------------------------------------------------------------------------- */
+
+/* Label kicker diapit dua garis yang memudar ke luar. Warna garis ikut
+   currentColor supaya cukup diatur lewat kelas text-*. */
+.deco-rule {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+}
+
+.deco-rule::before,
+.deco-rule::after {
+  content: "";
+  height: 1px;
+  width: 2.5rem;
+  background: linear-gradient(90deg, transparent, currentColor);
+}
+
+.deco-rule::after {
+  background: linear-gradient(270deg, transparent, currentColor);
+}
+
+/* Tekstur kertas lawas: titik-titik halus warna primary di atas konten.
+   Dipasang pada elemen ber-position relative; overlay tidak menghalangi klik. */
+.paper-grain::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.5;
+  background-image: radial-gradient(
+    color-mix(in oklab, var(--color-primary) 12%, transparent) 0.6px,
+    transparent 0.6px
+  );
+  background-size: 4px 4px;
+}
+
+/* Transisi buka undangan Theme 6: cover terangkat ke atas sampai keluar layar.
+   Durasi harus sinkron dengan COVER_EXIT_MS di theme6/index.tsx. */
+@keyframes cover-exit-up {
+  to {
+    opacity: 0;
+    transform: translateY(-100%);
+  }
+}
+
+.cover-exit-up {
+  animation: cover-exit-up 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  pointer-events: none;
+}
+
+/* ---------------------------------------------------------------------------
    Scroll reveal (dipakai komponen <Reveal> di themes/theme1/components).
    Elemen mulai tersembunyi sesuai varian arahnya; saat masuk viewport,
    IntersectionObserver menambahkan .is-visible dan transition membawanya ke
@@ -206,6 +265,7 @@ body {
   .kenburns,
   .btn-pulse,
   .cover-exit,
+  .cover-exit-up,
   .content-enter,
   .parallax-layer,
   .reveal {
