@@ -203,11 +203,13 @@ Pengantin buka https://ivan-aura.undangan.com/edit?token=4342b010-4aa1-411c-ab87
         │
         ├─ Ubah warna (color picker), nama, tanggal, lokasi, maps url
         │
-        ├─ Pilih foto pranikah
+        ├─ Pilih foto pranikah (atau video untuk cover -- Theme 1-6 otomatis
+        │  mendeteksi dari ekstensi URL & merender <video> loop tanpa suara)
         │     └─ POST /api/wedding/upload  (multipart, header X-Access-Token)
         │           └─ backend cari wedding by access_token → upload ke MinIO
-        │                 (key: weddings/{wedding_id}/{uuid}.{ext}, MAX 10MB,
-        │                  hanya JPEG/PNG/WEBP)
+        │                 (key: weddings/{wedding_id}/{uuid}.{ext})
+        │                 - foto: JPEG/PNG/WEBP, MAX 10MB, di-resize+re-encode ke .jpg
+        │                 - video (khusus cover): MP4/WEBM, MAX 20MB, disimpan mentah
         │           └─ return { url: "http://.../undangan-assets/weddings/..." }
         │           └─ frontend simpan url ke state form
         │
@@ -233,7 +235,7 @@ Base path semua endpoint: `/api`. Tidak ada versioning (`/v1`, dst) — MVP.
 | `GET` | `/wedding-details` | — (tenant dari `Host` header) | Data publik undangan (tema, pasangan, acara) untuk halaman tamu |
 | `GET` | `/wedding/edit-auth?slug=&token=` | query `token` + `slug` | Validasi akses editor, sekaligus mengembalikan data lengkap untuk prefill form |
 | `PUT` | `/wedding/update` | `X-Access-Token` header | Update nama, warna, tanggal, lokasi, foto |
-| `POST` | `/wedding/upload` | `X-Access-Token` header | Upload foto (multipart `file`) ke MinIO, kembalikan URL publik |
+| `POST` | `/wedding/upload` | `X-Access-Token` header | Upload foto atau video cover (multipart `file`) ke MinIO, kembalikan URL publik |
 
 **Belum ada** (potensi langkah selanjutnya): `POST /rsvp` (submit ucapan & konfirmasi kehadiran tamu) dan `GET /rsvp` (daftar ucapan) — tabel `rsvp` sudah ada di skema tapi belum di-wire ke API/UI.
 

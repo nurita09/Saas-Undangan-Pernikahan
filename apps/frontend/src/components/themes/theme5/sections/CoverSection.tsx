@@ -1,5 +1,6 @@
 import { formatCoverDate } from '../../../../utils/formatDate';
 import type { CoupleInfo } from '../../../../types/wedding';
+import CoverMedia from '../../../shared/CoverMedia';
 import { COCOA, Daisy, RetroSun, wavyBackground } from '../components/ornaments';
 
 interface CoverSectionProps {
@@ -47,7 +48,7 @@ export default function CoverSection({
           style={{ borderColor: COCOA }}
         >
           <div className="h-60 w-48 overflow-hidden rounded-[1.5rem]">
-            <img src={coverPhotoUrl} alt="Cover" className="w-full h-full object-cover" />
+            <CoverMedia src={coverPhotoUrl} alt="Cover" className="w-full h-full object-cover" />
           </div>
         </div>
 

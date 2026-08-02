@@ -1,5 +1,6 @@
 import { formatCoverDate } from '../../../../utils/formatDate';
 import type { CoupleInfo } from '../../../../types/wedding';
+import CoverMedia from '../../../shared/CoverMedia';
 import { ArchDivider, Bismillah, IslamicArch, geometricBackground } from '../components/ornaments';
 
 interface CoverSectionProps {
@@ -39,7 +40,7 @@ export default function CoverSection({
         {/* Foto berbingkai lengkung masjid (arch): rounded penuh di atas saja */}
         <div className="opacity-0 animate-fade-up [animation-delay:500ms] mt-8 rounded-t-full border-2 border-[var(--color-primary)]/60 p-2 bg-white shadow-sm">
           <div className="h-64 w-48 overflow-hidden rounded-t-full">
-            <img src={coverPhotoUrl} alt="Cover" className="w-full h-full object-cover" />
+            <CoverMedia src={coverPhotoUrl} alt="Cover" className="w-full h-full object-cover" />
           </div>
         </div>
 

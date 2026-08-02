@@ -18,9 +18,10 @@ use tracing_subscriber::EnvFilter;
 
 use crate::{config::AppConfig, state::AppState};
 
-// 20MB -- cukup untuk foto (dibatasi 10MB di handler) dan file musik
-// (dibatasi 15MB di handler), plus sedikit ruang untuk overhead multipart.
-const MAX_BODY_BYTES: usize = 20 * 1024 * 1024;
+// 25MB -- cukup untuk video cover (dibatasi 20MB di handler, request terbesar
+// di antara semua jenis upload), foto (10MB) dan file musik (15MB), plus
+// sedikit ruang untuk overhead multipart.
+const MAX_BODY_BYTES: usize = 25 * 1024 * 1024;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {

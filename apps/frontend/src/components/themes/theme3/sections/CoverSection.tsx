@@ -1,5 +1,6 @@
 import { formatCoverDate } from '../../../../utils/formatDate';
 import type { CoupleInfo } from '../../../../types/wedding';
+import CoverMedia from '../../../shared/CoverMedia';
 import { DecoFan, GoldDivider, goldGlow } from '../components/ornaments';
 
 interface CoverSectionProps {
@@ -38,7 +39,7 @@ export default function CoverSection({
 
         <div className="opacity-0 animate-fade-up [animation-delay:500ms] mt-9 rounded-full border border-[#D4AF37]/70 p-2 shadow-[0_0_40px_rgba(212,175,55,0.25)]">
           <div className="h-52 w-52 overflow-hidden rounded-full">
-            <img src={coverPhotoUrl} alt="Cover" className="w-full h-full object-cover" />
+            <CoverMedia src={coverPhotoUrl} alt="Cover" className="w-full h-full object-cover" />
           </div>
         </div>
 

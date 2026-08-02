@@ -1,5 +1,6 @@
 import { formatCoverDate } from '../../../../utils/formatDate';
 import type { CoupleInfo } from '../../../../types/wedding';
+import CoverMedia from '../../../shared/CoverMedia';
 import { Divider, FloralCorners } from './ornaments';
 
 interface LeftPaneProps {
@@ -15,7 +16,7 @@ interface LeftPaneProps {
 export default function LeftPane({ couple, weddingDate, coverPhotoUrl }: LeftPaneProps) {
   return (
     <div className="hidden lg:flex lg:flex-1 lg:sticky lg:top-0 lg:h-screen relative flex-col items-center justify-center overflow-hidden z-10">
-      <img
+      <CoverMedia
         src={coverPhotoUrl}
         alt="Cover"
         className="absolute inset-0 w-full h-full scale-105 object-cover"

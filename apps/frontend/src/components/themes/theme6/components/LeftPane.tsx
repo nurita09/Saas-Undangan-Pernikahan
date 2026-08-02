@@ -1,5 +1,6 @@
 import { formatLongDate } from '../../../../utils/formatDate';
 import type { CoupleInfo } from '../../../../types/wedding';
+import CoverMedia from '../../../shared/CoverMedia';
 import { Monogram } from './ornaments';
 
 interface LeftPaneProps {
@@ -15,7 +16,7 @@ interface LeftPaneProps {
 export default function LeftPane({ couple, weddingDate, coverPhotoUrl }: LeftPaneProps) {
   return (
     <div className="hidden lg:flex lg:flex-1 lg:sticky lg:top-0 lg:h-screen relative flex-col items-center justify-center overflow-hidden z-10">
-      <img src={coverPhotoUrl} alt="Cover" className="absolute inset-0 w-full h-full object-cover" />
+      <CoverMedia src={coverPhotoUrl} alt="Cover" className="absolute inset-0 w-full h-full object-cover" />
       <div className="absolute inset-0 bg-gradient-to-b from-[var(--sage-deep)]/60 via-[var(--sage-deep)]/30 to-[var(--sage-deep)]/85" />
 
       <div className="relative z-20 text-center text-[var(--color-secondary)] max-w-2xl px-8">

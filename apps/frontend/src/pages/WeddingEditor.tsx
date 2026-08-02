@@ -1,6 +1,7 @@
 import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react';
 import { fetchEditAuth, fetchMusicLibrary, updateWedding, uploadPhoto, ApiError } from '../lib/api';
 import { readAccessToken } from '../utils/token';
+import { isVideoUrl } from '../utils/media';
 import type { MusicTrack, WeddingEditData } from '../types/wedding';
 
 interface WeddingEditorProps {
@@ -141,25 +142,59 @@ interface PhotoFieldProps {
   uploadState: UploadState;
   onSelect: (event: ChangeEvent<HTMLInputElement>) => void;
   compact?: boolean;
+  /** Kalau true, field ini juga menerima video (dipakai cover -- lihat
+   *  routes/wedding_edit.rs upload_photo: video disimpan mentah MP4/WEBM,
+   *  tanpa resize/re-encode seperti foto). */
+  allowVideo?: boolean;
 }
 
-function PhotoField({ label, photoUrl, uploadState, onSelect, compact = false }: PhotoFieldProps) {
+function PhotoField({
+  label,
+  photoUrl,
+  uploadState,
+  onSelect,
+  compact = false,
+  allowVideo = false,
+}: PhotoFieldProps) {
+  const previewIsVideo = allowVideo && isVideoUrl(photoUrl);
+  const previewClass = `${compact ? 'h-24' : 'h-40'} w-full rounded-lg object-cover`;
+
   return (
     <div className="space-y-2">
       <p className={LABEL_CLASS}>{label}</p>
 
-      {photoUrl && (
-        <img
-          src={photoUrl}
-          alt={`Pratinjau ${label}`}
-          className={`${compact ? 'h-24' : 'h-40'} w-full rounded-lg object-cover`}
-        />
-      )}
+      {photoUrl &&
+        (previewIsVideo ? (
+          <video
+            src={photoUrl}
+            controls
+            muted
+            loop
+            className={`${previewClass} bg-black`}
+          />
+        ) : (
+          <img src={photoUrl} alt={`Pratinjau ${label}`} className={previewClass} />
+        ))}
 
       <label className="flex cursor-pointer items-center justify-center rounded-lg border border-dashed border-neutral-300 px-4 py-2.5 text-sm text-neutral-600 hover:border-neutral-400">
-        {uploadState === 'uploading' ? 'Mengunggah...' : 'Pilih Foto'}
-        <input type="file" accept="image/jpeg,image/png,image/webp" onChange={onSelect} className="hidden" />
+        {uploadState === 'uploading' ? 'Mengunggah...' : allowVideo ? 'Pilih Foto/Video' : 'Pilih Foto'}
+        <input
+          type="file"
+          accept={
+            allowVideo
+              ? 'image/jpeg,image/png,image/webp,video/mp4,video/webm'
+              : 'image/jpeg,image/png,image/webp'
+          }
+          onChange={onSelect}
+          className="hidden"
+        />
       </label>
+      {allowVideo && (
+        <p className="text-xs text-neutral-400">
+          Foto: JPEG/PNG/WEBP maks 10MB. Video: MP4/WEBM maks 20MB, akan diputar tanpa suara &amp;
+          diulang otomatis.
+        </p>
+      )}
     </div>
   );
 }
@@ -478,10 +513,11 @@ export default function WeddingEditor({ slug }: WeddingEditorProps) {
               </div>
 
               <PhotoField
-                label="Foto Cover Utama (lingkaran di cover & panel kiri undangan)"
+                label="Foto/Video Cover Utama (lingkaran di cover & panel kiri undangan)"
                 photoUrl={form.cover_photo_url}
                 uploadState={uploadState}
                 onSelect={(e) => uploadThen(e, (url) => updateField('cover_photo_url', url))}
+                allowVideo
               />
             </fieldset>
           )}

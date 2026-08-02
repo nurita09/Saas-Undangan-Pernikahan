@@ -1,5 +1,6 @@
 import { formatLongDate } from '../../../../utils/formatDate';
 import type { CoupleInfo } from '../../../../types/wedding';
+import CoverMedia from '../../../shared/CoverMedia';
 import { ChevronDownIcon, Monogram } from '../components/ornaments';
 
 interface CoverSectionProps {
@@ -27,7 +28,7 @@ export default function CoverSection({
     <section
       className={`relative h-dvh w-full overflow-hidden ${isExiting ? 'cover-exit-up' : ''}`.trim()}
     >
-      <img
+      <CoverMedia
         src={coverPhotoUrl}
         alt={`Foto pengantin ${couple.groom_name} dan ${couple.bride_name}`}
         className="absolute inset-0 h-full w-full object-cover"

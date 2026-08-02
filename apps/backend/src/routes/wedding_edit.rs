@@ -21,6 +21,20 @@ use crate::{
 const MAX_UPLOAD_BYTES: usize = 10 * 1024 * 1024;
 const ALLOWED_CONTENT_TYPES: &[&str] = &["image/jpeg", "image/png", "image/webp"];
 
+/// Cover undangan (Theme 1-6) boleh berupa video pendek yang di-loop tanpa
+/// suara -- lebih besar dari batas foto, tapi tetap wajar untuk klip singkat.
+/// Video TIDAK di-resize/re-encode (tidak ada codec video di backend ini);
+/// disimpan mentah apa adanya, hanya diberi ekstensi sesuai content-type.
+const MAX_VIDEO_UPLOAD_BYTES: usize = 20 * 1024 * 1024;
+const ALLOWED_VIDEO_CONTENT_TYPES: &[(&str, &str)] = &[("video/mp4", "mp4"), ("video/webm", "webm")];
+
+fn video_extension_for(content_type: &str) -> Option<&'static str> {
+    ALLOWED_VIDEO_CONTENT_TYPES
+        .iter()
+        .find(|(ct, _)| *ct == content_type)
+        .map(|(_, ext)| *ext)
+}
+
 /// Sisi terpanjang maksimal setelah resize -- foto kamera/HP (4000px+, bisa
 /// 10MB) diperkecil supaya undangan tidak berat dimuat tamu. 1920px masih
 /// tajam untuk layar mana pun yang dipakai menampilkan undangan.
@@ -494,8 +508,10 @@ async fn replace_wedding_gifts(
 }
 
 /// POST /api/wedding/upload
-/// Wajib header X-Access-Token. Terima multipart field "file", optimalkan
-/// (resize + kompres JPEG), upload ke MinIO, lalu kembalikan URL publiknya.
+/// Wajib header X-Access-Token. Terima multipart field "file" -- gambar
+/// (JPEG/PNG/WEBP) dioptimalkan (resize + kompres JPEG); video cover
+/// (MP4/WEBM) disimpan mentah tanpa re-encode. Upload ke MinIO, lalu
+/// kembalikan URL publiknya.
 pub async fn upload_photo(
     headers: HeaderMap,
     State(state): State<AppState>,
@@ -513,9 +529,44 @@ pub async fn upload_photo(
         }
 
         let content_type = field.content_type().unwrap_or_default().to_string();
+
+        if let Some(video_ext) = video_extension_for(&content_type) {
+            let bytes = field
+                .bytes()
+                .await
+                .map_err(|_| AppError::InvalidInput("gagal membaca isi file".to_string()))?;
+
+            if bytes.len() > MAX_VIDEO_UPLOAD_BYTES {
+                return Err(AppError::InvalidInput("ukuran video maksimal 20MB".to_string()));
+            }
+
+            let object_key = format!("weddings/{wedding_id}/{}.{video_ext}", Uuid::new_v4());
+
+            state
+                .s3_client
+                .put_object()
+                .bucket(&state.config.minio_bucket)
+                .key(&object_key)
+                .body(ByteStream::from(bytes))
+                .content_type(&content_type)
+                .send()
+                .await
+                .map_err(|err| {
+                    tracing::error!(error = ?err, "gagal upload ke MinIO");
+                    AppError::UploadFailed
+                })?;
+
+            let url = format!(
+                "{}/{}/{}",
+                state.config.minio_public_url, state.config.minio_bucket, object_key
+            );
+
+            return Ok(Json(UploadResponse { url }));
+        }
+
         if !ALLOWED_CONTENT_TYPES.contains(&content_type.as_str()) {
             return Err(AppError::InvalidInput(
-                "tipe file harus JPEG, PNG, atau WEBP".to_string(),
+                "tipe file harus JPEG, PNG, WEBP, MP4, atau WEBM".to_string(),
             ));
         }
 
@@ -625,5 +676,14 @@ mod tests {
     #[test]
     fn process_image_rejects_non_image_bytes() {
         assert!(process_image(b"bukan gambar sama sekali").is_err());
+    }
+
+    #[test]
+    fn video_extension_for_accepts_allowed_types_and_rejects_others() {
+        assert_eq!(video_extension_for("video/mp4"), Some("mp4"));
+        assert_eq!(video_extension_for("video/webm"), Some("webm"));
+        assert_eq!(video_extension_for("video/quicktime"), None);
+        assert_eq!(video_extension_for("image/jpeg"), None);
+        assert_eq!(video_extension_for(""), None);
     }
 }

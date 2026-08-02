@@ -1,5 +1,6 @@
 import { formatCoverDate } from '../../../../utils/formatDate';
 import type { CoupleInfo } from '../../../../types/wedding';
+import CoverMedia from '../../../shared/CoverMedia';
 import { Divider, Gunungan } from '../components/ornaments';
 
 interface CoverSectionProps {
@@ -47,7 +48,7 @@ export default function CoverSection({
         <div className="relative mt-7">
           <div className="absolute -inset-2.5 rounded-full border border-[var(--jw-gold-soft)]" />
           <div className="size-44 overflow-hidden rounded-full border-2 border-[var(--jw-gold)]/70 shadow-[var(--jw-shadow)]">
-            <img
+            <CoverMedia
               src={coverPhotoUrl}
               alt={`Foto pengantin ${couple.groom_name} dan ${couple.bride_name}`}
               className="size-full object-cover"
