@@ -8,6 +8,9 @@ interface CoverSectionProps {
   weddingDate: string | null;
   coverPhotoUrl: string;
   guestName?: string;
+  /** true selama animasi keluar (.cover-exit) berjalan -- cover terangkat
+   *  sambil memudar, lalu di-unmount oleh orkestrator. */
+  isExiting: boolean;
   onOpen: () => void;
 }
 
@@ -17,10 +20,15 @@ export default function CoverSection({
   weddingDate,
   coverPhotoUrl,
   guestName,
+  isExiting,
   onOpen,
 }: CoverSectionProps) {
   return (
-    <section className="relative min-h-screen flex flex-col items-center justify-center px-6 py-16 text-center overflow-hidden bg-[var(--color-secondary)]">
+    <section
+      className={`relative min-h-screen flex flex-col items-center justify-center px-6 py-16 text-center overflow-hidden bg-[var(--color-secondary)] ${
+        isExiting ? 'cover-exit' : ''
+      }`.trim()}
+    >
       <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-96" style={goldGlow(0.16)} />
       {/* Bingkai garis tipis ganda */}
       <div aria-hidden="true" className="pointer-events-none absolute inset-4 border border-[#D4AF37]/40" />

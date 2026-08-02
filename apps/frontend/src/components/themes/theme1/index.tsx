@@ -166,7 +166,7 @@ export default function Theme1({ data, guestName }: ThemeComponentProps) {
 
   return (
     <div
-      className="flex w-full min-h-screen font-floral-serif text-[var(--fl-ink)] selection:bg-[var(--fl-blush)]/60"
+      className="wedding-invitation flex w-full min-h-screen font-floral-serif text-[var(--fl-ink)] selection:bg-[var(--fl-blush)]/60"
       style={cssVars}
     >
       {/* ===== Left Pane (Desktop Background) ===== */}

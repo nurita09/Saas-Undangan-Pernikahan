@@ -8,6 +8,9 @@ interface CoverSectionProps {
   weddingDate: string | null;
   coverPhotoUrl: string;
   guestName?: string;
+  /** true selama animasi keluar (.cover-exit) berjalan -- cover terangkat
+   *  sambil memudar, lalu di-unmount oleh orkestrator. */
+  isExiting: boolean;
   onOpen: () => void;
 }
 
@@ -17,10 +20,15 @@ export default function CoverSection({
   weddingDate,
   coverPhotoUrl,
   guestName,
+  isExiting,
   onOpen,
 }: CoverSectionProps) {
   return (
-    <section className="relative min-h-screen flex flex-col items-center justify-center px-6 py-16 text-center overflow-hidden bg-[var(--color-secondary)]">
+    <section
+      className={`relative min-h-screen flex flex-col items-center justify-center px-6 py-16 text-center overflow-hidden bg-[var(--color-secondary)] ${
+        isExiting ? 'cover-exit' : ''
+      }`.trim()}
+    >
       <div aria-hidden="true" className="pointer-events-none absolute inset-0" style={wavyBackground(0.09)} />
       <Daisy className="pointer-events-none absolute top-10 left-6 h-12 w-12 text-[#C75B39] corner-float" />
       <Daisy className="pointer-events-none absolute bottom-16 right-8 h-16 w-16 text-[#E3B23C] corner-float" />

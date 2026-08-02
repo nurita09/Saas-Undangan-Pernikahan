@@ -88,8 +88,10 @@ body {
   animation-iteration-count: 1, infinite;
 }
 
-/* Transisi buka undangan Theme 1: cover terangkat sedikit sambil memudar.
-   Durasi .cover-exit harus sinkron dengan COVER_EXIT_MS di theme1/index.tsx. */
+/* Transisi keluar cover "default": memudar sambil terangkat sedikit. Dipakai
+   bersama oleh Theme 1, 3, 4, 5 (Theme 2 & 6 punya varian sendiri --
+   cover-exit-scale, cover-exit-up). Durasi harus sinkron dengan
+   COVER_EXIT_MS di index.tsx tema masing-masing. */
 @keyframes cover-exit {
   to {
     opacity: 0;
@@ -116,8 +118,43 @@ body {
   pointer-events: none;
 }
 
+/* Section pertama "menggeser masuk" dari bawah begitu cover hilang -- efeknya
+   terasa seperti smooth-scroll berpindah ke section berikutnya (padahal
+   secara teknis konten sudah di posisi scroll teratas sejak di-mount; yang
+   bergerak adalah transform-nya, bukan scrollbar-nya). Dipakai semua tema
+   (Theme 1-6) supaya transisi buka undangan konsisten. */
+@keyframes content-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(56px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .content-enter {
-  animation: fade-up 1.2s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: content-slide-up 1.1s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ---------------------------------------------------------------------------
+   Scroll-snap antar section (semua tema, Theme 1-6): scroll tetap bebas &
+   natural, tapi begitu tamu berhenti scroll dekat batas section, halaman
+   "menempel" rapi ke section terdekat -- terasa seperti berpindah antar
+   halaman, tanpa memaksa berhenti di section yang bisa memanjang (galeri,
+   daftar ucapan RSVP yang terus bertambah). Di-scope ke `.wedding-invitation`
+   (dipasang di root tiap tema, lihat theme1-6/index.tsx) lewat :has() supaya
+   TIDAK ikut memengaruhi landing page/admin yang juga punya elemen <section>.
+   --------------------------------------------------------------------------- */
+html:has(.wedding-invitation) {
+  scroll-snap-type: y proximity;
+  scroll-behavior: smooth;
+}
+
+.wedding-invitation section,
+.wedding-invitation footer {
+  scroll-snap-align: start;
 }
 
 /* ---------------------------------------------------------------------------
@@ -329,5 +366,15 @@ body {
   .timeline-line {
     transform: scaleY(1) !important;
     transition: none !important;
+  }
+
+  html:has(.wedding-invitation) {
+    scroll-snap-type: none;
+    scroll-behavior: auto;
+  }
+
+  .wedding-invitation section,
+  .wedding-invitation footer {
+    scroll-snap-align: none;
   }
 }

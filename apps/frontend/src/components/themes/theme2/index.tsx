@@ -171,7 +171,7 @@ export default function Theme2({ data, guestName }: ThemeComponentProps) {
 
   return (
     <div
-      className="flex w-full min-h-screen font-jawa-sans text-[var(--jw-ink)] selection:bg-[var(--jw-gold)]/40"
+      className="wedding-invitation flex w-full min-h-screen font-jawa-sans text-[var(--jw-ink)] selection:bg-[var(--jw-gold)]/40"
       style={cssVars}
     >
       {/* ===== Left Pane (Desktop Background) ===== */}

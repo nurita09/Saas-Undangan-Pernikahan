@@ -161,7 +161,7 @@ export default function Theme6({ data, guestName }: ThemeComponentProps) {
 
   return (
     <div
-      className="flex w-full min-h-screen font-sans text-[var(--t6-ink)] selection:bg-[var(--color-primary)] selection:text-white"
+      className="wedding-invitation flex w-full min-h-screen font-sans text-[var(--t6-ink)] selection:bg-[var(--color-primary)] selection:text-white"
       style={cssVars}
     >
       {/* ===== Left Pane (Desktop Background) ===== */}

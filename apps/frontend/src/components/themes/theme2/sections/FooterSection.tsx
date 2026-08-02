@@ -1,5 +1,13 @@
 import type { ContactSettings } from '../../../../types/wedding';
-import { BatikBand, Divider, InstagramIcon, WhatsAppIcon } from '../components/ornaments';
+import {
+  BatikBand,
+  Divider,
+  InstagramIcon,
+  ShoppingBagIcon,
+  StorefrontIcon,
+  TiktokIcon,
+  WhatsAppIcon,
+} from '../components/ornaments';
 
 interface FooterSectionProps {
   contact: ContactSettings;
@@ -15,8 +23,12 @@ export default function FooterSection({ contact }: FooterSectionProps) {
       <div className="relative">
         <Divider tone="light" />
 
-        {(contact.contact_instagram_url || contact.contact_whatsapp_url) && (
-          <div className="mt-6 flex justify-center gap-3">
+        {(contact.contact_instagram_url ||
+          contact.contact_whatsapp_url ||
+          contact.shopee_url ||
+          contact.tokopedia_url ||
+          contact.tiktok_url) && (
+          <div className="mt-6 flex flex-wrap justify-center gap-3">
             {contact.contact_instagram_url && (
               <a
                 href={contact.contact_instagram_url}
@@ -37,6 +49,39 @@ export default function FooterSection({ contact }: FooterSectionProps) {
                 className="grid size-11 place-items-center rounded-full border border-[var(--jw-gold-soft)]/70 text-[var(--color-secondary)] transition hover:scale-110 hover:bg-white/10"
               >
                 <WhatsAppIcon className="h-5 w-5" />
+              </a>
+            )}
+            {contact.shopee_url && (
+              <a
+                href={contact.shopee_url}
+                target="_blank"
+                rel="noreferrer"
+                aria-label="Shopee"
+                className="grid size-11 place-items-center rounded-full border border-[var(--jw-gold-soft)]/70 text-[var(--color-secondary)] transition hover:scale-110 hover:bg-white/10"
+              >
+                <ShoppingBagIcon className="h-5 w-5" />
+              </a>
+            )}
+            {contact.tokopedia_url && (
+              <a
+                href={contact.tokopedia_url}
+                target="_blank"
+                rel="noreferrer"
+                aria-label="Tokopedia"
+                className="grid size-11 place-items-center rounded-full border border-[var(--jw-gold-soft)]/70 text-[var(--color-secondary)] transition hover:scale-110 hover:bg-white/10"
+              >
+                <StorefrontIcon className="h-5 w-5" />
+              </a>
+            )}
+            {contact.tiktok_url && (
+              <a
+                href={contact.tiktok_url}
+                target="_blank"
+                rel="noreferrer"
+                aria-label="TikTok"
+                className="grid size-11 place-items-center rounded-full border border-[var(--jw-gold-soft)]/70 text-[var(--color-secondary)] transition hover:scale-110 hover:bg-white/10"
+              >
+                <TiktokIcon className="h-5 w-5" />
               </a>
             )}
           </div>

@@ -255,3 +255,32 @@ export function WhatsAppIcon({ className }: IconProps) {
     </svg>
   );
 }
+
+export function ShoppingBagIcon({ className }: IconProps) {
+  return (
+    <svg {...iconAttrs(className)}>
+      <path d="M6 8h12l1 12H5L6 8z" />
+      <path d="M9 8V6a3 3 0 0 1 6 0v2" />
+    </svg>
+  );
+}
+
+export function StorefrontIcon({ className }: IconProps) {
+  return (
+    <svg {...iconAttrs(className)}>
+      <path d="M4.5 10 5.5 4h13l1 6" />
+      <path d="M4.5 10a2.3 2.3 0 0 0 4.6 0 2.3 2.3 0 0 0 4.6 0 2.3 2.3 0 0 0 4.6 0" />
+      <path d="M5.5 10v10h13V10" />
+      <path d="M10 20v-6h4v6" />
+    </svg>
+  );
+}
+
+export function TiktokIcon({ className }: IconProps) {
+  return (
+    <svg {...iconAttrs(className)}>
+      <path d="M14 4v10.8a3.3 3.3 0 1 1-2.8-3.26" />
+      <path d="M14 4c0 2.4 1.8 4.3 4 4.3" />
+    </svg>
+  );
+}
