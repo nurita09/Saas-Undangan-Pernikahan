@@ -11,6 +11,11 @@
   /* Serif klasik + script halus -- dipakai Theme 6 Vintage Monogram */
   --font-vintage: "Cormorant Garamond", Georgia, serif;
   --font-vintage-script: "Parisienne", cursive;
+  /* Script kaligrafi + serif klasik + sans kapital renggang -- dipakai
+     Theme 1 Floral Elegant (redesain "floral dreams") */
+  --font-floral-script: "Pinyon Script", cursive;
+  --font-floral-serif: "Cormorant Garamond", Georgia, serif;
+  --font-floral-sans: "Jost", ui-sans-serif, system-ui, sans-serif;
 
   --animate-fade-up: fade-up 0.9s ease-out forwards;
   --animate-fade-in-scale: fade-in-scale 1.4s ease-out forwards;
@@ -78,49 +83,17 @@ body {
   animation-iteration-count: 1, infinite;
 }
 
-/* Foto cover ber-"ken burns": zoom pelan bolak-balik terus-menerus supaya
-   cover terasa hidup meski tanpa interaksi (terutama di layar sentuh). */
-@keyframes kenburns-zoom {
-  from {
-    transform: scale(1);
-  }
-  to {
-    transform: scale(1.1);
-  }
-}
-
-.kenburns {
-  animation: kenburns-zoom 12s ease-in-out infinite alternate;
-}
-
-/* Tombol "Buka Undangan": denyut membesar-mengecil pada tombolnya sendiri
-   (menggantikan lingkaran ping di belakang tombol). */
-@keyframes pulse-scale {
-  0%,
-  100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.07);
-  }
-}
-
-.btn-pulse {
-  animation: pulse-scale 1.6s ease-in-out infinite;
-}
-
-/* Transisi buka undangan: cover memudar sambil sedikit membesar (exit),
-   lalu konten masuk dengan fade-up yang lebih lambat dari fade-in biasa.
+/* Transisi buka undangan Theme 1: cover terangkat sedikit sambil memudar.
    Durasi .cover-exit harus sinkron dengan COVER_EXIT_MS di theme1/index.tsx. */
 @keyframes cover-exit {
   to {
     opacity: 0;
-    transform: scale(1.05);
+    transform: translateY(-6%);
   }
 }
 
 .cover-exit {
-  animation: cover-exit 0.7s ease-in forwards;
+  animation: cover-exit 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
   pointer-events: none;
 }
 
@@ -128,11 +101,71 @@ body {
   animation: fade-up 1.2s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-/* Lapisan parallax di cover: digeser beberapa px lewat inline transform
-   mengikuti posisi mouse; transition membuat gesernya mengalun, bukan patah. */
-.parallax-layer {
-  transition: transform 0.4s ease-out;
-  will-change: transform;
+/* ---------------------------------------------------------------------------
+   Theme 1 - Floral Elegant (redesain "floral dreams"). Token di bawah membaca
+   CSS var yang di-set di root tema (--fl-card, --fl-gold, dst -- diturunkan
+   dari warna tema DB lewat color-mix di theme1/index.tsx).
+   --------------------------------------------------------------------------- */
+
+/* Label kapital renggang khas undangan cetak. */
+.label-caps {
+  font-family: var(--font-floral-sans);
+  text-transform: uppercase;
+  letter-spacing: 0.42em;
+  font-size: 0.68rem;
+  font-weight: 400;
+}
+
+/* Kartu "kelopak": putih gading, border emas tipis, bayangan lembut. */
+.card-petal {
+  background: var(--fl-card, #fff);
+  border: 1px solid color-mix(in oklab, var(--fl-gold, #c5a253) 30%, transparent);
+  box-shadow: 0 18px 40px -28px color-mix(in oklab, var(--fl-clay, #a08462) 45%, transparent);
+}
+
+/* Garis emas memudar di kedua ujung -- pemisah dalam kartu. */
+.gold-rule {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in oklab, var(--fl-gold, #c5a253) 70%, transparent),
+    transparent
+  );
+}
+
+/* Kelopak bunga berjatuhan setelah undangan dibuka (komponen <Petals>).
+   Ukuran/durasi/delay divariasikan per elemen lewat inline style. */
+@keyframes petal-fall {
+  0% {
+    transform: translate3d(0, -8vh, 0) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.75;
+  }
+  100% {
+    transform: translate3d(6vw, 108vh, 0) rotate(420deg);
+    opacity: 0;
+  }
+}
+
+.petal {
+  position: absolute;
+  top: -6vh;
+  border-radius: 60% 20% 60% 20%;
+  background: linear-gradient(
+    135deg,
+    color-mix(in oklab, var(--fl-blush, #e8c4bc) 88%, white),
+    color-mix(in oklab, var(--fl-gold, #c5a253) 45%, white)
+  );
+  animation: petal-fall linear infinite;
+  pointer-events: none;
+}
+
+/* Ornamen sudut & elemen aksen melayang pelan (pakai keyframes float-sway). */
+.drift-slow {
+  animation: float-sway 9s ease-in-out infinite;
 }
 
 /* ---------------------------------------------------------------------------
@@ -228,6 +261,11 @@ body {
   filter: blur(8px);
 }
 
+/* "Mekar": naik pelan sambil sedikit membesar -- varian khas Theme 1 floral. */
+.reveal-bloom {
+  transform: translateY(28px) scale(0.985);
+}
+
 .reveal.is-visible {
   opacity: 1;
   transform: none;
@@ -246,12 +284,6 @@ body {
   transform: scaleY(1);
 }
 
-/* Dekorasi sudut di section dalam (bukan cover): melayang pelan terus-menerus.
-   Durasi/delay divariasikan per elemen lewat inline style supaya tidak serempak. */
-.deco-float {
-  animation: float-sway 8s ease-in-out infinite;
-}
-
 /* Elemen ber-animasi mulai tak terlihat sebelum animasi jalan (fill-mode: forwards
    dimulai dari keyframe "from"). Kalau user minta reduced motion, langsung
    tampilkan final state tanpa animasi sama sekali. */
@@ -261,13 +293,11 @@ body {
   [class*="animate-fade-in"],
   [class*="animate-ping"],
   .corner-float,
-  .deco-float,
-  .kenburns,
-  .btn-pulse,
+  .drift-slow,
+  .petal,
   .cover-exit,
   .cover-exit-up,
   .content-enter,
-  .parallax-layer,
   .reveal {
     animation: none !important;
     transition: none !important;

@@ -1,66 +1,99 @@
+import { useState } from 'react';
 import type { WeddingGiftInfo } from '../../../../types/wedding';
-import Reveal from '../components/Reveal';
+import Reveal from '../../../shared/Reveal';
+import {
+  CheckIcon,
+  CopyIcon,
+  FloralCorners,
+  GiftIcon,
+  SectionTitle,
+} from '../components/ornaments';
 
 interface GiftSectionProps {
   gifts: WeddingGiftInfo[];
 }
 
-/** Section 6: Wedding Gift -- rekening / alamat kado dengan tombol salin. */
+/** Section 6: Wedding Gift -- kartu rekening / alamat kado + tombol salin
+ *  (label berubah "Tersalin" sebentar sebagai umpan balik). */
 export default function GiftSection({ gifts }: GiftSectionProps) {
+  const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
+
   if (!gifts || gifts.length === 0) return null;
 
+  const copyText = async (value: string, idx: number) => {
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopiedIdx(idx);
+      setTimeout(() => setCopiedIdx((prev) => (prev === idx ? null : prev)), 2000);
+    } catch {
+      // Clipboard bisa ditolak browser lama -- biarkan tamu menyalin manual.
+    }
+  };
+
   return (
-    <section className="bg-[#CCBBA1] px-6 py-16">
-      <Reveal variant="up">
-        <div className="mx-auto max-w-md rounded-2xl bg-white p-6 shadow-lg">
-          <h2 className="text-center text-2xl font-bold text-neutral-800">Wedding Gift</h2>
-          <p className="mt-4 text-center text-sm text-neutral-500 leading-relaxed">
-            Doa restu dan kehadiran Bapak/Ibu/Saudara/i merupakan karunia yang sangat berarti bagi kami.
+    <section className="relative overflow-hidden px-6 py-20">
+      <FloralCorners spots={['tl', 'br']} opacity="opacity-40" />
+      <div className="relative mx-auto max-w-md">
+        <Reveal variant="bloom">
+          <SectionTitle eyebrow="With Love" title="Wedding Gift" />
+          <p className="mx-auto mt-7 max-w-sm text-center font-floral-serif text-lg leading-relaxed text-[var(--fl-muted)]">
+            Doa restu dan kehadiran Bapak/Ibu/Saudara/i merupakan karunia yang sangat berarti bagi
+            kami. Namun, jika berkenan memberikan tanda kasih, dapat disampaikan melalui informasi
+            berikut.
           </p>
-          <p className="mt-3 text-center text-sm text-neutral-500 leading-relaxed">
-            Namun, jika berkenan memberikan tanda kasih, dapat disampaikan melalui informasi berikut.
-          </p>
+        </Reveal>
 
-          <div className="mt-8 space-y-4">
-            {gifts.map((gift, idx) => (
-              <Reveal key={idx} variant="up" delay={idx * 150}>
-                <div className="relative rounded-2xl border border-neutral-200 p-5 text-left transition-transform duration-500 hover:-translate-y-1">
-                  <span className="absolute top-5 right-5 text-xl text-neutral-800">
-                    {gift.gift_type === 'kado' ? '🎁' : '💳'}
-                  </span>
-
-                  {gift.gift_type === 'kado' ? (
-                    <>
-                      <h3 className="text-lg font-bold text-neutral-800">Kado</h3>
-                      <p className="mt-4 text-sm font-semibold text-neutral-800">Nama Penerima</p>
-                      <p className="text-sm text-neutral-600">{gift.account_name}</p>
-                      <p className="mt-3 text-sm font-semibold text-neutral-800">Alamat</p>
-                    </>
-                  ) : (
-                    <>
-                      <h3 className="text-lg font-bold text-neutral-800">{gift.bank_name}</h3>
-                      <p className="mt-4 text-sm font-semibold text-neutral-800">Atas Nama</p>
-                      <p className="text-sm text-neutral-600">{gift.account_name}</p>
-                      <p className="mt-3 text-sm font-semibold text-neutral-800">Nomor Rekening</p>
-                    </>
-                  )}
-
-                  <div className="mt-1 flex items-center justify-between gap-3">
-                    <p className="truncate text-sm text-neutral-600">{gift.account_number}</p>
-                    <button
-                      type="button"
-                      onClick={() => navigator.clipboard.writeText(gift.account_number || '')}
-                      className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-[var(--color-primary)] px-3 py-1.5 text-xs font-medium text-white hover:opacity-90 transition"
-                    >
-                      📋 Salin
-                    </button>
-                  </div>
+        <div className="mt-10 space-y-6">
+          {gifts.map((gift, idx) => (
+            <Reveal key={idx} variant="bloom" delay={idx * 120}>
+              <div className="card-petal px-7 py-7">
+                {gift.gift_type === 'kado' ? (
+                  <>
+                    <p className="flex items-center gap-2 font-floral-serif text-2xl tracking-[0.15em] text-[var(--color-primary)]">
+                      <GiftIcon className="h-5 w-5 text-[var(--fl-clay)]" /> Kado
+                    </p>
+                    <div className="gold-rule my-4" />
+                    <p className="label-caps text-[var(--fl-muted)]">Nama Penerima</p>
+                    <p className="mt-2 font-floral-serif text-lg text-[var(--fl-ink)]/85">
+                      {gift.account_name}
+                    </p>
+                    <p className="label-caps mt-4 text-[var(--fl-muted)]">Alamat</p>
+                  </>
+                ) : (
+                  <>
+                    <p className="font-floral-serif text-2xl tracking-[0.25em] text-[var(--color-primary)]">
+                      {gift.bank_name}
+                    </p>
+                    <div className="gold-rule my-4" />
+                    <p className="label-caps text-[var(--fl-muted)]">Atas Nama</p>
+                    <p className="mt-2 font-floral-serif text-lg text-[var(--fl-ink)]/85">
+                      {gift.account_name}
+                    </p>
+                    <p className="label-caps mt-4 text-[var(--fl-muted)]">Nomor Rekening</p>
+                  </>
+                )}
+                <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
+                  <p className="font-floral-serif text-lg tabular-nums leading-relaxed text-[var(--fl-ink)]/85">
+                    {gift.account_number}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => copyText(gift.account_number || '', idx)}
+                    className="label-caps inline-flex shrink-0 items-center gap-2 border border-[var(--fl-clay)]/50 px-5 py-2.5 text-[var(--fl-clay)] transition-colors duration-500 hover:bg-[var(--fl-clay)] hover:text-white"
+                  >
+                    {copiedIdx === idx ? (
+                      <CheckIcon className="h-3.5 w-3.5" />
+                    ) : (
+                      <CopyIcon className="h-3.5 w-3.5" />
+                    )}
+                    {copiedIdx === idx ? 'Tersalin' : 'Salin'}
+                  </button>
                 </div>
-              </Reveal>
-            ))}
-          </div>
+              </div>
+            </Reveal>
+          ))}
         </div>
-      </Reveal>
+      </div>
     </section>
   );
 }

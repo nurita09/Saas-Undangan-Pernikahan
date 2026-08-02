@@ -1,31 +1,27 @@
 import type { CoupleInfo } from '../../../../types/wedding';
-import Reveal from '../components/Reveal';
+import Reveal from '../../../shared/Reveal';
+import { Divider, FloralCorners } from '../components/ornaments';
 
 interface ThankYouSectionProps {
   couple: CoupleInfo;
 }
 
-/** Section 8: ucapan terima kasih penutup. */
+/** Section 8: ucapan terima kasih penutup, dikelilingi ornamen bunga 4 sudut. */
 export default function ThankYouSection({ couple }: ThankYouSectionProps) {
   return (
-    <section className="relative overflow-hidden bg-white px-6 py-20 text-center">
-      <div className="relative z-10">
-        <Reveal variant="blur">
-          <h2 className="text-2xl font-bold text-neutral-800">Thank You</h2>
-        </Reveal>
-        <Reveal variant="up" delay={150}>
-          <p className="mx-auto mt-5 max-w-sm text-sm leading-relaxed text-neutral-500">
-            Terima kasih atas doa, restu, dan kehadiran Anda. Semoga kebersamaan di hari istimewa
-            kami menjadi kenangan yang indah.
-          </p>
-        </Reveal>
-        <Reveal variant="up" delay={300}>
-          <p className="mt-10 text-sm text-neutral-500">Kami yang berbahagia</p>
-          <p className="mt-1 text-2xl font-bold text-neutral-800">
-            {couple.groom_name} &amp; {couple.bride_name}
-          </p>
-        </Reveal>
-      </div>
+    <section className="relative overflow-hidden px-6 py-24 text-center">
+      <FloralCorners spots={['tl', 'tr', 'bl', 'br']} opacity="opacity-55" />
+      <Reveal variant="bloom" className="relative mx-auto max-w-md">
+        <h2 className="font-floral-script text-5xl text-[var(--color-primary)]">Thank You</h2>
+        <Divider className="mt-2" />
+        <p className="font-floral-serif text-lg leading-relaxed text-[var(--fl-muted)]">
+          Terima kasih atas doa, restu, dan kehadiran Anda. Semoga kebersamaan di hari istimewa
+          kami menjadi kenangan yang indah.
+        </p>
+        <p className="mt-10 font-floral-script text-4xl text-[var(--fl-clay)]">
+          {couple.groom_name} &amp; {couple.bride_name}
+        </p>
+      </Reveal>
     </section>
   );
 }

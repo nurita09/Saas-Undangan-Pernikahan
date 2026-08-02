@@ -1,9 +1,11 @@
 import type { CoupleInfo } from '../../../../types/wedding';
-import Reveal from '../components/Reveal';
+import Reveal from '../../../shared/Reveal';
+import { FloralCorners, SectionTitle } from '../components/ornaments';
+import fallbackBridePhoto from '../../../../assets/theme1/bride.jpg';
+import fallbackGroomPhoto from '../../../../assets/theme1/groom.jpg';
 
 interface CoupleSectionProps {
   couple: CoupleInfo;
-  fallbackPhotoUrl: string;
 }
 
 interface PersonCardProps {
@@ -12,69 +14,74 @@ interface PersonCardProps {
   photoUrl: string;
   parents?: string | null;
   instagram?: string | null;
+  delay: number;
 }
 
-function PersonCard({ role, name, photoUrl, parents, instagram }: PersonCardProps) {
+function PersonCard({ role, name, photoUrl, parents, instagram, delay }: PersonCardProps) {
   return (
-    <div className="w-full max-w-[260px] overflow-hidden rounded-2xl bg-white text-left shadow-lg transition-transform duration-500 hover:-translate-y-1">
-      <div className="aspect-square w-full overflow-hidden">
-        <img
-          src={photoUrl}
-          alt={role}
-          className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
-        />
-      </div>
-      <div className="px-5 py-5">
-        <p className="text-xs uppercase tracking-widest font-semibold text-[var(--color-primary)]">{role}</p>
-        <h3 className="mt-1 text-xl font-bold text-neutral-800">{name}</h3>
-        {parents && <p className="mt-2 text-sm text-neutral-500 leading-relaxed">{parents}</p>}
+    <Reveal variant="bloom" delay={delay}>
+      <article className="card-petal overflow-hidden pb-9 text-center">
+        <div className="overflow-hidden">
+          <img
+            src={photoUrl}
+            alt={name}
+            loading="lazy"
+            className="h-96 w-full object-cover transition-transform duration-[1200ms] hover:scale-105"
+          />
+        </div>
+        <p className="label-caps mt-7 text-[var(--fl-clay)]">{role}</p>
+        <h3 className="mt-2 font-floral-script text-4xl text-[var(--color-primary)]">{name}</h3>
+        {parents && (
+          <p className="mx-auto mt-3 max-w-xs font-floral-serif text-base text-[var(--fl-muted)]">
+            {parents}
+          </p>
+        )}
         {instagram && (
           <a
             href={`https://instagram.com/${instagram.replace('@', '')}`}
             target="_blank"
             rel="noreferrer"
-            className="mt-4 inline-flex items-center gap-2 rounded-full bg-[var(--color-primary)]/10 px-4 py-1.5 text-xs text-[var(--color-primary)]"
+            className="label-caps mt-4 inline-block text-[0.6rem] text-[var(--fl-muted)] transition-colors hover:text-[var(--fl-clay)]"
           >
-            <span>📸</span> {instagram}
+            @{instagram.replace('@', '')}
           </a>
         )}
-      </div>
-    </div>
+      </article>
+    </Reveal>
   );
 }
 
-/** Section 2b: profil Bride & Groom. */
-export default function CoupleSection({ couple, fallbackPhotoUrl }: CoupleSectionProps) {
+/** Section 2b: profil Bride & Groom -- kartu foto besar, dipisah "&" script. */
+export default function CoupleSection({ couple }: CoupleSectionProps) {
   return (
-    <section className="px-6 py-16 text-center bg-[#CCBBA1]">
-      <Reveal variant="blur">
-        <h2 className="font-script text-4xl text-white">Bride &amp; Groom</h2>
-      </Reveal>
+    <section className="relative overflow-hidden px-6 py-20">
+      <FloralCorners spots={['tl', 'br']} opacity="opacity-40" />
+      <div className="relative mx-auto max-w-md">
+        <Reveal variant="bloom">
+          <SectionTitle eyebrow="Kedua Mempelai" title="Bride & Groom" />
+        </Reveal>
 
-      <div className="mt-10 flex flex-col items-center gap-8">
-        <Reveal variant="left" className="flex w-full justify-center">
+        <div className="mt-12 space-y-8">
           <PersonCard
             role="The Bride"
             name={couple.bride_name}
-            photoUrl={couple.bride_photo_url || fallbackPhotoUrl}
+            photoUrl={couple.bride_photo_url || fallbackBridePhoto}
             parents={couple.bride_parents}
             instagram={couple.bride_ig}
+            delay={0}
           />
-        </Reveal>
-
-        <Reveal variant="zoom" delay={150}>
-          <p className="font-script text-3xl text-white">&amp;</p>
-        </Reveal>
-
-        <Reveal variant="right" className="flex w-full justify-center">
+          <p className="drift-slow text-center font-floral-serif text-5xl italic text-[var(--fl-clay)]">
+            &amp;
+          </p>
           <PersonCard
             role="The Groom"
             name={couple.groom_name}
-            photoUrl={couple.groom_photo_url || fallbackPhotoUrl}
+            photoUrl={couple.groom_photo_url || fallbackGroomPhoto}
             parents={couple.groom_parents}
             instagram={couple.groom_ig}
+            delay={120}
           />
-        </Reveal>
+        </div>
       </div>
     </section>
   );

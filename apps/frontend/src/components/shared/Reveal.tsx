@@ -1,7 +1,7 @@
 import type { CSSProperties, ReactNode } from 'react';
 import { useRevealOnScroll } from '../../hooks/useRevealOnScroll';
 
-export type RevealVariant = 'up' | 'left' | 'right' | 'zoom' | 'blur';
+export type RevealVariant = 'up' | 'left' | 'right' | 'zoom' | 'blur' | 'bloom';
 
 interface RevealProps {
   children: ReactNode;

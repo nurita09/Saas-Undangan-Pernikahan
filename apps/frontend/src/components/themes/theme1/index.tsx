@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import type { ThemeComponentProps } from '../../../types/wedding';
 import LeftPane from './components/LeftPane';
+import { MusicIcon, PauseIcon, Petals } from './components/ornaments';
 import CoverSection from './sections/CoverSection';
 import QuoteSection from './sections/QuoteSection';
 import SaveTheDateSection from './sections/SaveTheDateSection';
@@ -12,29 +13,37 @@ import GiftSection from './sections/GiftSection';
 import RsvpSection from './sections/RsvpSection';
 import ThankYouSection from './sections/ThankYouSection';
 import FooterSection from './sections/FooterSection';
+import fallbackCover from '../../../assets/theme1/hero.jpg';
 
 const DEFAULT_PRIMARY_COLOR = '#8D7B68';
 const DEFAULT_SECONDARY_COLOR = '#F9F8F4';
 
-const FALLBACK_COVER_URL =
-  'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80';
-
 /* Durasi animasi keluar cover (.cover-exit di index.css) -- konten baru
    di-mount setelah animasi ini selesai supaya transisinya terasa. */
-const COVER_EXIT_MS = 700;
+const COVER_EXIT_MS = 1000;
 
 interface ThemeCssVars extends CSSProperties {
   '--color-primary': string;
   '--color-secondary': string;
+  '--fl-clay': string;
+  '--fl-gold': string;
+  '--fl-blush': string;
+  '--fl-tint': string;
+  '--fl-card': string;
+  '--fl-ink': string;
+  '--fl-muted': string;
+  '--fl-veil': string;
 }
 
 /**
- * Theme 1 - Floral Elegant.
+ * Theme 1 - Floral Elegant (redesain "floral dreams" dari Lovable).
  *
  * File ini cuma orkestrator: pegang state lintas-section (buka undangan, musik)
- * dan menyusun urutan section. Markup tiap section ada di ./sections/*, komponen
- * kecil yang dipakai bersama di ./components/*. Animasi scroll-reveal lewat
- * <Reveal> (components/Reveal.tsx) + kelas .reveal-* di index.css.
+ * dan menyusun urutan section. Ciri khasnya: script Pinyon + serif Cormorant +
+ * label kapital Jost (.label-caps), kartu "kelopak" (.card-petal), ornamen
+ * bunga di sudut section, dan kelopak berjatuhan (<Petals>) setelah undangan
+ * dibuka. Turunan warna (clay, tint, kartu) dihitung via color-mix dari warna
+ * tema DB supaya tetap ikut berubah kalau admin mengganti primary/secondary.
  */
 export default function Theme1({ data, guestName }: ThemeComponentProps) {
   const {
@@ -142,15 +151,22 @@ export default function Theme1({ data, guestName }: ThemeComponentProps) {
   const cssVars: ThemeCssVars = {
     '--color-primary': primaryColor,
     '--color-secondary': secondaryColor,
+    '--fl-clay': 'color-mix(in oklab, var(--color-primary) 55%, #D9A778)',
+    '--fl-gold': '#C5A253',
+    '--fl-blush': '#E3B7AE',
+    '--fl-tint': 'color-mix(in oklab, var(--color-primary) 7%, var(--color-secondary))',
+    '--fl-card': 'color-mix(in oklab, var(--color-secondary) 25%, white)',
+    '--fl-ink': '#4A4238',
+    '--fl-muted': '#80756A',
+    '--fl-veil':
+      'linear-gradient(180deg, transparent 0%, color-mix(in oklab, var(--color-secondary) 55%, transparent) 60%, color-mix(in oklab, var(--color-secondary) 85%, transparent) 100%)',
   };
 
-  const coverPhotoUrl = data.cover_photo_url || FALLBACK_COVER_URL;
-  const section1PhotoUrl = data.theme_settings?.section1_photo_url || coverPhotoUrl;
-  const section2PhotoUrl = data.theme_settings?.section2_photo_url || coverPhotoUrl;
+  const coverPhotoUrl = data.cover_photo_url || fallbackCover;
 
   return (
     <div
-      className="flex w-full min-h-screen font-sans text-neutral-800 selection:bg-[var(--color-primary)] selection:text-white"
+      className="flex w-full min-h-screen font-floral-serif text-[var(--fl-ink)] selection:bg-[var(--fl-blush)]/60"
       style={cssVars}
     >
       {/* ===== Left Pane (Desktop Background) ===== */}
@@ -177,13 +193,12 @@ export default function Theme1({ data, guestName }: ThemeComponentProps) {
         {isOpened && (
           <div className="content-enter">
             <QuoteSection
-              photoUrl={section1PhotoUrl}
               quoteText={data.theme_settings?.quote_text}
               quoteSource={data.theme_settings?.quote_source}
             />
             <SaveTheDateSection couple={couple} event={event} />
-            <CoupleSection couple={couple} fallbackPhotoUrl={coverPhotoUrl} />
-            <EventSection event={event} photoUrl={section2PhotoUrl} />
+            <CoupleSection couple={couple} />
+            <EventSection event={event} />
             <LoveStorySection stories={love_stories} />
             <GallerySection photos={gallery_photos} videoUrl={gallery_video_url} />
             <GiftSection gifts={wedding_gifts} />
@@ -193,17 +208,16 @@ export default function Theme1({ data, guestName }: ThemeComponentProps) {
           </div>
         )}
 
+        {isOpened && <Petals />}
+
         {isOpened && musicUrl && (
           <button
             type="button"
             onClick={toggleMusic}
             aria-label={isPlaying ? 'Jeda musik' : 'Putar musik'}
-            className="fixed bottom-6 right-6 w-12 h-12 rounded-full text-white shadow-lg flex items-center justify-center bg-[var(--color-primary)] hover:scale-105 transition z-50"
+            className="fixed bottom-6 right-6 z-50 flex h-13 w-13 items-center justify-center rounded-full bg-[var(--fl-clay)] p-3.5 text-white shadow-[0_18px_40px_-20px_rgba(74,66,56,0.6)] transition-transform duration-500 hover:scale-105"
           >
-            {isPlaying && (
-              <span className="absolute inset-0 rounded-full bg-[var(--color-primary)] opacity-40 animate-ping" />
-            )}
-            <span className="relative">{isPlaying ? '⏸' : '▶'}</span>
+            {isPlaying ? <PauseIcon className="h-5 w-5" /> : <MusicIcon className="h-5 w-5" />}
           </button>
         )}
       </div>

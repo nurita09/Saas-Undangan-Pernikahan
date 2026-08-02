@@ -1,7 +1,15 @@
 import type { GalleryPhotoInfo } from '../../../../types/wedding';
-import Reveal from '../components/Reveal';
+import Reveal from '../../../shared/Reveal';
+import { FloralCorners, SectionTitle } from '../components/ornaments';
+import g1 from '../../../../assets/theme1/g1.jpg';
+import g2 from '../../../../assets/theme1/g2.jpg';
+import g3 from '../../../../assets/theme1/g3.jpg';
+import g4 from '../../../../assets/theme1/g4.jpg';
 
 const MAX_GALLERY_PHOTOS = 10;
+
+/* Grid fallback bawaan tema saat pasangan belum mengunggah foto galeri. */
+const FALLBACK_GALLERY: GalleryPhotoInfo[] = [g1, g2, g4, g3].map((photo_url) => ({ photo_url }));
 
 interface GallerySectionProps {
   photos: GalleryPhotoInfo[];
@@ -15,46 +23,56 @@ function getYoutubeId(url: string): string | null {
   return match && match[2].length === 11 ? match[2] : null;
 }
 
-/** Section 5: galeri foto (grid 2 kolom, muncul zoom bergantian) + video YouTube. */
+/* Pola tinggi berselang ala desain asal: [tinggi, pendek, pendek, tinggi]. */
+function isTall(idx: number): boolean {
+  return idx % 4 === 0 || idx % 4 === 3;
+}
+
+/** Section 5: galeri -- video prewedding + grid foto berbingkai polaroid. */
 export default function GallerySection({ photos, videoUrl }: GallerySectionProps) {
   const youtubeId = videoUrl ? getYoutubeId(videoUrl) : null;
+  const galleryPhotos = photos && photos.length > 0 ? photos : FALLBACK_GALLERY;
 
   return (
-    <section className="relative bg-white px-6 py-16 text-center">
-      <Reveal variant="blur">
-        <h2 className="text-3xl font-bold uppercase tracking-wide text-neutral-800">Our Love Story</h2>
-      </Reveal>
-
-      {youtubeId && (
-        <Reveal variant="zoom" className="mx-auto mt-10 w-full max-w-3xl">
-          <div className="aspect-video w-full overflow-hidden rounded-2xl bg-black shadow-lg">
-            <iframe
-              className="w-full h-full"
-              src={`https://www.youtube.com/embed/${youtubeId}`}
-              title="YouTube video player"
-              frameBorder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
-          </div>
+    <section className="relative overflow-hidden bg-[var(--fl-tint)] px-6 py-20">
+      <FloralCorners spots={['tr', 'bl']} opacity="opacity-45" />
+      <div className="relative mx-auto max-w-md">
+        <Reveal variant="bloom">
+          <SectionTitle eyebrow="Moments" title="Our Gallery" />
         </Reveal>
-      )}
 
-      {photos && photos.length > 0 && (
-        <div className="mx-auto mt-10 grid max-w-md grid-cols-2 gap-3">
-          {photos.slice(0, MAX_GALLERY_PHOTOS).map((photo, idx) => (
-            <Reveal key={idx} variant="zoom" delay={(idx % 2) * 120 + Math.floor(idx / 2) * 60}>
-              <div className="aspect-[3/4] overflow-hidden rounded-xl bg-neutral-100">
+        {youtubeId && (
+          <Reveal variant="bloom" className="mt-10">
+            <div className="card-petal p-2">
+              <iframe
+                className="aspect-video w-full"
+                src={`https://www.youtube.com/embed/${youtubeId}`}
+                title="Video prewedding"
+                loading="lazy"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
+          </Reveal>
+        )}
+
+        <div className="mt-10 grid grid-cols-2 gap-3">
+          {galleryPhotos.slice(0, MAX_GALLERY_PHOTOS).map((photo, idx) => (
+            <Reveal key={idx} variant="bloom" delay={(idx % 2) * 100}>
+              <div className="card-petal group overflow-hidden p-2">
                 <img
                   src={photo.photo_url}
-                  alt={`Galeri ${idx + 1}`}
-                  className="w-full h-full object-cover transition-transform duration-700 hover:scale-110"
+                  alt={`Momen pernikahan ${idx + 1}`}
+                  loading="lazy"
+                  className={`w-full object-cover transition-transform duration-[1400ms] group-hover:scale-105 ${
+                    isTall(idx) ? 'h-64' : 'h-48'
+                  }`}
                 />
               </div>
             </Reveal>
           ))}
         </div>
-      )}
+      </div>
     </section>
   );
 }
