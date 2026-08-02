@@ -15,7 +15,8 @@ interface RevealProps {
 /**
  * Wrapper animasi scroll-reveal (dipakai lintas tema): anak-anaknya tersembunyi
  * sampai wrapper masuk viewport, lalu muncul sesuai varian
- * (fade-up/left/right/zoom/blur). Sekali terlihat, tetap terlihat.
+ * (fade-up/left/right/zoom/blur). Berulang setiap kali masuk/keluar viewport --
+ * scroll turun tampil, scroll naik lalu turun lagi akan tampil ulang.
  */
 export default function Reveal({ children, variant = 'up', delay = 0, className = '' }: RevealProps) {
   const { ref, isVisible } = useRevealOnScroll<HTMLDivElement>();

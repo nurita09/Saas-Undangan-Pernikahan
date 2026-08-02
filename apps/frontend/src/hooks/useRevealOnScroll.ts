@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 
 /**
- * Deteksi kapan elemen masuk viewport (sekali saja -- setelah terlihat,
- * observer dilepas supaya animasi reveal tidak mengulang saat scroll balik).
- * Dipakai oleh komponen <Reveal> untuk animasi scroll-reveal per section.
+ * Deteksi kapan elemen masuk/keluar viewport -- berulang setiap kali (scroll
+ * turun tampil, scroll naik lalu turun lagi akan tampil ulang animasinya),
+ * bukan cuma sekali seumur hidup elemen. Dipakai oleh komponen <Reveal> untuk
+ * animasi scroll-reveal per section di semua tema.
  */
 export function useRevealOnScroll<T extends HTMLElement>(threshold = 0.15) {
   const ref = useRef<T>(null);
@@ -20,17 +21,11 @@ export function useRevealOnScroll<T extends HTMLElement>(threshold = 0.15) {
     }
 
     const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            setIsVisible(true);
-            observer.unobserve(entry.target);
-          }
-        }
-      },
+      ([entry]) => setIsVisible(entry.isIntersecting),
       // rootMargin negatif di bawah: elemen baru dianggap "terlihat" setelah
       // benar-benar masuk ~10% dari tepi bawah layar, bukan pas menyentuh tepi --
-      // supaya user sempat melihat gerakan reveal-nya.
+      // supaya user sempat melihat gerakan reveal-nya. Margin yang sama juga
+      // jadi jeda sebelum dianggap "keluar" lagi saat scroll balik ke bawah.
       { threshold, rootMargin: '0px 0px -10% 0px' },
     );
 

@@ -8,28 +8,21 @@ interface CoverSectionProps {
   weddingDate: string | null;
   coverPhotoUrl: string;
   guestName?: string;
-  /** true selama animasi keluar (.cover-exit) berjalan -- cover terangkat
-   *  sambil memudar, lalu di-unmount oleh orkestrator. */
-  isExiting: boolean;
   onOpen: () => void;
 }
 
 /** Cover Islami Modern: bismillah, foto berbingkai lengkung masjid,
- *  salam pembuka Assalamu'alaikum. */
+ *  salam pembuka Assalamu'alaikum. Section ini permanen (tidak di-unmount)
+ *  -- guest bisa scroll balik ke atas untuk melihatnya lagi. */
 export default function CoverSection({
   couple,
   weddingDate,
   coverPhotoUrl,
   guestName,
-  isExiting,
   onOpen,
 }: CoverSectionProps) {
   return (
-    <section
-      className={`relative min-h-screen flex flex-col items-center justify-center px-6 py-16 text-center overflow-hidden bg-[var(--color-secondary)] ${
-        isExiting ? 'cover-exit' : ''
-      }`.trim()}
-    >
+    <section className="relative min-h-screen flex flex-col items-center justify-center px-6 py-16 text-center overflow-hidden bg-[var(--color-secondary)]">
       <div aria-hidden="true" className="pointer-events-none absolute inset-0" style={geometricBackground(0.05)} />
       {/* Lengkungan besar samar di belakang konten */}
       <IslamicArch className="pointer-events-none absolute top-6 left-1/2 -translate-x-1/2 h-[88%] w-auto text-[var(--color-primary)] opacity-15" />

@@ -8,27 +8,21 @@ interface CoverSectionProps {
   weddingDate: string | null;
   coverPhotoUrl: string;
   guestName?: string;
-  /** true selama animasi keluar (.cover-exit) berjalan -- cover terangkat
-   *  sambil memudar, lalu di-unmount oleh orkestrator. */
-  isExiting: boolean;
   onOpen: () => void;
 }
 
-/** Cover dark premium: pendar emas, kipas art-deco, tipografi renggang. */
+/** Cover dark premium: pendar emas, kipas art-deco, tipografi renggang.
+ *  Section ini permanen (tidak di-unmount) -- guest bisa scroll balik ke atas
+ *  untuk melihatnya lagi. */
 export default function CoverSection({
   couple,
   weddingDate,
   coverPhotoUrl,
   guestName,
-  isExiting,
   onOpen,
 }: CoverSectionProps) {
   return (
-    <section
-      className={`relative min-h-screen flex flex-col items-center justify-center px-6 py-16 text-center overflow-hidden bg-[var(--color-secondary)] ${
-        isExiting ? 'cover-exit' : ''
-      }`.trim()}
-    >
+    <section className="relative min-h-screen flex flex-col items-center justify-center px-6 py-16 text-center overflow-hidden bg-[var(--color-secondary)]">
       <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-96" style={goldGlow(0.16)} />
       {/* Bingkai garis tipis ganda */}
       <div aria-hidden="true" className="pointer-events-none absolute inset-4 border border-[#D4AF37]/40" />

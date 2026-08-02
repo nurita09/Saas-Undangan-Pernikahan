@@ -8,26 +8,21 @@ interface CoverSectionProps {
   weddingDate: string | null;
   coverPhotoUrl: string;
   guestName?: string;
-  /** true selama animasi keluar (.cover-exit-up) berjalan -- cover terangkat
-   *  ke atas lalu di-unmount oleh orkestrator. */
-  isExiting: boolean;
   onOpen: () => void;
 }
 
 /** Cover 1 layar penuh: foto + tirai sage + monogram inisial, nama script di
- *  tengah, tombol "Buka Undangan" di bawah. */
+ *  tengah, tombol "Buka Undangan" di bawah. Section ini permanen (tidak
+ *  di-unmount) -- guest bisa scroll balik ke atas untuk melihatnya lagi. */
 export default function CoverSection({
   couple,
   weddingDate,
   coverPhotoUrl,
   guestName,
-  isExiting,
   onOpen,
 }: CoverSectionProps) {
   return (
-    <section
-      className={`relative h-dvh w-full overflow-hidden ${isExiting ? 'cover-exit-up' : ''}`.trim()}
-    >
+    <section className="relative h-dvh w-full overflow-hidden">
       <CoverMedia
         src={coverPhotoUrl}
         alt={`Foto pengantin ${couple.groom_name} dan ${couple.bride_name}`}

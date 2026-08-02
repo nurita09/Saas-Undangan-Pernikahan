@@ -8,28 +8,22 @@ interface CoverSectionProps {
   weddingDate: string | null;
   coverPhotoUrl: string;
   guestName?: string;
-  /** true selama animasi keluar (.cover-exit-scale) berjalan -- cover memudar
-   *  sambil membesar tipis, lalu di-unmount oleh orkestrator. */
-  isExiting: boolean;
   onOpen: () => void;
 }
 
 /** Cover 1 layar penuh bergaya Jawa: gunungan wayang "membuka lakon", sapaan
- *  "Sugeng Rawuh", nama script, foto bundar, dan kartu tamu + tombol buka. */
+ *  "Sugeng Rawuh", nama script, foto bundar, dan kartu tamu + tombol buka.
+ *  Section ini permanen (tidak di-unmount) -- guest bisa scroll balik ke atas
+ *  untuk melihatnya lagi. */
 export default function CoverSection({
   couple,
   weddingDate,
   coverPhotoUrl,
   guestName,
-  isExiting,
   onOpen,
 }: CoverSectionProps) {
   return (
-    <section
-      className={`relative h-dvh w-full overflow-hidden bg-[var(--color-secondary)] ${
-        isExiting ? 'cover-exit-scale' : ''
-      }`.trim()}
-    >
+    <section className="relative h-dvh w-full overflow-hidden bg-[var(--color-secondary)]">
       <div className="pointer-events-none absolute inset-3 border border-[var(--jw-gold)]/60" />
       <div className="pointer-events-none absolute inset-5 border border-[var(--jw-gold)]/30" />
 

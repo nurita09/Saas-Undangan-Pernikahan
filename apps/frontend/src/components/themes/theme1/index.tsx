@@ -18,10 +18,6 @@ import fallbackCover from '../../../assets/theme1/hero.jpg';
 const DEFAULT_PRIMARY_COLOR = '#8D7B68';
 const DEFAULT_SECONDARY_COLOR = '#F9F8F4';
 
-/* Durasi animasi keluar cover (.cover-exit di index.css) -- konten baru
-   di-mount setelah animasi ini selesai supaya transisinya terasa. */
-const COVER_EXIT_MS = 1000;
-
 interface ThemeCssVars extends CSSProperties {
   '--color-primary': string;
   '--color-secondary': string;
@@ -62,10 +58,10 @@ export default function Theme1({ data, guestName }: ThemeComponentProps) {
   const secondaryColor = theme.secondary_color || DEFAULT_SECONDARY_COLOR;
 
   const [isOpened, setIsOpened] = useState(false);
-  const [isCoverExiting, setIsCoverExiting] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
 
   const audioRef = useRef<HTMLAudioElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
   /* Apakah musik sedang berbunyi saat tab ditinggalkan -- dipakai untuk
      memutuskan resume ketika tab kembali aktif (jangan resume kalau user
      memang mem-pause manual). */
@@ -126,16 +122,28 @@ export default function Theme1({ data, guestName }: ThemeComponentProps) {
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, []);
 
+  const scrollToContent = () => {
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    contentRef.current?.scrollIntoView({ behavior: prefersReducedMotion ? 'auto' : 'smooth' });
+  };
+
+  /* Cover TIDAK dihapus dari halaman -- tetap jadi section paling atas yang
+     bisa didatangi lagi dengan scroll ke atas. "Buka Undangan" cuma memicu
+     smooth-scroll turun ke section pertama (transisinya scroll sungguhan,
+     bukan simulasi fade/transform). Efek ini menangani scroll begitu konten
+     baru saja ter-mount; klik berikutnya (setelah kembali ke cover) ditangani
+     langsung di handleOpenInvitation karena isOpened sudah true. */
+  useEffect(() => {
+    if (isOpened) scrollToContent();
+  }, [isOpened]);
+
   const handleOpenInvitation = () => {
-    if (isCoverExiting || isOpened) return;
-    setIsCoverExiting(true);
     if (musicUrl && audioRef.current?.paused) playMusic();
-    // Cover diberi waktu menyelesaikan animasi keluarnya dulu, baru konten
-    // di-mount (dengan animasi masuknya sendiri, .content-enter).
-    window.setTimeout(() => {
+    if (isOpened) {
+      scrollToContent();
+    } else {
       setIsOpened(true);
-      window.scrollTo({ top: 0 });
-    }, COVER_EXIT_MS);
+    }
   };
 
   const toggleMusic = () => {
@@ -176,22 +184,18 @@ export default function Theme1({ data, guestName }: ThemeComponentProps) {
       <div className="w-full lg:w-[420px] lg:shrink-0 min-h-screen bg-[var(--color-secondary)] relative overflow-x-hidden shadow-2xl z-20">
         {musicUrl && <audio ref={audioRef} src={musicUrl} loop />}
 
-        {/* Cover hilang total begitu isOpened -- bukan sekadar discroll lewat --
-            supaya scroll-up dari Section 1 tidak balik nemu Cover lagi, dan
-            panjang halaman jadi cuma sepanjang Section 1-9. */}
-        {!isOpened && (
-          <CoverSection
-            couple={couple}
-            weddingDate={event.wedding_date}
-            coverPhotoUrl={coverPhotoUrl}
-            guestName={guestName}
-            isExiting={isCoverExiting}
-            onOpen={handleOpenInvitation}
-          />
-        )}
+        {/* Cover tetap jadi section paling atas (tidak di-unmount) -- guest
+            bisa scroll balik ke atas dan melihatnya lagi kapan pun. */}
+        <CoverSection
+          couple={couple}
+          weddingDate={event.wedding_date}
+          coverPhotoUrl={coverPhotoUrl}
+          guestName={guestName}
+          onOpen={handleOpenInvitation}
+        />
 
         {isOpened && (
-          <div className="content-enter">
+          <div ref={contentRef}>
             <QuoteSection
               quoteText={data.theme_settings?.quote_text}
               quoteSource={data.theme_settings?.quote_source}
