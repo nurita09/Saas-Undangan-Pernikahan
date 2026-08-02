@@ -1,22 +1,22 @@
 import { useEffect, useState } from 'react';
 import { submitRsvp, fetchRsvps, type RsvpResponse } from '../../../../lib/api';
 import Reveal from '../../../shared/Reveal';
-import { OrnamentDivider } from '../components/ornaments';
+import { BatikBand, CheckIcon, SectionTitle, XIcon } from '../components/ornaments';
 
 interface RsvpSectionProps {
   guestName?: string;
 }
 
 const INPUT_CLASS =
-  'w-full border border-[#C9A227]/50 bg-white px-4 py-3 text-sm focus:outline-none focus:border-[var(--color-primary)]';
+  'mt-2 w-full border border-[var(--jw-gold-soft)]/70 bg-[var(--jw-card)] px-4 py-3.5 text-sm text-[var(--jw-ink)] outline-none transition-colors placeholder:text-[var(--jw-muted)]/70 focus:border-[var(--jw-gold)]';
 
 /** Section 7: Atur Pangestu -- form RSVP + daftar ucapan. Section ini baru
- *  di-mount setelah undangan dibuka, jadi fetch cukup sekali di mount. */
+ *  di-mount setelah undangan dibuka, jadi fetch daftar cukup sekali di mount. */
 export default function RsvpSection({ guestName }: RsvpSectionProps) {
   const [rsvps, setRsvps] = useState<RsvpResponse[]>([]);
-  const [rsvpName, setRsvpName] = useState(guestName || '');
-  const [rsvpMessage, setRsvpMessage] = useState('');
-  const [rsvpStatus, setRsvpStatus] = useState<'attending' | 'not_attending'>('attending');
+  const [name, setName] = useState(guestName || '');
+  const [message, setMessage] = useState('');
+  const [status, setStatus] = useState<'attending' | 'not_attending'>('attending');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -25,12 +25,12 @@ export default function RsvpSection({ guestName }: RsvpSectionProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!rsvpName.trim()) return;
+    if (!name.trim()) return;
     setIsSubmitting(true);
     try {
-      const newRsvp = await submitRsvp(rsvpName, rsvpStatus, rsvpMessage);
+      const newRsvp = await submitRsvp(name, status, message);
       setRsvps((prev) => [newRsvp, ...prev]);
-      setRsvpMessage('');
+      setMessage('');
     } catch {
       alert('Gagal mengirim ucapan');
     } finally {
@@ -39,110 +39,108 @@ export default function RsvpSection({ guestName }: RsvpSectionProps) {
   };
 
   return (
-    <section className="px-6 py-16 bg-[var(--color-secondary)]">
-      <div className="mx-auto max-w-md">
-        <Reveal variant="blur">
-          <h2 className="text-center text-2xl font-bold uppercase tracking-[0.2em] text-[var(--color-primary)]">
-            Atur Pangestu
-          </h2>
-          <OrnamentDivider className="mx-auto mt-3 w-44" />
-          <p className="mt-4 text-center text-sm text-neutral-600 leading-relaxed">
-            Doa, pangestu, dan ucapan terbaik panjenengan menjadi kenangan indah bagi kami.
+    <section className="relative overflow-hidden bg-[var(--jw-tint)] px-6 py-20">
+      <BatikBand />
+      <div className="relative mx-auto max-w-md">
+        <Reveal variant="bloom">
+          <SectionTitle kicker="Kagem Panjenengan" title="Atur Pangestu" />
+          <p className="mx-auto mt-6 max-w-sm text-center text-sm leading-relaxed text-[var(--jw-muted)]">
+            Doa, pangestu, lan ucapan pinunjul panjenengan dados kenangan endah kagem kula
+            sekaliyan.
           </p>
         </Reveal>
 
-        <Reveal variant="up" delay={150}>
-          <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+        <Reveal variant="bloom" delay={120}>
+          <form onSubmit={handleSubmit} className="mt-10 space-y-5">
             <div>
-              <label className="mb-2 block text-xs uppercase tracking-widest font-semibold text-[#C9A227]">
+              <label className="text-[0.55rem] font-medium tracking-[0.3em] text-[var(--jw-gold)] uppercase">
                 Asma / Nama
               </label>
               <input
                 type="text"
-                value={rsvpName}
-                onChange={(e) => setRsvpName(e.target.value)}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
                 required
+                maxLength={60}
+                placeholder="Nama panjenengan"
                 className={INPUT_CLASS}
-                placeholder="Nama anda"
               />
             </div>
             <div>
-              <label className="mb-2 block text-xs uppercase tracking-widest font-semibold text-[#C9A227]">
+              <label className="text-[0.55rem] font-medium tracking-[0.3em] text-[var(--jw-gold)] uppercase">
                 Ucapan
               </label>
               <textarea
-                value={rsvpMessage}
-                onChange={(e) => setRsvpMessage(e.target.value)}
-                className={`h-28 resize-none ${INPUT_CLASS}`}
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                rows={4}
+                maxLength={400}
                 placeholder="Ucapan & doa"
-              ></textarea>
+                className={`${INPUT_CLASS} resize-none`}
+              />
             </div>
             <div>
-              <label className="mb-2 block text-xs uppercase tracking-widest font-semibold text-[#C9A227]">
+              <span className="text-[0.55rem] font-medium tracking-[0.3em] text-[var(--jw-gold)] uppercase">
                 Konfirmasi Kehadiran
-              </label>
-              <div className="flex gap-3">
-                <label
-                  className={`flex flex-1 cursor-pointer items-center justify-center gap-2 border bg-white px-4 py-3 transition ${rsvpStatus === 'attending' ? 'border-[var(--color-primary)]' : 'border-[#C9A227]/40'}`}
-                >
-                  <input
-                    type="radio"
-                    name="status"
-                    className="hidden"
-                    checked={rsvpStatus === 'attending'}
-                    onChange={() => setRsvpStatus('attending')}
-                  />
-                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-600 text-xs text-white">
-                    ✓
-                  </span>
-                  <span className="text-sm text-neutral-700">Rawuh</span>
-                </label>
-                <label
-                  className={`flex flex-1 cursor-pointer items-center justify-center gap-2 border bg-white px-4 py-3 transition ${rsvpStatus === 'not_attending' ? 'border-[var(--color-primary)]' : 'border-[#C9A227]/40'}`}
-                >
-                  <input
-                    type="radio"
-                    name="status"
-                    className="hidden"
-                    checked={rsvpStatus === 'not_attending'}
-                    onChange={() => setRsvpStatus('not_attending')}
-                  />
-                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-xs text-white">
-                    ✕
-                  </span>
-                  <span className="text-sm text-neutral-700">Mboten Rawuh</span>
-                </label>
+              </span>
+              <div className="mt-2 grid grid-cols-2 gap-3">
+                {(
+                  [
+                    { value: 'attending', label: 'Rawuh', Icon: CheckIcon },
+                    { value: 'not_attending', label: 'Mboten Rawuh', Icon: XIcon },
+                  ] as const
+                ).map(({ value, label, Icon }) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setStatus(value)}
+                    className={`flex items-center justify-center gap-2 border px-4 py-3.5 text-sm transition-all duration-300 ${
+                      status === value
+                        ? 'border-[var(--jw-gold)] bg-[var(--jw-card)] text-[var(--color-primary)] shadow-[var(--jw-shadow)]'
+                        : 'border-[var(--jw-gold-soft)]/60 bg-[var(--jw-card)]/50 text-[var(--jw-muted)]'
+                    }`}
+                  >
+                    <Icon className="h-3.5 w-3.5" />
+                    {label}
+                  </button>
+                ))}
               </div>
             </div>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex w-full items-center justify-center gap-2 bg-[var(--color-primary)] py-3 text-sm font-medium tracking-wider text-[var(--color-secondary)] border border-[#C9A227] hover:opacity-90 transition disabled:opacity-50"
+              className="w-full bg-[var(--jw-sogan-gradient)] py-4 text-[0.6rem] font-medium tracking-[0.25em] text-[var(--color-secondary)] uppercase transition-transform duration-300 hover:-translate-y-0.5 disabled:opacity-50"
             >
               {isSubmitting ? 'Ngintun...' : 'Kirim Pangestu'}
             </button>
           </form>
         </Reveal>
 
-        <div className="mt-10 max-h-[500px] space-y-4 overflow-y-auto pr-1">
-          {rsvps.map((rsvp) => (
-            <div key={rsvp.id} className="border border-[#C9A227]/30 bg-white p-5">
-              <h4 className="font-serif font-bold text-[var(--color-primary)]">{rsvp.guest_name}</h4>
-              <p className="mt-0.5 text-xs uppercase tracking-widest text-[#C9A227]">
-                {rsvp.attendance_status === 'attending'
-                  ? 'Rawuh'
-                  : rsvp.attendance_status === 'not_attending'
-                    ? 'Mboten Rawuh'
-                    : 'Mangke Rumiyin'}
-              </p>
-              {rsvp.message && (
-                <p className="mt-2 text-sm text-neutral-600 leading-relaxed whitespace-pre-wrap">
-                  {rsvp.message}
-                </p>
-              )}
-            </div>
-          ))}
-        </div>
+        {rsvps.length > 0 && (
+          <ul className="mt-10 space-y-4">
+            {rsvps.map((rsvp) => (
+              <li key={rsvp.id} className="border border-[var(--jw-gold-soft)]/60 bg-[var(--jw-card)] p-5">
+                <div className="flex items-baseline justify-between gap-3">
+                  <p className="truncate font-jawa-serif text-lg text-[var(--color-primary)]">
+                    {rsvp.guest_name}
+                  </p>
+                  <span className="shrink-0 text-[0.5rem] font-medium tracking-[0.2em] text-[var(--jw-gold)] uppercase">
+                    {rsvp.attendance_status === 'attending'
+                      ? 'Rawuh'
+                      : rsvp.attendance_status === 'not_attending'
+                        ? 'Mboten Rawuh'
+                        : 'Mangke Rumiyin'}
+                  </span>
+                </div>
+                {rsvp.message && (
+                  <p className="mt-2 text-sm leading-relaxed whitespace-pre-wrap text-[var(--jw-muted)]">
+                    {rsvp.message}
+                  </p>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </section>
   );

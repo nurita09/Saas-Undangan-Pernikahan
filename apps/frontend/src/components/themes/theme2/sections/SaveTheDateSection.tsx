@@ -1,26 +1,15 @@
 import { useCountdown } from '../../../../hooks/useCountdown';
-import { formatShortDate, buildIcsDataUrl } from '../../../../utils/formatDate';
+import { buildIcsDataUrl, formatCoverDate } from '../../../../utils/formatDate';
 import type { CoupleInfo, EventInfo } from '../../../../types/wedding';
 import Reveal from '../../../shared/Reveal';
-import { OrnamentDivider, kawungBackground } from '../components/ornaments';
+import { BatikBand, CalendarIcon, Divider } from '../components/ornaments';
 
 interface SaveTheDateSectionProps {
   couple: CoupleInfo;
   event: EventInfo;
 }
 
-function CountdownBox({ value, label }: { value: number; label: string }) {
-  return (
-    <div className="flex h-16 w-16 flex-col items-center justify-center border border-[#C9A227]/60 bg-white/70">
-      <span className="text-xl font-semibold text-[var(--color-primary)] tabular-nums">
-        {String(value).padStart(2, '0')}
-      </span>
-      <span className="text-[10px] uppercase tracking-wider text-neutral-500">{label}</span>
-    </div>
-  );
-}
-
-/** Section 2a: Save The Date -- countdown dalam kotak wajik + tombol kalender. */
+/** Section 2a: Save The Date -- countdown di atas gradasi sogan + tombol kalender. */
 export default function SaveTheDateSection({ couple, event }: SaveTheDateSectionProps) {
   const countdown = useCountdown(event.wedding_date);
 
@@ -31,48 +20,60 @@ export default function SaveTheDateSection({ couple, event }: SaveTheDateSection
     startDate: event.wedding_date,
   });
 
-  const items = countdown
+  const countdownItems = countdown
     ? [
-        { value: countdown.days, label: 'Dinten' },
-        { value: countdown.hours, label: 'Jam' },
-        { value: countdown.minutes, label: 'Menit' },
-        { value: countdown.seconds, label: 'Detik' },
+        { label: 'Dinten', value: countdown.days },
+        { label: 'Jam', value: countdown.hours },
+        { label: 'Menit', value: countdown.minutes },
+        { label: 'Detik', value: countdown.seconds },
       ]
     : [];
 
   return (
-    <section className="relative px-6 py-16 bg-[var(--color-primary)] text-center overflow-hidden">
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0" style={kawungBackground(0.12)} />
-
-      <div className="relative z-10">
-        <Reveal variant="blur">
-          <h2 className="font-script text-4xl text-[var(--color-secondary)]">Save The Date</h2>
+    <section className="relative overflow-hidden bg-[var(--jw-sogan-gradient)] px-6 py-20 text-center">
+      <BatikBand className="opacity-[0.13]" />
+      <div className="relative mx-auto max-w-md">
+        <Reveal variant="bloom">
+          <p className="font-jawa-script text-5xl text-[var(--jw-gold-soft)]">Save The Date</p>
+          <Divider className="mt-4" tone="light" />
           {event.wedding_date && (
-            <p className="mt-2 font-serif italic tracking-[0.2em] text-[#E8D9A0]">
-              {formatShortDate(event.wedding_date)}
+            <p className="mt-6 font-jawa-serif text-xl tracking-[0.3em] text-[var(--color-secondary)] uppercase">
+              {formatCoverDate(event.wedding_date)}
             </p>
           )}
-          <OrnamentDivider className="mx-auto mt-4 w-44" />
         </Reveal>
 
-        {items.length > 0 && (
-          <div className="mt-8 flex justify-center gap-3 md:gap-5">
-            {items.map((item, idx) => (
-              <Reveal key={item.label} variant="up" delay={idx * 120}>
-                <CountdownBox value={item.value} label={item.label} />
-              </Reveal>
-            ))}
-          </div>
+        {countdownItems.length > 0 && (
+          <Reveal variant="bloom" delay={150} className="mt-9">
+            <div className="grid grid-cols-4 gap-2.5">
+              {countdownItems.map((item) => (
+                <div
+                  key={item.label}
+                  className="relative border border-[var(--jw-gold-soft)]/35 bg-[var(--color-secondary)]/5 px-1 py-5 text-center"
+                >
+                  <span className="absolute inset-x-3 top-2 block h-px bg-[var(--jw-gold-soft)]/40" />
+                  <span className="block font-jawa-serif text-3xl font-semibold tabular-nums text-[var(--color-secondary)]">
+                    {String(item.value).padStart(2, '0')}
+                  </span>
+                  <span className="mt-2 block text-[0.5rem] font-medium tracking-[0.2em] text-[var(--jw-gold-soft)]/80 uppercase">
+                    {item.label}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <Divider className="mt-7" tone="light" />
+          </Reveal>
         )}
 
         {calendarUrl && (
-          <Reveal variant="up" delay={500}>
+          <Reveal variant="bloom" delay={300}>
             <a
               href={calendarUrl}
               download={`undangan-${couple.groom_name}-${couple.bride_name}.ics`}
-              className="mt-8 inline-flex items-center gap-2 border border-[#C9A227] px-5 py-2.5 rounded-lg text-sm font-medium text-[var(--color-secondary)] hover:bg-white/10 transition"
+              className="mt-7 inline-flex items-center gap-3 border border-[var(--jw-gold-soft)]/60 px-6 py-3 text-[0.6rem] font-medium tracking-[0.25em] text-[var(--color-secondary)] uppercase transition-colors hover:bg-[var(--color-secondary)]/10"
             >
-              📅 Simpan ke Kalender
+              <CalendarIcon className="h-4 w-4" />
+              Simpan ke Kalender
             </a>
           </Reveal>
         )}

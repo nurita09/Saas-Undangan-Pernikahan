@@ -16,6 +16,11 @@
   --font-floral-script: "Pinyon Script", cursive;
   --font-floral-serif: "Cormorant Garamond", Georgia, serif;
   --font-floral-sans: "Jost", ui-sans-serif, system-ui, sans-serif;
+  /* Script anggun + serif klasik + sans kapital renggang -- dipakai Theme 2
+     Adat Jawa (redesain "javanese elegance revival") */
+  --font-jawa-script: "Italianno", cursive;
+  --font-jawa-serif: "Cormorant Garamond", Georgia, serif;
+  --font-jawa-sans: "Jost", ui-sans-serif, system-ui, sans-serif;
 
   --animate-fade-up: fade-up 0.9s ease-out forwards;
   --animate-fade-in-scale: fade-in-scale 1.4s ease-out forwards;
@@ -94,6 +99,20 @@ body {
 
 .cover-exit {
   animation: cover-exit 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  pointer-events: none;
+}
+
+/* Transisi buka undangan Theme 2: cover memudar sambil sedikit membesar
+   (zoom-out). Durasi harus sinkron dengan COVER_EXIT_MS di theme2/index.tsx. */
+@keyframes cover-exit-scale {
+  to {
+    opacity: 0;
+    transform: scale(1.06);
+  }
+}
+
+.cover-exit-scale {
+  animation: cover-exit-scale 0.7s ease-out forwards;
   pointer-events: none;
 }
 
@@ -297,6 +316,7 @@ body {
   .petal,
   .cover-exit,
   .cover-exit-up,
+  .cover-exit-scale,
   .content-enter,
   .reveal {
     animation: none !important;
