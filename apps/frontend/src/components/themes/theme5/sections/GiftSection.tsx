@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { WeddingGiftInfo } from '../../../../types/wedding';
 import Reveal from '../../../shared/Reveal';
 import { COCOA, GroovyDivider, wavyBackground } from '../components/ornaments';
@@ -8,7 +9,49 @@ interface GiftSectionProps {
 
 /** Section 6: kado & amplop digital. */
 export default function GiftSection({ gifts }: GiftSectionProps) {
+  const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
+  const [copyFailedIdx, setCopyFailedIdx] = useState<number | null>(null);
+
   if (!gifts || gifts.length === 0) return null;
+
+  const copyWithFallback = async (value: string) => {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(value);
+      return;
+    }
+
+    const textarea = document.createElement('textarea');
+    textarea.value = value;
+    textarea.setAttribute('readonly', '');
+    textarea.style.position = 'fixed';
+    textarea.style.top = '0';
+    textarea.style.left = '-9999px';
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+
+    const copied = document.execCommand('copy');
+    document.body.removeChild(textarea);
+
+    if (!copied) {
+      throw new Error('Gagal menyalin');
+    }
+  };
+
+  const copyText = async (value: string, idx: number) => {
+    if (!value.trim()) return;
+
+    try {
+      await copyWithFallback(value);
+      setCopyFailedIdx(null);
+      setCopiedIdx(idx);
+      setTimeout(() => setCopiedIdx((prev) => (prev === idx ? null : prev)), 1800);
+    } catch {
+      setCopiedIdx(null);
+      setCopyFailedIdx(idx);
+      setTimeout(() => setCopyFailedIdx((prev) => (prev === idx ? null : prev)), 2500);
+    }
+  };
 
   return (
     <section className="relative px-6 py-16 overflow-hidden" style={{ backgroundColor: '#C75B39' }}>
@@ -65,11 +108,12 @@ export default function GiftSection({ gifts }: GiftSectionProps) {
                     <p className="truncate text-sm text-neutral-700">{gift.account_number}</p>
                     <button
                       type="button"
-                      onClick={() => navigator.clipboard.writeText(gift.account_number || '')}
-                      className="inline-flex shrink-0 items-center gap-1.5 rounded-full border-2 bg-[var(--color-primary)] px-3 py-1.5 text-xs font-bold text-white shadow-[2px_2px_0_#5C4033] hover:translate-x-px hover:translate-y-px hover:shadow-[1px_1px_0_#5C4033] transition-all"
+                      onClick={() => copyText(gift.account_number || '', idx)}
+                      disabled={!gift.account_number?.trim()}
+                      className="inline-flex shrink-0 items-center gap-1.5 rounded-full border-2 bg-[var(--color-primary)] px-3 py-1.5 text-xs font-bold text-white shadow-[2px_2px_0_#5C4033] transition-all hover:translate-x-px hover:translate-y-px hover:shadow-[1px_1px_0_#5C4033] disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:translate-x-0 disabled:hover:translate-y-0 disabled:hover:shadow-[2px_2px_0_#5C4033]"
                       style={{ borderColor: COCOA }}
                     >
-                      📋 Salin
+                      {copiedIdx === idx ? '✓ Tersalin' : copyFailedIdx === idx ? 'Gagal' : '📋 Salin'}
                     </button>
                   </div>
                 </div>

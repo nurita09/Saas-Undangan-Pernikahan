@@ -208,6 +208,7 @@ export default function WeddingEditor({ slug }: WeddingEditorProps) {
   const [saveState, setSaveState] = useState<SaveState>('idle');
   const [saveMessage, setSaveMessage] = useState('');
   const [uploadState, setUploadState] = useState<UploadState>('idle');
+  const [galleryUploadMessage, setGalleryUploadMessage] = useState('');
   const [musicLibrary, setMusicLibrary] = useState<MusicTrack[]>([]);
   const [activeSection, setActiveSection] = useState<SectionKey>('cover');
   // Nomor versi preview: dinaikkan setiap simpan sukses supaya iframe di-mount
@@ -278,6 +279,31 @@ export default function WeddingEditor({ slug }: WeddingEditorProps) {
     });
   };
 
+  const moveGalleryPhoto = (index: number, direction: -1 | 1) => {
+    setForm((prev) => {
+      if (!prev) return prev;
+      const targetIndex = index + direction;
+      if (targetIndex < 0 || targetIndex >= prev.gallery_photos.length) return prev;
+
+      const gallery_photos = [...prev.gallery_photos];
+      [gallery_photos[index], gallery_photos[targetIndex]] = [
+        gallery_photos[targetIndex],
+        gallery_photos[index],
+      ];
+      return { ...prev, gallery_photos };
+    });
+  };
+
+  const moveGalleryPhotoToFront = (index: number) => {
+    setForm((prev) => {
+      if (!prev || index <= 0) return prev;
+      const gallery_photos = [...prev.gallery_photos];
+      const [photo] = gallery_photos.splice(index, 1);
+      gallery_photos.unshift(photo);
+      return { ...prev, gallery_photos };
+    });
+  };
+
   const updateGift = (index: number, field: keyof GiftForm, value: string) => {
     setForm((prev) => {
       if (!prev) return prev;
@@ -319,6 +345,38 @@ export default function WeddingEditor({ slug }: WeddingEditorProps) {
     try {
       const url = await uploadPhoto(token, file);
       apply(url);
+      setUploadState('idle');
+    } catch {
+      setUploadState('error');
+    }
+  };
+
+  const uploadGalleryPhotos = async (event: ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files ?? []);
+    event.target.value = '';
+    if (!files.length || !token || !form) return;
+
+    const remainingSlots = MAX_GALLERY_PHOTOS - form.gallery_photos.length;
+    if (remainingSlots <= 0) return;
+
+    const selectedFiles = files.slice(0, remainingSlots);
+    setGalleryUploadMessage(
+      files.length > remainingSlots
+        ? `Hanya ${remainingSlots} foto pertama yang diunggah karena batas maksimal ${MAX_GALLERY_PHOTOS} foto.`
+        : '',
+    );
+    setUploadState('uploading');
+
+    try {
+      const uploadedUrls = await Promise.all(selectedFiles.map((file) => uploadPhoto(token, file)));
+      setForm((prev) =>
+        prev
+          ? {
+              ...prev,
+              gallery_photos: [...prev.gallery_photos, ...uploadedUrls].slice(0, MAX_GALLERY_PHOTOS),
+            }
+          : prev,
+      );
       setUploadState('idle');
     } catch {
       setUploadState('error');
@@ -462,17 +520,15 @@ export default function WeddingEditor({ slug }: WeddingEditorProps) {
               key={section.key}
               type="button"
               onClick={() => setActiveSection(section.key)}
-              className={`rounded-xl border px-3 py-2.5 text-left transition ${
-                activeSection === section.key
-                  ? 'border-[#8B4513] bg-[#8B4513] text-white'
-                  : 'border-neutral-200 bg-white text-neutral-700 hover:border-neutral-400'
-              }`}
+              className={`rounded-xl border px-3 py-2.5 text-left transition ${activeSection === section.key
+                ? 'border-[#8B4513] bg-[#8B4513] text-white'
+                : 'border-neutral-200 bg-white text-neutral-700 hover:border-neutral-400'
+                }`}
             >
               <span className="block text-sm font-medium">{section.label}</span>
               <span
-                className={`mt-0.5 block text-[11px] leading-tight ${
-                  activeSection === section.key ? 'text-white/80' : 'text-neutral-400'
-                }`}
+                className={`mt-0.5 block text-[11px] leading-tight ${activeSection === section.key ? 'text-white/80' : 'text-neutral-400'
+                  }`}
               >
                 {section.hint}
               </span>
@@ -553,12 +609,12 @@ export default function WeddingEditor({ slug }: WeddingEditorProps) {
                 />
               </div>
 
-              <PhotoField
+              {/* <PhotoField
                 label="Foto di card kutipan (rasio potret 4:5 paling pas)"
                 photoUrl={form.section1_photo_url}
                 uploadState={uploadState}
                 onSelect={(e) => uploadThen(e, (url) => updateField('section1_photo_url', url))}
-              />
+              /> */}
             </fieldset>
           )}
 
@@ -865,6 +921,10 @@ export default function WeddingEditor({ slug }: WeddingEditorProps) {
           {activeSection === 'galeri' && (
             <fieldset className="space-y-4">
               <legend className="text-sm font-semibold text-neutral-800">Section 5 · Galeri</legend>
+              <p className="text-sm text-neutral-500">
+                Urutan foto di bawah akan menjadi urutan tampil di undangan. Foto pertama tampil
+                paling awal.
+              </p>
 
               <div>
                 <label htmlFor="gallery_video_url" className={LABEL_CLASS}>
@@ -885,20 +945,51 @@ export default function WeddingEditor({ slug }: WeddingEditorProps) {
               {form.gallery_photos.length > 0 && (
                 <div className="grid grid-cols-2 gap-3">
                   {form.gallery_photos.map((url, idx) => (
-                    <div key={`${url}-${idx}`} className="relative">
-                      <img
-                        src={url}
-                        alt={`Galeri ${idx + 1}`}
-                        className="aspect-[3/4] w-full rounded-lg object-cover"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => removeGalleryPhoto(idx)}
-                        aria-label={`Hapus foto galeri ${idx + 1}`}
-                        className="absolute top-2 right-2 flex h-7 w-7 items-center justify-center rounded-full bg-black/60 text-xs text-white hover:bg-black/80"
-                      >
-                        ✕
-                      </button>
+                    <div key={`${url}-${idx}`} className="rounded-xl border border-neutral-200 p-2">
+                      <div className="relative">
+                        <img
+                          src={url}
+                          alt={`Galeri ${idx + 1}`}
+                          className="aspect-[3/4] w-full rounded-lg object-cover"
+                        />
+                        <span className="absolute top-2 left-2 rounded-full bg-black/60 px-2 py-1 text-[0.65rem] font-semibold text-white">
+                          #{idx + 1}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => removeGalleryPhoto(idx)}
+                          aria-label={`Hapus foto galeri ${idx + 1}`}
+                          className="absolute top-2 right-2 flex h-7 w-7 items-center justify-center rounded-full bg-black/60 text-xs text-white hover:bg-black/80"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                      <div className="mt-2 grid grid-cols-2 gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => moveGalleryPhoto(idx, -1)}
+                          disabled={idx === 0}
+                          className="rounded-md border border-neutral-200 px-2 py-1.5 text-xs text-neutral-600 hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-40"
+                        >
+                          Geser kiri
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => moveGalleryPhoto(idx, 1)}
+                          disabled={idx === form.gallery_photos.length - 1}
+                          className="rounded-md border border-neutral-200 px-2 py-1.5 text-xs text-neutral-600 hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-40"
+                        >
+                          Geser kanan
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => moveGalleryPhotoToFront(idx)}
+                          disabled={idx === 0}
+                          className="col-span-2 rounded-md border border-neutral-200 px-2 py-1.5 text-xs text-neutral-600 hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-40"
+                        >
+                          Jadikan pertama
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -908,20 +999,18 @@ export default function WeddingEditor({ slug }: WeddingEditorProps) {
                 <label className="flex cursor-pointer items-center justify-center rounded-lg border border-dashed border-neutral-300 px-4 py-3 text-sm text-neutral-600 hover:border-neutral-400">
                   {uploadState === 'uploading'
                     ? 'Mengunggah...'
-                    : `+ Tambah Foto (${form.gallery_photos.length}/${MAX_GALLERY_PHOTOS})`}
+                    : `+ Tambah Foto Sekaligus (${form.gallery_photos.length}/${MAX_GALLERY_PHOTOS})`}
                   <input
                     type="file"
                     accept="image/jpeg,image/png,image/webp"
-                    onChange={(e) =>
-                      uploadThen(e, (url) =>
-                        setForm((prev) =>
-                          prev ? { ...prev, gallery_photos: [...prev.gallery_photos, url] } : prev,
-                        ),
-                      )
-                    }
+                    multiple
+                    onChange={uploadGalleryPhotos}
                     className="hidden"
                   />
                 </label>
+              )}
+              {galleryUploadMessage && (
+                <p className="text-xs text-amber-700">{galleryUploadMessage}</p>
               )}
             </fieldset>
           )}

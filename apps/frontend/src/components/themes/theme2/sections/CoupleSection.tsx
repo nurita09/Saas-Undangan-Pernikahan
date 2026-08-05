@@ -1,6 +1,6 @@
 import type { CoupleInfo } from '../../../../types/wedding';
 import Reveal from '../../../shared/Reveal';
-import { Divider, SectionTitle } from '../components/ornaments';
+import { SectionTitle } from '../components/ornaments';
 import fallbackBridePhoto from '../../../../assets/theme2/bride.jpg';
 import fallbackGroomPhoto from '../../../../assets/theme2/groom.jpg';
 
@@ -47,6 +47,20 @@ function Person({ role, name, photoUrl, parents, instagram, delay }: PersonProps
   );
 }
 
+function CoupleConnector() {
+  return (
+    <Reveal variant="bloom" delay={70}>
+      <div className="mx-auto flex w-full max-w-xs items-center justify-center gap-5 text-[var(--jw-gold)]">
+        <span className="h-px flex-1 bg-[var(--jw-gold)]/45" />
+        <span className="font-jawa-script text-6xl leading-none text-[var(--jw-gold)] drop-shadow-[0_8px_18px_rgba(201,162,39,0.18)]">
+          &amp;
+        </span>
+        <span className="h-px flex-1 bg-[var(--jw-gold)]/45" />
+      </div>
+    </Reveal>
+  );
+}
+
 /** Section 2b: Temanten -- profil Temanten Putri & Temanten Kakung. */
 export default function CoupleSection({ couple }: CoupleSectionProps) {
   return (
@@ -65,9 +79,7 @@ export default function CoupleSection({ couple }: CoupleSectionProps) {
             instagram={couple.bride_ig}
             delay={0}
           />
-          <div className="flex items-center justify-center gap-4 text-[var(--jw-gold)]">
-            <Divider />
-          </div>
+          <CoupleConnector />
           <Person
             role="Temanten Kakung"
             name={couple.groom_name}

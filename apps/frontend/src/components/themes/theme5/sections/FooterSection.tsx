@@ -9,6 +9,13 @@ interface FooterSectionProps {
 /** Section 9: footer "Hubungi Kami" -- ikut setting GLOBAL platform (tabel
  *  platform_settings, diatur admin), bukan data per-wedding. */
 export default function FooterSection({ contact }: FooterSectionProps) {
+  const instagramUrl = contact.contact_instagram_url?.trim();
+  const whatsappUrl = contact.contact_whatsapp_url?.trim();
+  const shopeeUrl = contact.shopee_url?.trim();
+  const tokopediaUrl = contact.tokopedia_url?.trim();
+  const tiktokUrl = contact.tiktok_url?.trim();
+  const contactHandle = contact.contact_handle?.trim();
+
   return (
     <footer className="relative px-6 py-12 text-center text-white overflow-hidden" style={{ backgroundColor: COCOA }}>
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 invert" style={wavyBackground(0.12)} />
@@ -18,16 +25,12 @@ export default function FooterSection({ contact }: FooterSectionProps) {
           <p className="font-retro text-lg tracking-wide">Hubungi Kami</p>
         </Reveal>
 
-        {(contact.contact_instagram_url ||
-          contact.contact_whatsapp_url ||
-          contact.shopee_url ||
-          contact.tokopedia_url ||
-          contact.tiktok_url) && (
+        {(instagramUrl || whatsappUrl || shopeeUrl || tokopediaUrl || tiktokUrl) && (
           <div className="mt-6 flex flex-wrap justify-center gap-4">
-            {contact.contact_instagram_url && (
+            {instagramUrl && (
               <Reveal variant="up" delay={120}>
                 <a
-                  href={contact.contact_instagram_url}
+                  href={instagramUrl}
                   target="_blank"
                   rel="noreferrer"
                   aria-label="Instagram"
@@ -41,10 +44,10 @@ export default function FooterSection({ contact }: FooterSectionProps) {
                 </a>
               </Reveal>
             )}
-            {contact.contact_whatsapp_url && (
+            {whatsappUrl && (
               <Reveal variant="up" delay={240}>
                 <a
-                  href={contact.contact_whatsapp_url}
+                  href={whatsappUrl}
                   target="_blank"
                   rel="noreferrer"
                   aria-label="WhatsApp"
@@ -56,10 +59,10 @@ export default function FooterSection({ contact }: FooterSectionProps) {
                 </a>
               </Reveal>
             )}
-            {contact.shopee_url && (
+            {shopeeUrl && (
               <Reveal variant="up" delay={360}>
                 <a
-                  href={contact.shopee_url}
+                  href={shopeeUrl}
                   target="_blank"
                   rel="noreferrer"
                   aria-label="Shopee"
@@ -72,10 +75,10 @@ export default function FooterSection({ contact }: FooterSectionProps) {
                 </a>
               </Reveal>
             )}
-            {contact.tokopedia_url && (
+            {tokopediaUrl && (
               <Reveal variant="up" delay={480}>
                 <a
-                  href={contact.tokopedia_url}
+                  href={tokopediaUrl}
                   target="_blank"
                   rel="noreferrer"
                   aria-label="Tokopedia"
@@ -90,10 +93,10 @@ export default function FooterSection({ contact }: FooterSectionProps) {
                 </a>
               </Reveal>
             )}
-            {contact.tiktok_url && (
+            {tiktokUrl && (
               <Reveal variant="up" delay={600}>
                 <a
-                  href={contact.tiktok_url}
+                  href={tiktokUrl}
                   target="_blank"
                   rel="noreferrer"
                   aria-label="TikTok"
@@ -109,9 +112,9 @@ export default function FooterSection({ contact }: FooterSectionProps) {
           </div>
         )}
 
-        {contact.contact_handle && (
+        {contactHandle && (
           <Reveal variant="up" delay={360}>
-            <p className="mt-6 text-sm font-bold opacity-90">{contact.contact_handle}</p>
+            <p className="mt-6 text-sm font-bold opacity-90">{contactHandle}</p>
           </Reveal>
         )}
       </div>

@@ -18,9 +18,13 @@ interface FooterSectionProps {
  *  dikonfigurasi admin, ikon/handle terkait disembunyikan (bukan link mati "#"). */
 export default function FooterSection({ contact }: FooterSectionProps) {
   return (
-    <footer className="relative overflow-hidden bg-[var(--jw-sogan-gradient)] px-6 py-14 text-center">
-      <BatikBand className="opacity-[0.16]" />
+    <footer className="relative overflow-hidden bg-[var(--jw-sogan-deep)] px-6 py-14 text-center">
+      <BatikBand className="opacity-[0.18] mix-blend-soft-light" />
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.08),rgba(0,0,0,0.24))]" />
       <div className="relative">
+        <p className="text-[0.6rem] font-medium tracking-[0.36em] text-[var(--color-secondary)]/80 uppercase">
+          Hubungi Kami
+        </p>
         <Divider tone="light" />
 
         {(contact.contact_instagram_url ||
@@ -35,7 +39,7 @@ export default function FooterSection({ contact }: FooterSectionProps) {
                 target="_blank"
                 rel="noreferrer"
                 aria-label="Instagram"
-                className="grid size-11 place-items-center rounded-full border border-[var(--jw-gold-soft)]/70 text-[var(--color-secondary)] transition hover:scale-110 hover:bg-white/10"
+                className="grid size-11 place-items-center rounded-full border border-[var(--jw-gold-soft)]/60 bg-[var(--color-secondary)]/[0.03] text-[var(--color-secondary)] transition hover:scale-110 hover:bg-[var(--jw-gold-soft)]/12"
               >
                 <InstagramIcon className="h-5 w-5" />
               </a>
@@ -46,7 +50,7 @@ export default function FooterSection({ contact }: FooterSectionProps) {
                 target="_blank"
                 rel="noreferrer"
                 aria-label="WhatsApp"
-                className="grid size-11 place-items-center rounded-full border border-[var(--jw-gold-soft)]/70 text-[var(--color-secondary)] transition hover:scale-110 hover:bg-white/10"
+                className="grid size-11 place-items-center rounded-full border border-[var(--jw-gold-soft)]/60 bg-[var(--color-secondary)]/[0.03] text-[var(--color-secondary)] transition hover:scale-110 hover:bg-[var(--jw-gold-soft)]/12"
               >
                 <WhatsAppIcon className="h-5 w-5" />
               </a>
@@ -57,7 +61,7 @@ export default function FooterSection({ contact }: FooterSectionProps) {
                 target="_blank"
                 rel="noreferrer"
                 aria-label="Shopee"
-                className="grid size-11 place-items-center rounded-full border border-[var(--jw-gold-soft)]/70 text-[var(--color-secondary)] transition hover:scale-110 hover:bg-white/10"
+                className="grid size-11 place-items-center rounded-full border border-[var(--jw-gold-soft)]/60 bg-[var(--color-secondary)]/[0.03] text-[var(--color-secondary)] transition hover:scale-110 hover:bg-[var(--jw-gold-soft)]/12"
               >
                 <ShoppingBagIcon className="h-5 w-5" />
               </a>
@@ -68,7 +72,7 @@ export default function FooterSection({ contact }: FooterSectionProps) {
                 target="_blank"
                 rel="noreferrer"
                 aria-label="Tokopedia"
-                className="grid size-11 place-items-center rounded-full border border-[var(--jw-gold-soft)]/70 text-[var(--color-secondary)] transition hover:scale-110 hover:bg-white/10"
+                className="grid size-11 place-items-center rounded-full border border-[var(--jw-gold-soft)]/60 bg-[var(--color-secondary)]/[0.03] text-[var(--color-secondary)] transition hover:scale-110 hover:bg-[var(--jw-gold-soft)]/12"
               >
                 <StorefrontIcon className="h-5 w-5" />
               </a>
@@ -79,7 +83,7 @@ export default function FooterSection({ contact }: FooterSectionProps) {
                 target="_blank"
                 rel="noreferrer"
                 aria-label="TikTok"
-                className="grid size-11 place-items-center rounded-full border border-[var(--jw-gold-soft)]/70 text-[var(--color-secondary)] transition hover:scale-110 hover:bg-white/10"
+                className="grid size-11 place-items-center rounded-full border border-[var(--jw-gold-soft)]/60 bg-[var(--color-secondary)]/[0.03] text-[var(--color-secondary)] transition hover:scale-110 hover:bg-[var(--jw-gold-soft)]/12"
               >
                 <TiktokIcon className="h-5 w-5" />
               </a>

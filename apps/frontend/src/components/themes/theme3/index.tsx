@@ -117,7 +117,28 @@ export default function Theme3({ data, guestName }: ThemeComponentProps) {
 
   const scrollToContent = () => {
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    contentRef.current?.scrollIntoView({ behavior: prefersReducedMotion ? 'auto' : 'smooth' });
+    const target = contentRef.current;
+    if (!target) return;
+
+    if (prefersReducedMotion) {
+      target.scrollIntoView({ behavior: 'auto' });
+      return;
+    }
+
+    const startY = window.scrollY;
+    const targetY = startY + target.getBoundingClientRect().top;
+    const distance = targetY - startY;
+    const duration = 1750;
+    const startTime = performance.now();
+    const easeOutQuint = (t: number) => 1 - Math.pow(1 - t, 5);
+
+    const step = (now: number) => {
+      const progress = Math.min((now - startTime) / duration, 1);
+      window.scrollTo(0, startY + distance * easeOutQuint(progress));
+      if (progress < 1) requestAnimationFrame(step);
+    };
+
+    requestAnimationFrame(step);
   };
 
   /* Cover TIDAK dihapus dari halaman -- tetap jadi section paling atas yang
@@ -176,6 +197,7 @@ export default function Theme3({ data, guestName }: ThemeComponentProps) {
           weddingDate={event.wedding_date}
           coverPhotoUrl={coverPhotoUrl}
           guestName={guestName}
+          isOpened={isOpened}
           onOpen={handleOpenInvitation}
         />
 

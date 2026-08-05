@@ -109,7 +109,7 @@ export default function RsvpSection({ guestName }: RsvpSectionProps) {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full bg-[var(--jw-sogan-gradient)] py-4 text-[0.6rem] font-medium tracking-[0.25em] text-[var(--color-secondary)] uppercase transition-transform duration-300 hover:-translate-y-0.5 disabled:opacity-50"
+              className="w-full bg-[linear-gradient(180deg,color-mix(in_oklab,var(--jw-sogan-deep)_88%,#2a1206)_0%,var(--jw-sogan-deep)_100%)] py-4 text-[0.62rem] font-semibold tracking-[0.48em] text-[var(--color-secondary)] uppercase shadow-[0_18px_42px_-28px_rgba(58,30,12,0.85),inset_0_1px_0_rgba(255,255,255,0.08)] transition-all duration-500 hover:-translate-y-0.5 hover:brightness-110 disabled:cursor-wait disabled:opacity-55 disabled:hover:translate-y-0 disabled:hover:brightness-100"
             >
               {isSubmitting ? 'Ngintun...' : 'Kirim Pangestu'}
             </button>
