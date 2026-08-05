@@ -31,6 +31,7 @@ interface GiftForm {
 }
 
 interface EditorFormState {
+  theme_id: number;
   groom_name: string;
   bride_name: string;
   // Warna tidak bisa diedit dari editor (warna tema dikunci bawaan). Tetap di
@@ -77,6 +78,7 @@ function toDatetimeLocalValue(iso: string | null): string {
 
 function toFormState(data: WeddingEditData): EditorFormState {
   return {
+    theme_id: data.theme_id,
     groom_name: data.groom_name,
     bride_name: data.bride_name,
     primary_color: data.primary_color,
@@ -116,6 +118,10 @@ function toFormState(data: WeddingEditData): EditorFormState {
     })),
     music_url: data.music_url ?? '',
   };
+}
+
+function canEditQuotePhoto(themeId: number): boolean {
+  return themeId >= 2 && themeId <= 5;
 }
 
 type AuthState = 'checking' | 'denied' | 'authorized';
@@ -609,12 +615,14 @@ export default function WeddingEditor({ slug }: WeddingEditorProps) {
                 />
               </div>
 
-              {/* <PhotoField
-                label="Foto di card kutipan (rasio potret 4:5 paling pas)"
-                photoUrl={form.section1_photo_url}
-                uploadState={uploadState}
-                onSelect={(e) => uploadThen(e, (url) => updateField('section1_photo_url', url))}
-              /> */}
+              {canEditQuotePhoto(form.theme_id) && (
+                <PhotoField
+                  label="Foto di card kutipan (rasio potret 4:5 paling pas)"
+                  photoUrl={form.section1_photo_url}
+                  uploadState={uploadState}
+                  onSelect={(e) => uploadThen(e, (url) => updateField('section1_photo_url', url))}
+                />
+              )}
             </fieldset>
           )}
 
