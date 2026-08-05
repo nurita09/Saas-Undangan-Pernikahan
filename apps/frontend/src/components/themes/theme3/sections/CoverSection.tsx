@@ -38,7 +38,7 @@ export default function CoverSection({
   };
 
   return (
-    <section className="relative min-h-screen flex flex-col items-center justify-center px-6 py-16 text-center overflow-hidden bg-[var(--color-secondary)]">
+    <section className="relative flex h-[100svh] flex-col items-center justify-center overflow-hidden bg-[var(--color-secondary)] px-6 py-10 text-center min-[380px]:py-16">
       <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-96" style={goldGlow(0.16)} />
       {/* Bingkai garis tipis ganda */}
       <div

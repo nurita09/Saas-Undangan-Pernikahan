@@ -39,7 +39,7 @@ export default function CoverSection({
   };
 
   return (
-    <section className="group relative min-h-screen w-full overflow-hidden bg-[var(--color-secondary)]">
+    <section className="group relative h-[100svh] w-full overflow-hidden bg-[var(--color-secondary)]">
       <div className="pointer-events-none absolute inset-3 border border-[var(--jw-gold)]/60 transition-all duration-[1400ms] group-hover:inset-4" />
       <div className="pointer-events-none absolute inset-5 border border-[var(--jw-gold)]/30 transition-all delay-150 duration-[1400ms] group-hover:inset-6" />
       <div
@@ -52,7 +52,7 @@ export default function CoverSection({
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.22)_74%)]" />
       </div>
 
-      <div className="relative z-20 flex min-h-screen flex-col items-center justify-center px-7 py-8 text-center min-[380px]:py-10">
+      <div className="relative z-20 flex h-full flex-col items-center justify-center px-7 py-8 text-center min-[380px]:py-10">
         <Gunungan
           className={`h-16 w-auto text-[var(--color-primary)] transition-all duration-[1200ms] min-[380px]:h-20 ${
             isOpening ? 'scale-110 opacity-80' : 'scale-100 opacity-100'

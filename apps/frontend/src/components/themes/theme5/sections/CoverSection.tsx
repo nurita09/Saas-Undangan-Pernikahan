@@ -38,7 +38,7 @@ export default function CoverSection({
   };
 
   return (
-    <section className="relative min-h-screen flex flex-col items-center justify-center px-6 py-16 text-center overflow-hidden bg-[var(--color-secondary)]">
+    <section className="relative flex h-[100svh] flex-col items-center justify-center overflow-hidden bg-[var(--color-secondary)] px-6 py-10 text-center min-[380px]:py-16">
       <div aria-hidden="true" className="pointer-events-none absolute inset-0" style={wavyBackground(0.09)} />
       <Daisy className="pointer-events-none absolute top-10 left-6 h-12 w-12 text-[#C75B39] corner-float" />
       <Daisy className="pointer-events-none absolute bottom-16 right-8 h-16 w-16 text-[#E3B23C] corner-float" />

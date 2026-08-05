@@ -38,7 +38,7 @@ export default function CoverSection({
   };
 
   return (
-    <section className="relative h-screen w-full overflow-hidden">
+    <section className="relative h-[100svh] w-full overflow-hidden">
       <CoverMedia
         src={coverPhotoUrl}
         alt={`Foto pengantin ${couple.groom_name} dan ${couple.bride_name}`}
