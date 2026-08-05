@@ -191,6 +191,7 @@ export default function Theme1({ data, guestName }: ThemeComponentProps) {
           weddingDate={event.wedding_date}
           coverPhotoUrl={coverPhotoUrl}
           guestName={guestName}
+          isOpened={isOpened}
           onOpen={handleOpenInvitation}
         />
 

@@ -17,16 +17,46 @@ interface GiftSectionProps {
  *  (label berubah "Tersalin" sebentar sebagai umpan balik). */
 export default function GiftSection({ gifts }: GiftSectionProps) {
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
+  const [copyFailedIdx, setCopyFailedIdx] = useState<number | null>(null);
 
   if (!gifts || gifts.length === 0) return null;
 
-  const copyText = async (value: string, idx: number) => {
-    try {
+  const copyWithFallback = async (value: string) => {
+    if (navigator.clipboard?.writeText) {
       await navigator.clipboard.writeText(value);
+      return;
+    }
+
+    const textarea = document.createElement('textarea');
+    textarea.value = value;
+    textarea.setAttribute('readonly', '');
+    textarea.style.position = 'fixed';
+    textarea.style.top = '0';
+    textarea.style.left = '-9999px';
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+
+    const copied = document.execCommand('copy');
+    document.body.removeChild(textarea);
+
+    if (!copied) {
+      throw new Error('Gagal menyalin');
+    }
+  };
+
+  const copyText = async (value: string, idx: number) => {
+    if (!value.trim()) return;
+
+    try {
+      await copyWithFallback(value);
+      setCopyFailedIdx(null);
       setCopiedIdx(idx);
       setTimeout(() => setCopiedIdx((prev) => (prev === idx ? null : prev)), 2000);
     } catch {
-      // Clipboard bisa ditolak browser lama -- biarkan tamu menyalin manual.
+      setCopiedIdx(null);
+      setCopyFailedIdx(idx);
+      setTimeout(() => setCopyFailedIdx((prev) => (prev === idx ? null : prev)), 2500);
     }
   };
 
@@ -79,14 +109,15 @@ export default function GiftSection({ gifts }: GiftSectionProps) {
                   <button
                     type="button"
                     onClick={() => copyText(gift.account_number || '', idx)}
-                    className="label-caps inline-flex shrink-0 items-center gap-2 border border-[var(--fl-clay)]/50 px-5 py-2.5 text-[var(--fl-clay)] transition-colors duration-500 hover:bg-[var(--fl-clay)] hover:text-white"
+                    disabled={!gift.account_number?.trim()}
+                    className="label-caps inline-flex shrink-0 items-center gap-2 border border-[var(--fl-clay)]/50 px-5 py-2.5 text-[var(--fl-clay)] transition-colors duration-500 hover:bg-[var(--fl-clay)] hover:text-white disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:bg-transparent disabled:hover:text-[var(--fl-clay)]"
                   >
                     {copiedIdx === idx ? (
                       <CheckIcon className="h-3.5 w-3.5" />
                     ) : (
                       <CopyIcon className="h-3.5 w-3.5" />
                     )}
-                    {copiedIdx === idx ? 'Tersalin' : 'Salin'}
+                    {copiedIdx === idx ? 'Tersalin' : copyFailedIdx === idx ? 'Gagal' : 'Salin'}
                   </button>
                 </div>
               </div>

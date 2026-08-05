@@ -35,9 +35,11 @@ export default function SaveTheDateSection({ couple, event }: SaveTheDateSection
       <Reveal variant="bloom" className="relative mx-auto max-w-md text-center">
         <h2 className="font-floral-script text-5xl text-[var(--color-primary)]">Save The Date</h2>
         {event.wedding_date && (
-          <p className="mt-3 font-floral-serif text-lg tracking-[0.35em] text-[var(--fl-muted)]">
-            {formatCoverDate(event.wedding_date)}
-          </p>
+          <div className="mx-auto mt-5 w-fit border-y border-[var(--fl-gold)]/45 px-6 py-3">
+            <p className="font-floral-serif text-3xl leading-none tracking-[0.22em] text-[var(--color-primary)]">
+              {formatCoverDate(event.wedding_date)}
+            </p>
+          </div>
         )}
         <Divider className="mt-2" />
 
@@ -58,9 +60,9 @@ export default function SaveTheDateSection({ couple, event }: SaveTheDateSection
           <a
             href={calendarUrl}
             download={`undangan-${couple.groom_name}-${couple.bride_name}.ics`}
-            className="label-caps mt-7 inline-flex items-center gap-3 border border-[var(--fl-clay)]/50 px-6 py-3 text-[var(--fl-clay)] transition-colors duration-500 hover:bg-[var(--fl-clay)] hover:text-white"
+            className="label-caps mx-auto mt-8 inline-flex w-full max-w-xs items-center justify-center gap-3 bg-[var(--color-primary)] px-6 py-4 text-white shadow-[0_18px_40px_-24px_rgba(74,66,56,0.75)] transition-all duration-500 hover:-translate-y-0.5 hover:bg-[var(--fl-clay)] hover:shadow-[0_22px_48px_-24px_rgba(74,66,56,0.85)]"
           >
-            <CalendarIcon className="h-4 w-4" />
+            <CalendarIcon className="h-5 w-5 shrink-0" />
             Simpan ke Kalender
           </a>
         )}

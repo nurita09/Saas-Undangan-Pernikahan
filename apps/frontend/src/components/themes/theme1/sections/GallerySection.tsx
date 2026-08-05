@@ -23,11 +23,6 @@ function getYoutubeId(url: string): string | null {
   return match && match[2].length === 11 ? match[2] : null;
 }
 
-/* Pola tinggi berselang ala desain asal: [tinggi, pendek, pendek, tinggi]. */
-function isTall(idx: number): boolean {
-  return idx % 4 === 0 || idx % 4 === 3;
-}
-
 /** Section 5: galeri -- video prewedding + grid foto berbingkai polaroid. */
 export default function GallerySection({ photos, videoUrl }: GallerySectionProps) {
   const youtubeId = videoUrl ? getYoutubeId(videoUrl) : null;
@@ -64,9 +59,7 @@ export default function GallerySection({ photos, videoUrl }: GallerySectionProps
                   src={photo.photo_url}
                   alt={`Momen pernikahan ${idx + 1}`}
                   loading="lazy"
-                  className={`w-full object-cover transition-transform duration-[1400ms] group-hover:scale-105 ${
-                    isTall(idx) ? 'h-64' : 'h-48'
-                  }`}
+                  className="aspect-[4/5] w-full object-cover transition-transform duration-[1400ms] group-hover:scale-105"
                 />
               </div>
             </Reveal>

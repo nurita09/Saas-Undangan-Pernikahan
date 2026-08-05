@@ -8,6 +8,7 @@ interface CoverSectionProps {
   weddingDate: string | null;
   coverPhotoUrl: string;
   guestName?: string;
+  isOpened: boolean;
   onOpen: () => void;
 }
 
@@ -19,10 +20,11 @@ export default function CoverSection({
   weddingDate,
   coverPhotoUrl,
   guestName,
+  isOpened,
   onOpen,
 }: CoverSectionProps) {
   return (
-    <section className="relative h-dvh w-full overflow-hidden">
+    <section className="relative h-screen w-full overflow-hidden">
       <CoverMedia
         src={coverPhotoUrl}
         alt={`Foto pengantin ${couple.groom_name} dan ${couple.bride_name}`}
@@ -53,14 +55,33 @@ export default function CoverSection({
           <p className="mt-1 font-floral-serif text-2xl text-[var(--color-primary)]">
             {guestName || 'Tamu Undangan'}
           </p>
-          <button
-            type="button"
-            onClick={onOpen}
-            className="label-caps mt-5 inline-flex w-full items-center justify-center gap-3 bg-[var(--color-primary)] px-6 py-3.5 text-white transition-colors duration-500 hover:bg-[var(--fl-clay)]"
-          >
-            <MailIcon className="h-4 w-4" />
-            Buka Undangan
-          </button>
+          {isOpened ? (
+            <div
+              aria-live="polite"
+              className="mt-5 border border-[var(--fl-gold)]/35 bg-white/35 px-5 py-4 text-center"
+            >
+              <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full border border-[var(--fl-gold)]/45 bg-[var(--fl-card)]/80 text-[var(--color-primary)]">
+                <MailIcon className="h-4 w-4" />
+              </div>
+              <p className="label-caps mt-3 text-[var(--color-primary)]">Undangan Terbuka</p>
+              <p className="mt-2 font-floral-serif text-base italic text-[var(--fl-muted)]">
+                Silakan lanjutkan menikmati rangkaian acara
+              </p>
+              <span
+                className="mx-auto mt-3 block h-8 w-px bg-gradient-to-b from-[var(--fl-gold)]/70 to-transparent"
+                aria-hidden="true"
+              />
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={onOpen}
+              className="label-caps mt-5 inline-flex w-full items-center justify-center gap-3 bg-[var(--color-primary)] px-6 py-3.5 text-white transition-colors duration-500 hover:bg-[var(--fl-clay)]"
+            >
+              <MailIcon className="h-4 w-4" />
+              Buka Undangan
+            </button>
+          )}
         </div>
       </div>
     </section>
