@@ -1,37 +1,45 @@
-import { useEffect, useRef, useState, type CSSProperties } from 'react';
-import type { ThemeComponentProps } from '../../../types/wedding';
-import LeftPane from './components/LeftPane';
-import CoverSection from './sections/CoverSection';
-import QuoteSection from './sections/QuoteSection';
-import SaveTheDateSection from './sections/SaveTheDateSection';
-import CoupleSection from './sections/CoupleSection';
-import EventSection from './sections/EventSection';
-import LoveStorySection from './sections/LoveStorySection';
-import GallerySection from './sections/GallerySection';
-import GiftSection from './sections/GiftSection';
-import RsvpSection from './sections/RsvpSection';
-import ThankYouSection from './sections/ThankYouSection';
-import FooterSection from './sections/FooterSection';
+import { useEffect, useRef, useState, type CSSProperties } from "react";
+import type { ThemeComponentProps } from "../../../types/wedding";
+import LeftPane from "./components/LeftPane";
+import { MusicIcon, PauseIcon } from "./components/ornaments";
+import CoverSection from "./sections/CoverSection";
+import QuoteSection from "./sections/QuoteSection";
+import SaveTheDateSection from "./sections/SaveTheDateSection";
+import CoupleSection from "./sections/CoupleSection";
+import EventSection from "./sections/EventSection";
+import LoveStorySection from "./sections/LoveStorySection";
+import GallerySection from "./sections/GallerySection";
+import GiftSection from "./sections/GiftSection";
+import RsvpSection from "./sections/RsvpSection";
+import ThankYouSection from "./sections/ThankYouSection";
+import FooterSection from "./sections/FooterSection";
 
-const DEFAULT_PRIMARY_COLOR = '#C75B39'; // terracotta
-const DEFAULT_SECONDARY_COLOR = '#FBF3E4'; // krem hangat 70-an
+const DEFAULT_PRIMARY_COLOR = "#C75B39";
+const DEFAULT_SECONDARY_COLOR = "#FBF3E4";
 
 const FALLBACK_COVER_URL =
-  'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80';
+  "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80";
 
 interface ThemeCssVars extends CSSProperties {
-  '--color-primary': string;
-  '--color-secondary': string;
+  "--color-primary": string;
+  "--color-secondary": string;
+  "--rp-ink": string;
+  "--rp-teal": string;
+  "--rp-yellow": string;
+  "--rp-blue": string;
+  "--rp-pink": string;
+  "--rp-paper": string;
+  "--rp-card": string;
+  "--rp-muted": string;
+  "--rp-line": string;
 }
 
 /**
- * Theme 5 - Retro / Vintage Pop.
+ * Theme 5 - Retro Editorial Pop.
  *
- * Orkestrator tipis (pola sama dengan theme1-4). Warna bumi hangat 70-an
- * (terracotta/mustard/olive/cocoa), bentuk melengkung groovy, card ala sticker
- * (border tebal + shadow offset + sedikit miring), font display Righteous
- * (--font-retro di index.css). Ornamen di ./components/ornaments.tsx --
- * SVG murni tanpa file asset.
+ * Terinspirasi poster musik dan majalah cetak: blok warna, halftone, garis
+ * groovy, tipografi display, dan foto editorial dengan aksen terracotta,
+ * teal, mustard, biru cetak, serta ink.
  */
 export default function Theme5({ data, guestName }: ThemeComponentProps) {
   const {
@@ -84,13 +92,17 @@ export default function Theme5({ data, guestName }: ThemeComponentProps) {
       .play()
       .then(() => setIsPlaying(true))
       .catch(() => {
-        document.addEventListener('pointerdown', startOnFirstGesture, { once: true });
-        document.addEventListener('keydown', startOnFirstGesture, { once: true });
+        document.addEventListener("pointerdown", startOnFirstGesture, {
+          once: true,
+        });
+        document.addEventListener("keydown", startOnFirstGesture, {
+          once: true,
+        });
       });
 
     return () => {
-      document.removeEventListener('pointerdown', startOnFirstGesture);
-      document.removeEventListener('keydown', startOnFirstGesture);
+      document.removeEventListener("pointerdown", startOnFirstGesture);
+      document.removeEventListener("keydown", startOnFirstGesture);
     };
   }, [musicUrl]);
 
@@ -111,17 +123,20 @@ export default function Theme5({ data, guestName }: ThemeComponentProps) {
           .catch(() => {});
       }
     };
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () =>
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
   }, []);
 
   const scrollToContent = () => {
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const prefersReducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
     const target = contentRef.current;
     if (!target) return;
 
     if (prefersReducedMotion) {
-      target.scrollIntoView({ behavior: 'auto' });
+      target.scrollIntoView({ behavior: "auto" });
       return;
     }
 
@@ -175,23 +190,39 @@ export default function Theme5({ data, guestName }: ThemeComponentProps) {
   };
 
   const cssVars: ThemeCssVars = {
-    '--color-primary': primaryColor,
-    '--color-secondary': secondaryColor,
+    "--color-primary": primaryColor,
+    "--color-secondary": secondaryColor,
+    "--rp-ink": "#26343A",
+    "--rp-teal": "#377A75",
+    "--rp-yellow": "#F1C453",
+    "--rp-blue": "#8AB4B1",
+    "--rp-pink": "#D98D8D",
+    "--rp-paper": "color-mix(in oklab, var(--color-secondary) 82%, #F4EFE5)",
+    "--rp-card": "color-mix(in oklab, var(--color-secondary) 36%, white)",
+    "--rp-muted": "#657177",
+    "--rp-line": "color-mix(in oklab, var(--rp-ink) 32%, transparent)",
   };
 
   const coverPhotoUrl = data.cover_photo_url || FALLBACK_COVER_URL;
-  const section1PhotoUrl = data.theme_settings?.section1_photo_url || coverPhotoUrl;
-  const section2PhotoUrl = data.theme_settings?.section2_photo_url || coverPhotoUrl;
+  const section1PhotoUrl =
+    data.theme_settings?.section1_photo_url || coverPhotoUrl;
+  const section2PhotoUrl =
+    data.theme_settings?.section2_photo_url || coverPhotoUrl;
+  const closingPhotoUrl = gallery_photos.at(-1)?.photo_url || coverPhotoUrl;
 
   return (
     <div
-      className="wedding-invitation flex w-full min-h-screen font-sans text-neutral-800 selection:bg-[var(--color-primary)] selection:text-white"
+      className="wedding-invitation theme-retro-editorial flex min-h-screen w-full font-sans text-[var(--rp-ink)] selection:bg-[var(--color-primary)] selection:text-white"
       style={cssVars}
     >
-      <LeftPane couple={couple} weddingDate={event.wedding_date} coverPhotoUrl={coverPhotoUrl} />
+      <LeftPane
+        couple={couple}
+        weddingDate={event.wedding_date}
+        coverPhotoUrl={coverPhotoUrl}
+      />
 
       {/* Right Pane (mobile frame) -- pola sama dengan theme1-4 */}
-      <div className="w-full lg:w-[420px] lg:shrink-0 min-h-screen bg-[var(--color-secondary)] relative overflow-x-hidden shadow-2xl z-20">
+      <div className="retro-pane relative z-20 min-h-screen w-full overflow-x-hidden shadow-2xl lg:w-[420px] lg:shrink-0">
         {musicUrl && <audio ref={audioRef} src={musicUrl} loop />}
 
         {/* Cover tetap jadi section paling atas (tidak di-unmount) -- guest
@@ -216,10 +247,13 @@ export default function Theme5({ data, guestName }: ThemeComponentProps) {
             <CoupleSection couple={couple} fallbackPhotoUrl={coverPhotoUrl} />
             <EventSection event={event} photoUrl={section2PhotoUrl} />
             <LoveStorySection stories={love_stories} />
-            <GallerySection photos={gallery_photos} videoUrl={gallery_video_url} />
+            <GallerySection
+              photos={gallery_photos}
+              videoUrl={gallery_video_url}
+            />
             <GiftSection gifts={wedding_gifts} />
             <RsvpSection guestName={guestName} />
-            <ThankYouSection couple={couple} />
+            <ThankYouSection couple={couple} photoUrl={closingPhotoUrl} />
             <FooterSection contact={contact} />
           </div>
         )}
@@ -228,13 +262,14 @@ export default function Theme5({ data, guestName }: ThemeComponentProps) {
           <button
             type="button"
             onClick={toggleMusic}
-            aria-label={isPlaying ? 'Jeda musik' : 'Putar musik'}
-            className="fixed bottom-6 right-6 w-12 h-12 rounded-full border-2 border-[#5C4033] bg-[var(--color-primary)] text-white shadow-[3px_3px_0_#5C4033] flex items-center justify-center hover:scale-105 transition z-50"
+            aria-label={isPlaying ? "Jeda musik" : "Putar musik"}
+            className="fixed bottom-6 right-6 z-50 flex h-12 w-12 items-center justify-center rounded-full border-2 border-[var(--rp-ink)] bg-[var(--rp-yellow)] text-[var(--rp-ink)] shadow-[3px_3px_0_var(--rp-ink)] transition hover:scale-105"
           >
-            {isPlaying && (
-              <span className="absolute inset-0 rounded-full bg-[var(--color-primary)] opacity-40 animate-ping" />
+            {isPlaying ? (
+              <PauseIcon className="h-5 w-5" />
+            ) : (
+              <MusicIcon className="h-5 w-5" />
             )}
-            <span className="relative">{isPlaying ? '⏸' : '▶'}</span>
           </button>
         )}
       </div>

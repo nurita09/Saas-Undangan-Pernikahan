@@ -1,35 +1,38 @@
-import { useEffect, useRef, useState, type CSSProperties } from 'react';
-import type { ThemeComponentProps } from '../../../types/wedding';
-import LeftPane from './components/LeftPane';
-import { MusicIcon, PauseIcon } from './components/ornaments';
-import CoverSection from './sections/CoverSection';
-import QuoteSection from './sections/QuoteSection';
-import SaveTheDateSection from './sections/SaveTheDateSection';
-import CoupleSection from './sections/CoupleSection';
-import EventSection from './sections/EventSection';
-import LoveStorySection from './sections/LoveStorySection';
-import GallerySection from './sections/GallerySection';
-import GiftSection from './sections/GiftSection';
-import RsvpSection from './sections/RsvpSection';
-import ThankYouSection from './sections/ThankYouSection';
-import FooterSection from './sections/FooterSection';
-import fallbackCover from '../../../assets/theme2/couple-main.jpg';
+import { useEffect, useRef, useState, type CSSProperties } from "react";
+import type { ThemeComponentProps } from "../../../types/wedding";
+import LeftPane from "./components/LeftPane";
+import { MusicIcon, PauseIcon } from "./components/ornaments";
+import CoverSection from "./sections/CoverSection";
+import QuoteSection from "./sections/QuoteSection";
+import SaveTheDateSection from "./sections/SaveTheDateSection";
+import CoupleSection from "./sections/CoupleSection";
+import EventSection from "./sections/EventSection";
+import LoveStorySection from "./sections/LoveStorySection";
+import GallerySection from "./sections/GallerySection";
+import GiftSection from "./sections/GiftSection";
+import RsvpSection from "./sections/RsvpSection";
+import ThankYouSection from "./sections/ThankYouSection";
+import FooterSection from "./sections/FooterSection";
+import fallbackCover from "../../../assets/theme2/couple-main.jpg";
 
-const DEFAULT_PRIMARY_COLOR = '#6B4423'; // cokelat sogan batik
-const DEFAULT_SECONDARY_COLOR = '#F3EAD8'; // krem lawas
+const DEFAULT_PRIMARY_COLOR = "#6B4423"; // cokelat sogan batik
+const DEFAULT_SECONDARY_COLOR = "#F3EAD8"; // krem lawas
 
 interface ThemeCssVars extends CSSProperties {
-  '--color-primary': string;
-  '--color-secondary': string;
-  '--jw-gold': string;
-  '--jw-gold-soft': string;
-  '--jw-sogan-deep': string;
-  '--jw-sogan-gradient': string;
-  '--jw-tint': string;
-  '--jw-card': string;
-  '--jw-ink': string;
-  '--jw-muted': string;
-  '--jw-shadow': string;
+  "--color-primary": string;
+  "--color-secondary": string;
+  "--jw-gold": string;
+  "--jw-gold-soft": string;
+  "--jw-indigo": string;
+  "--jw-russet": string;
+  "--jw-sogan-deep": string;
+  "--jw-night": string;
+  "--jw-sogan-gradient": string;
+  "--jw-tint": string;
+  "--jw-card": string;
+  "--jw-ink": string;
+  "--jw-muted": string;
+  "--jw-shadow": string;
 }
 
 /**
@@ -93,13 +96,17 @@ export default function Theme2({ data, guestName }: ThemeComponentProps) {
       .play()
       .then(() => setIsPlaying(true))
       .catch(() => {
-        document.addEventListener('pointerdown', startOnFirstGesture, { once: true });
-        document.addEventListener('keydown', startOnFirstGesture, { once: true });
+        document.addEventListener("pointerdown", startOnFirstGesture, {
+          once: true,
+        });
+        document.addEventListener("keydown", startOnFirstGesture, {
+          once: true,
+        });
       });
 
     return () => {
-      document.removeEventListener('pointerdown', startOnFirstGesture);
-      document.removeEventListener('keydown', startOnFirstGesture);
+      document.removeEventListener("pointerdown", startOnFirstGesture);
+      document.removeEventListener("keydown", startOnFirstGesture);
     };
   }, [musicUrl]);
 
@@ -120,17 +127,20 @@ export default function Theme2({ data, guestName }: ThemeComponentProps) {
           .catch(() => {});
       }
     };
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () =>
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
   }, []);
 
   const scrollToContent = () => {
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const prefersReducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
     const target = contentRef.current;
     if (!target) return;
 
     if (prefersReducedMotion) {
-      target.scrollIntoView({ behavior: 'auto' });
+      target.scrollIntoView({ behavior: "auto" });
       return;
     }
 
@@ -181,34 +191,46 @@ export default function Theme2({ data, guestName }: ThemeComponentProps) {
   };
 
   const cssVars: ThemeCssVars = {
-    '--color-primary': primaryColor,
-    '--color-secondary': secondaryColor,
-    '--jw-gold': '#C9A227',
-    '--jw-gold-soft': '#E8D9A0',
-    '--jw-sogan-deep': 'color-mix(in oklab, var(--color-primary) 70%, #1A0F06)',
-    '--jw-sogan-gradient':
-      'linear-gradient(170deg, var(--jw-sogan-deep) 0%, var(--color-primary) 55%, var(--jw-sogan-deep) 100%)',
-    '--jw-tint': 'color-mix(in oklab, var(--color-primary) 6%, var(--color-secondary))',
-    '--jw-card': 'color-mix(in oklab, var(--color-secondary) 30%, white)',
-    '--jw-ink': '#3A2A18',
-    '--jw-muted': '#7A6A55',
-    '--jw-shadow': '0 24px 60px -32px color-mix(in oklab, var(--jw-sogan-deep) 55%, transparent)',
+    "--color-primary": primaryColor,
+    "--color-secondary": secondaryColor,
+    "--jw-gold": "#B99335",
+    "--jw-gold-soft": "#E4D09A",
+    "--jw-indigo": "#29434A",
+    "--jw-russet": "#A15F49",
+    "--jw-sogan-deep": "color-mix(in oklab, var(--color-primary) 70%, #1A0F06)",
+    "--jw-night":
+      "color-mix(in oklab, var(--jw-sogan-deep) 40%, var(--jw-indigo))",
+    "--jw-sogan-gradient":
+      "linear-gradient(170deg, var(--jw-sogan-deep) 0%, var(--color-primary) 55%, var(--jw-sogan-deep) 100%)",
+    "--jw-tint":
+      "color-mix(in oklab, var(--color-primary) 6%, var(--color-secondary))",
+    "--jw-card": "color-mix(in oklab, var(--color-secondary) 30%, white)",
+    "--jw-ink": "#38322D",
+    "--jw-muted": "#746C62",
+    "--jw-shadow":
+      "0 24px 60px -32px color-mix(in oklab, var(--jw-sogan-deep) 55%, transparent)",
   };
 
   const coverPhotoUrl = data.cover_photo_url || fallbackCover;
-  const section1PhotoUrl = data.theme_settings?.section1_photo_url || coverPhotoUrl;
-  const section2PhotoUrl = data.theme_settings?.section2_photo_url || coverPhotoUrl;
+  const section1PhotoUrl =
+    data.theme_settings?.section1_photo_url || coverPhotoUrl;
+  const section2PhotoUrl =
+    data.theme_settings?.section2_photo_url || coverPhotoUrl;
 
   return (
     <div
-      className="wedding-invitation flex w-full min-h-screen font-jawa-sans text-[var(--jw-ink)] selection:bg-[var(--jw-gold)]/40"
+      className="wedding-invitation theme-javanese flex w-full min-h-screen font-jawa-sans text-[var(--jw-ink)] selection:bg-[var(--jw-gold)]/40"
       style={cssVars}
     >
       {/* ===== Left Pane (Desktop Background) ===== */}
-      <LeftPane couple={couple} weddingDate={event.wedding_date} coverPhotoUrl={coverPhotoUrl} />
+      <LeftPane
+        couple={couple}
+        weddingDate={event.wedding_date}
+        coverPhotoUrl={coverPhotoUrl}
+      />
 
       {/* ===== Right Pane (Mobile Frame) ===== */}
-      <div className="w-full lg:w-[420px] lg:shrink-0 min-h-screen bg-[var(--color-secondary)] relative overflow-x-hidden shadow-2xl z-20">
+      <div className="javanese-pane w-full lg:w-[420px] lg:shrink-0 min-h-screen relative overflow-x-hidden shadow-2xl z-20">
         {musicUrl && <audio ref={audioRef} src={musicUrl} loop />}
 
         {/* Cover tetap jadi section paling atas (tidak di-unmount) -- guest
@@ -233,7 +255,10 @@ export default function Theme2({ data, guestName }: ThemeComponentProps) {
             <CoupleSection couple={couple} />
             <EventSection event={event} photoUrl={section2PhotoUrl} />
             <LoveStorySection stories={love_stories} />
-            <GallerySection photos={gallery_photos} videoUrl={gallery_video_url} />
+            <GallerySection
+              photos={gallery_photos}
+              videoUrl={gallery_video_url}
+            />
             <GiftSection gifts={wedding_gifts} />
             <RsvpSection guestName={guestName} />
             <ThankYouSection couple={couple} />
@@ -245,10 +270,14 @@ export default function Theme2({ data, guestName }: ThemeComponentProps) {
           <button
             type="button"
             onClick={toggleMusic}
-            aria-label={isPlaying ? 'Jeda musik' : 'Putar musik'}
-            className="fixed bottom-6 right-6 z-50 grid h-12 w-12 place-items-center rounded-full border border-[var(--jw-gold)]/60 bg-[var(--color-primary)] text-[var(--color-secondary)] shadow-[var(--jw-shadow)] transition-transform duration-500 hover:scale-105"
+            aria-label={isPlaying ? "Jeda musik" : "Putar musik"}
+            className="fixed bottom-6 right-6 z-50 grid h-12 w-12 place-items-center rounded-full border border-[var(--jw-gold)]/60 bg-[var(--jw-night)] text-[var(--color-secondary)] shadow-[var(--jw-shadow)] transition-transform duration-500 hover:scale-105"
           >
-            {isPlaying ? <PauseIcon className="h-5 w-5" /> : <MusicIcon className="h-5 w-5" />}
+            {isPlaying ? (
+              <PauseIcon className="h-5 w-5" />
+            ) : (
+              <MusicIcon className="h-5 w-5" />
+            )}
           </button>
         )}
       </div>

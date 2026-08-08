@@ -1,8 +1,8 @@
-import { useState } from 'react';
-import { formatCoverDate } from '../../../../utils/formatDate';
-import type { CoupleInfo } from '../../../../types/wedding';
-import CoverMedia from '../../../shared/CoverMedia';
-import { BatikBand, Divider, Gunungan } from '../components/ornaments';
+import { useState } from "react";
+import { formatCoverDate } from "../../../../utils/formatDate";
+import type { CoupleInfo } from "../../../../types/wedding";
+import CoverMedia from "../../../shared/CoverMedia";
+import { BatikBand, Divider, Gunungan } from "../components/ornaments";
 
 interface CoverSectionProps {
   couple: CoupleInfo;
@@ -40,11 +40,12 @@ export default function CoverSection({
 
   return (
     <section className="group relative h-[100svh] w-full overflow-hidden bg-[var(--color-secondary)]">
+      <BatikBand className="opacity-[0.025]" />
       <div className="pointer-events-none absolute inset-3 border border-[var(--jw-gold)]/60 transition-all duration-[1400ms] group-hover:inset-4" />
       <div className="pointer-events-none absolute inset-5 border border-[var(--jw-gold)]/30 transition-all delay-150 duration-[1400ms] group-hover:inset-6" />
       <div
-        className={`pointer-events-none absolute inset-0 z-10 bg-[var(--jw-sogan-deep)] transition-all duration-[1500ms] ease-out ${
-          isOpening ? 'translate-y-0 opacity-90' : 'translate-y-full opacity-0'
+        className={`pointer-events-none absolute inset-0 z-10 bg-[var(--jw-night)] transition-all duration-[1500ms] ease-out ${
+          isOpening ? "translate-y-0 opacity-90" : "translate-y-full opacity-0"
         }`}
         aria-hidden="true"
       >
@@ -55,7 +56,7 @@ export default function CoverSection({
       <div className="relative z-20 flex h-full flex-col items-center justify-center px-7 py-8 text-center min-[380px]:py-10">
         <Gunungan
           className={`h-16 w-auto text-[var(--color-primary)] transition-all duration-[1200ms] min-[380px]:h-20 ${
-            isOpening ? 'scale-110 opacity-80' : 'scale-100 opacity-100'
+            isOpening ? "scale-110 opacity-80" : "scale-100 opacity-100"
           }`}
         />
 
@@ -68,15 +69,19 @@ export default function CoverSection({
 
         <h1
           className={`mt-4 font-jawa-script text-5xl leading-[0.95] text-[var(--color-primary)] transition-all delay-100 duration-[1200ms] min-[380px]:mt-5 min-[380px]:text-6xl ${
-            isOpening ? '-translate-y-1 opacity-90' : 'translate-y-0 opacity-100'
+            isOpening
+              ? "-translate-y-1 opacity-90"
+              : "translate-y-0 opacity-100"
           }`}
         >
-          {couple.groom_name} <span className="text-[var(--jw-gold)]">&amp;</span> {couple.bride_name}
+          {couple.groom_name}{" "}
+          <span className="text-[var(--jw-gold)]">&amp;</span>{" "}
+          {couple.bride_name}
         </h1>
 
         <div
           className={`relative mt-5 transition-all delay-150 duration-[1400ms] min-[380px]:mt-7 ${
-            isOpening ? 'scale-95 opacity-85' : 'scale-100 opacity-100'
+            isOpening ? "scale-95 opacity-85" : "scale-100 opacity-100"
           }`}
         >
           <div className="absolute -inset-2.5 rounded-full border border-[var(--jw-gold-soft)] transition-transform duration-[1600ms] group-hover:scale-105" />
@@ -101,7 +106,7 @@ export default function CoverSection({
           Katur dhumateng Bapak/Ibu/Sedherek
         </p>
         <p className="mt-1 font-jawa-serif text-xl font-semibold text-[var(--color-primary)]">
-          {guestName || 'Tamu Undangan'}
+          {guestName || "Tamu Undangan"}
         </p>
 
         {isOpened ? (
@@ -121,19 +126,19 @@ export default function CoverSection({
             </p>
           </div>
         ) : (
-          <div className="mt-6 w-full max-w-xs border border-[var(--jw-gold)]/35 bg-[var(--jw-sogan-deep)] p-1.5 shadow-[var(--jw-shadow)] min-[380px]:mt-7">
+          <div className="mt-6 w-full max-w-xs border border-[var(--jw-gold)]/35 bg-[var(--jw-night)] p-1.5 shadow-[var(--jw-shadow)] min-[380px]:mt-7">
             <button
               type="button"
               onClick={handleOpen}
               disabled={isOpening}
-              className="inline-flex w-full items-center justify-center gap-3 border border-[var(--jw-gold-soft)]/30 bg-[linear-gradient(180deg,color-mix(in_oklab,var(--jw-sogan-deep)_82%,#3b1a08)_0%,var(--jw-sogan-deep)_100%)] px-8 py-3.5 text-[0.6rem] font-semibold tracking-[0.32em] text-[var(--color-secondary)] uppercase shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition-all delay-100 duration-[900ms] hover:-translate-y-0.5 hover:bg-[var(--jw-sogan-gradient)] hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] active:scale-95 disabled:cursor-wait disabled:opacity-85"
+              className="inline-flex w-full items-center justify-center gap-3 border border-[var(--jw-gold-soft)]/30 bg-[linear-gradient(180deg,color-mix(in_oklab,var(--jw-night)_86%,#172f35)_0%,var(--jw-night)_100%)] px-8 py-3.5 text-[0.6rem] font-semibold tracking-[0.32em] text-[var(--color-secondary)] uppercase shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition-all delay-100 duration-[900ms] hover:-translate-y-0.5 hover:brightness-110 hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] active:scale-95 disabled:cursor-wait disabled:opacity-85"
             >
               <span
                 className={`size-1.5 rotate-45 bg-[var(--jw-gold-soft)] transition-transform duration-[900ms] ${
-                  isOpening ? 'scale-[1.9]' : 'scale-100'
+                  isOpening ? "scale-[1.9]" : "scale-100"
                 }`}
               />
-              {isOpening ? 'Membuka...' : 'Buka Undangan'}
+              {isOpening ? "Membuka..." : "Buka Undangan"}
             </button>
           </div>
         )}

@@ -1,127 +1,141 @@
-import { useState } from 'react';
-import type { WeddingGiftInfo } from '../../../../types/wedding';
-import Reveal from '../../../shared/Reveal';
-import { COCOA, GroovyDivider, wavyBackground } from '../components/ornaments';
+import { useState } from "react";
+import type { WeddingGiftInfo } from "../../../../types/wedding";
+import Reveal from "../components/ThemeReveal";
+import {
+  CheckIcon,
+  CopyIcon,
+  GiftIcon,
+  SectionHeading,
+  stripeBackground,
+} from "../components/ornaments";
 
 interface GiftSectionProps {
   gifts: WeddingGiftInfo[];
 }
 
-/** Section 6: kado & amplop digital. */
 export default function GiftSection({ gifts }: GiftSectionProps) {
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
   const [copyFailedIdx, setCopyFailedIdx] = useState<number | null>(null);
-
   if (!gifts || gifts.length === 0) return null;
-
   const copyWithFallback = async (value: string) => {
     if (navigator.clipboard?.writeText) {
       await navigator.clipboard.writeText(value);
       return;
     }
-
-    const textarea = document.createElement('textarea');
+    const textarea = document.createElement("textarea");
     textarea.value = value;
-    textarea.setAttribute('readonly', '');
-    textarea.style.position = 'fixed';
-    textarea.style.top = '0';
-    textarea.style.left = '-9999px';
+    textarea.setAttribute("readonly", "");
+    textarea.style.position = "fixed";
+    textarea.style.left = "-9999px";
     document.body.appendChild(textarea);
-    textarea.focus();
     textarea.select();
-
-    const copied = document.execCommand('copy');
+    const copied = document.execCommand("copy");
     document.body.removeChild(textarea);
-
-    if (!copied) {
-      throw new Error('Gagal menyalin');
-    }
+    if (!copied) throw new Error("Gagal menyalin");
   };
-
-  const copyText = async (value: string, idx: number) => {
+  const copyText = async (value: string, index: number) => {
     if (!value.trim()) return;
-
     try {
       await copyWithFallback(value);
       setCopyFailedIdx(null);
-      setCopiedIdx(idx);
-      setTimeout(() => setCopiedIdx((prev) => (prev === idx ? null : prev)), 1800);
+      setCopiedIdx(index);
+      setTimeout(
+        () => setCopiedIdx((current) => (current === index ? null : current)),
+        1800,
+      );
     } catch {
       setCopiedIdx(null);
-      setCopyFailedIdx(idx);
-      setTimeout(() => setCopyFailedIdx((prev) => (prev === idx ? null : prev)), 2500);
+      setCopyFailedIdx(index);
+      setTimeout(
+        () =>
+          setCopyFailedIdx((current) => (current === index ? null : current)),
+        2500,
+      );
     }
   };
-
   return (
-    <section className="relative px-6 py-16 overflow-hidden" style={{ backgroundColor: '#C75B39' }}>
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 invert" style={wavyBackground(0.1)} />
-
-      <Reveal variant="up" className="relative z-10">
-        <div
-          className="mx-auto max-w-md rounded-[2rem] border-4 bg-white p-7 shadow-[8px_8px_0_#5C4033]"
-          style={{ borderColor: COCOA }}
-        >
-          <h2 className="text-center font-retro text-2xl" style={{ color: COCOA }}>
-            Kirim Hadiah 🎉
-          </h2>
-          <GroovyDivider className="mx-auto mt-3 w-44" />
-          <p className="mt-5 text-center text-sm text-neutral-600 leading-relaxed">
-            Kehadiranmu udah jadi hadiah terbaik buat kami! Tapi kalau mau menambah kebahagiaan,
-            boleh banget lewat sini:
-          </p>
-
-          <div className="mt-7 space-y-4">
-            {gifts.map((gift, idx) => (
-              <Reveal key={idx} variant="up" delay={idx * 150}>
-                <div
-                  className={`rounded-[1.5rem] border-2 p-5 text-left ${idx % 2 === 0 ? '-rotate-1' : 'rotate-1'} transition-transform duration-500 hover:rotate-0`}
-                  style={{ borderColor: COCOA, backgroundColor: idx % 2 === 0 ? '#FBF3E4' : '#F6E7C6' }}
-                >
-                  <span className="float-right text-xl">{gift.gift_type === 'kado' ? '🎁' : '💳'}</span>
-
-                  {gift.gift_type === 'kado' ? (
-                    <>
-                      <h3 className="font-retro text-lg" style={{ color: COCOA }}>Kado</h3>
-                      <p className="mt-3 text-[11px] font-bold uppercase tracking-[0.2em] text-[var(--color-primary)]">
-                        Nama Penerima
+    <section className="relative overflow-hidden bg-[var(--color-primary)] px-6 py-24">
+      <div
+        aria-hidden="true"
+        className="absolute inset-0"
+        style={stripeBackground(0.1)}
+      />
+      <div className="relative mx-auto max-w-md">
+        <Reveal variant="blur">
+          <GiftIcon className="mb-5 h-8 w-8 text-[var(--rp-yellow)]" />
+          <SectionHeading
+            eyebrow="A Little Something"
+            title="Gift Corner"
+            description="Kehadiranmu sudah jadi hadiah terbaik. Kalau ingin berbagi tanda kasih, detailnya ada di sini."
+            inverse
+            align="left"
+          />
+        </Reveal>
+        <div className="mt-10 space-y-5">
+          {gifts.map((gift, index) => {
+            const isDelivery = gift.gift_type === "kado";
+            const value = gift.account_number || "";
+            return (
+              <Reveal
+                key={`${gift.bank_name}-${index}`}
+                variant="up"
+                delay={index * 90}
+              >
+                <article className="rp-card p-6 text-left">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="text-[0.52rem] font-bold uppercase tracking-[0.24em] text-[var(--color-primary)]">
+                        {isDelivery ? "Send A Present" : "Bank Transfer"}
                       </p>
-                      <p className="text-sm text-neutral-700">{gift.account_name}</p>
-                      <p className="mt-3 text-[11px] font-bold uppercase tracking-[0.2em] text-[var(--color-primary)]">
-                        Alamat
-                      </p>
-                    </>
-                  ) : (
-                    <>
-                      <h3 className="font-retro text-lg" style={{ color: COCOA }}>{gift.bank_name}</h3>
-                      <p className="mt-3 text-[11px] font-bold uppercase tracking-[0.2em] text-[var(--color-primary)]">
-                        Atas Nama
-                      </p>
-                      <p className="text-sm text-neutral-700">{gift.account_name}</p>
-                      <p className="mt-3 text-[11px] font-bold uppercase tracking-[0.2em] text-[var(--color-primary)]">
-                        Nomor Rekening
-                      </p>
-                    </>
-                  )}
-
-                  <div className="mt-1 flex items-center justify-between gap-3">
-                    <p className="truncate text-sm text-neutral-700">{gift.account_number}</p>
-                    <button
-                      type="button"
-                      onClick={() => copyText(gift.account_number || '', idx)}
-                      disabled={!gift.account_number?.trim()}
-                      className="inline-flex shrink-0 items-center gap-1.5 rounded-full border-2 bg-[var(--color-primary)] px-3 py-1.5 text-xs font-bold text-white shadow-[2px_2px_0_#5C4033] transition-all hover:translate-x-px hover:translate-y-px hover:shadow-[1px_1px_0_#5C4033] disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:translate-x-0 disabled:hover:translate-y-0 disabled:hover:shadow-[2px_2px_0_#5C4033]"
-                      style={{ borderColor: COCOA }}
-                    >
-                      {copiedIdx === idx ? '✓ Tersalin' : copyFailedIdx === idx ? 'Gagal' : '📋 Salin'}
-                    </button>
+                      <h3 className="mt-2 font-retro text-xl text-[var(--rp-ink)]">
+                        {isDelivery
+                          ? "Alamat Penerima"
+                          : gift.bank_name || "Rekening"}
+                      </h3>
+                    </div>
+                    <GiftIcon className="h-6 w-6 text-[var(--rp-teal)]" />
                   </div>
-                </div>
+                  <dl className="mt-5 space-y-4 border-t-2 border-dashed border-[var(--rp-line)] pt-5">
+                    <div>
+                      <dt className="text-[0.52rem] font-bold uppercase tracking-[0.22em] text-[var(--rp-teal)]">
+                        {isDelivery ? "Nama Penerima" : "Atas Nama"}
+                      </dt>
+                      <dd className="mt-1 text-sm text-[var(--rp-muted)]">
+                        {gift.account_name || "Belum ditentukan"}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-[0.52rem] font-bold uppercase tracking-[0.22em] text-[var(--rp-teal)]">
+                        {isDelivery ? "Alamat" : "Nomor Rekening"}
+                      </dt>
+                      <dd className="mt-1 break-words text-sm text-[var(--rp-muted)]">
+                        {value || "Belum ditentukan"}
+                      </dd>
+                    </div>
+                  </dl>
+                  <button
+                    type="button"
+                    onClick={() => copyText(value, index)}
+                    disabled={!value.trim()}
+                    className="rp-button mt-6 inline-flex min-h-11 items-center gap-2 bg-[var(--rp-yellow)] px-4 text-[0.56rem] font-bold uppercase tracking-[0.18em] text-[var(--rp-ink)] transition-all disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    {copiedIdx === index ? (
+                      <CheckIcon className="h-4 w-4" />
+                    ) : (
+                      <CopyIcon className="h-4 w-4" />
+                    )}
+                    {copiedIdx === index
+                      ? "Tersalin"
+                      : copyFailedIdx === index
+                        ? "Gagal Menyalin"
+                        : "Salin Detail"}
+                  </button>
+                </article>
               </Reveal>
-            ))}
-          </div>
+            );
+          })}
         </div>
-      </Reveal>
+      </div>
     </section>
   );
 }

@@ -1,8 +1,8 @@
-import { useCountdown } from '../../../../hooks/useCountdown';
-import { buildIcsDataUrl, formatCoverDate } from '../../../../utils/formatDate';
-import type { CoupleInfo, EventInfo } from '../../../../types/wedding';
-import Reveal from '../../../shared/Reveal';
-import { BatikBand, CalendarIcon, Divider } from '../components/ornaments';
+import { useCountdown } from "../../../../hooks/useCountdown";
+import { buildIcsDataUrl, formatCoverDate } from "../../../../utils/formatDate";
+import type { CoupleInfo, EventInfo } from "../../../../types/wedding";
+import Reveal from "../components/ThemeReveal";
+import { BatikBand, CalendarIcon, Divider } from "../components/ornaments";
 
 interface SaveTheDateSectionProps {
   couple: CoupleInfo;
@@ -10,28 +10,37 @@ interface SaveTheDateSectionProps {
 }
 
 /** Section 2a: Save The Date -- countdown di atas gradasi sogan + tombol kalender. */
-export default function SaveTheDateSection({ couple, event }: SaveTheDateSectionProps) {
+export default function SaveTheDateSection({
+  couple,
+  event,
+}: SaveTheDateSectionProps) {
   const countdown = useCountdown(event.wedding_date);
-  const displayDate = formatCoverDate(event.wedding_date)?.replace(/\.\s*/g, '  ·  ');
+  const displayDate = formatCoverDate(event.wedding_date)?.replace(
+    /\.\s*/g,
+    "  ·  ",
+  );
 
   const calendarUrl = buildIcsDataUrl({
     title: `Pernikahan ${couple.groom_name} & ${couple.bride_name}`,
-    description: 'Undangan pernikahan',
-    location: event.location_address || '',
+    description: "Undangan pernikahan",
+    location: event.location_address || "",
     startDate: event.wedding_date,
   });
 
   const countdownItems = countdown
     ? [
-        { label: 'Dinten', value: countdown.days },
-        { label: 'Jam', value: countdown.hours },
-        { label: 'Menit', value: countdown.minutes },
-        { label: 'Detik', value: countdown.seconds },
+        { label: "Dinten", value: countdown.days },
+        { label: "Jam", value: countdown.hours },
+        { label: "Menit", value: countdown.minutes },
+        { label: "Detik", value: countdown.seconds },
       ]
     : [];
 
   return (
-    <section className="relative flex min-h-screen items-center overflow-hidden bg-[var(--jw-sogan-deep)] px-6 py-20 text-center text-[var(--color-secondary)]">
+    <section
+      id="save-the-date"
+      className="jw-night-panel relative flex min-h-screen items-center overflow-hidden px-6 py-20 text-center text-[var(--color-secondary)]"
+    >
       <BatikBand className="opacity-[0.18] mix-blend-soft-light" />
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.24)_72%)]" />
       <div className="relative mx-auto w-full max-w-md">
@@ -53,12 +62,12 @@ export default function SaveTheDateSection({ couple, event }: SaveTheDateSection
               {countdownItems.map((item) => (
                 <div
                   key={item.label}
-                  className="relative aspect-square border border-[var(--jw-gold-soft)]/30 bg-[var(--color-secondary)]/[0.04] px-1 text-center shadow-[inset_0_0_0_1px_rgba(255,255,255,0.03)]"
+                  className="relative aspect-square rounded-[3px] border border-[var(--jw-gold-soft)]/30 bg-[var(--color-secondary)]/[0.04] px-1 text-center shadow-[inset_0_0_0_1px_rgba(255,255,255,0.03)]"
                 >
                   <span className="absolute inset-x-3 top-3 block h-px bg-[var(--jw-gold-soft)]/30" />
                   <div className="flex h-full flex-col items-center justify-center">
                     <span className="block font-jawa-serif text-3xl font-semibold tabular-nums leading-none text-[var(--color-secondary)] min-[380px]:text-4xl">
-                      {String(item.value).padStart(2, '0')}
+                      {String(item.value).padStart(2, "0")}
                     </span>
                     <span className="mt-4 block text-[0.48rem] font-semibold tracking-[0.42em] text-[var(--jw-gold-soft)]/85 uppercase">
                       {item.label}

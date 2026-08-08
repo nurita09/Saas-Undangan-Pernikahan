@@ -1,76 +1,94 @@
-import { useCountdown } from '../../../../hooks/useCountdown';
-import { formatShortDate, buildIcsDataUrl } from '../../../../utils/formatDate';
-import type { CoupleInfo, EventInfo } from '../../../../types/wedding';
-import Reveal from '../../../shared/Reveal';
-import { ArchDivider, geometricBackground } from '../components/ornaments';
+import { useCountdown } from "../../../../hooks/useCountdown";
+import type { CoupleInfo, EventInfo } from "../../../../types/wedding";
+import { buildIcsDataUrl, formatShortDate } from "../../../../utils/formatDate";
+import Reveal from "../components/ThemeReveal";
+import {
+  CalendarIcon,
+  SectionHeading,
+  geometricBackground,
+} from "../components/ornaments";
 
 interface SaveTheDateSectionProps {
   couple: CoupleInfo;
   event: EventInfo;
 }
 
-function CountdownBox({ value, label }: { value: number; label: string }) {
-  return (
-    <div className="flex h-[68px] w-16 flex-col items-center justify-center rounded-t-full border border-white/50 bg-white/15">
-      <span className="text-xl font-semibold text-white tabular-nums">
-        {String(value).padStart(2, '0')}
-      </span>
-      <span className="text-[10px] uppercase tracking-wider text-white/80">{label}</span>
-    </div>
-  );
-}
-
-/** Section 2a: Menuju Hari Bahagia -- countdown kotak berlengkung. */
-export default function SaveTheDateSection({ couple, event }: SaveTheDateSectionProps) {
+/** Countdown sebagai satu panel ritmis di atas hijau mineral. */
+export default function SaveTheDateSection({
+  couple,
+  event,
+}: SaveTheDateSectionProps) {
   const countdown = useCountdown(event.wedding_date);
-
   const calendarUrl = buildIcsDataUrl({
     title: `Pernikahan ${couple.groom_name} & ${couple.bride_name}`,
-    description: 'Undangan pernikahan',
-    location: event.location_address || '',
+    description: "Undangan pernikahan",
+    location: event.location_address || "",
     startDate: event.wedding_date,
   });
-
   const items = countdown
     ? [
-        { value: countdown.days, label: 'Hari' },
-        { value: countdown.hours, label: 'Jam' },
-        { value: countdown.minutes, label: 'Menit' },
-        { value: countdown.seconds, label: 'Detik' },
+        { value: countdown.days, label: "Hari" },
+        { value: countdown.hours, label: "Jam" },
+        { value: countdown.minutes, label: "Menit" },
+        { value: countdown.seconds, label: "Detik" },
       ]
     : [];
 
   return (
-    <section className="relative px-6 py-16 text-center overflow-hidden bg-[var(--color-primary)]">
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 invert" style={geometricBackground(0.08)} />
-
-      <div className="relative z-10">
+    <section
+      id="save-the-date"
+      className="im-section-deep relative overflow-hidden px-6 py-24 text-center"
+    >
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0"
+        style={geometricBackground(0.07)}
+      />
+      <div className="relative mx-auto max-w-md">
         <Reveal variant="blur">
-          <h2 className="font-serif text-3xl text-white">Menuju Hari Bahagia</h2>
+          <SectionHeading
+            arabic="بَارَكَ اللَّهُ لَكُمَا"
+            eyebrow="Mark The Day"
+            title="Menuju Hari Bahagia"
+            inverse
+          />
           {event.wedding_date && (
-            <p className="mt-2 tracking-[0.3em] text-white/85">{formatShortDate(event.wedding_date)}</p>
+            <p className="mt-6 font-serif text-lg tracking-[0.2em] text-[var(--im-clay)]">
+              {formatShortDate(event.wedding_date)}
+            </p>
           )}
-          <ArchDivider className="mx-auto mt-4 w-44 invert brightness-0" />
         </Reveal>
 
         {items.length > 0 && (
-          <div className="mt-8 flex justify-center gap-3 md:gap-5">
-            {items.map((item, idx) => (
-              <Reveal key={item.label} variant="up" delay={idx * 120}>
-                <CountdownBox value={item.value} label={item.label} />
-              </Reveal>
+          <Reveal
+            variant="up"
+            className="mt-9 grid grid-cols-4 border-y border-white/20 py-5"
+          >
+            {items.map((item, index) => (
+              <div
+                key={item.label}
+                className={index > 0 ? "border-l border-white/20" : ""}
+              >
+                <span className="block font-serif text-2xl tabular-nums text-white">
+                  {String(item.value).padStart(2, "0")}
+                </span>
+                <span className="mt-1 block text-[0.5rem] uppercase tracking-[0.22em] text-white/55">
+                  {item.label}
+                </span>
+              </div>
             ))}
-          </div>
+          </Reveal>
         )}
 
         {calendarUrl && (
-          <Reveal variant="up" delay={500}>
+          <Reveal variant="up" delay={120}>
             <a
               href={calendarUrl}
               download={`undangan-${couple.groom_name}-${couple.bride_name}.ics`}
-              className="mt-8 inline-flex items-center gap-2 rounded-full bg-white px-6 py-2.5 text-sm font-medium text-[var(--color-primary)] hover:opacity-90 transition"
+              className="mt-9 inline-flex min-h-12 items-center gap-2 border border-white/35 bg-white px-5 text-[0.6rem] font-semibold uppercase tracking-[0.22em] text-[var(--im-deep)] transition hover:-translate-y-0.5"
             >
-              📅 Simpan ke Kalender
+              <CalendarIcon className="h-4 w-4" />
+              Simpan ke Kalender
             </a>
           </Reveal>
         )}

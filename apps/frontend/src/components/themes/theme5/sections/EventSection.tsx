@@ -1,54 +1,47 @@
-import { formatLongDate, formatTime } from '../../../../utils/formatDate';
-import type { EventInfo } from '../../../../types/wedding';
-import Reveal, { type RevealVariant } from '../../../shared/Reveal';
-import { COCOA, GroovyDivider, RetroArches } from '../components/ornaments';
+import type { EventInfo } from "../../../../types/wedding";
+import { formatLongDate, formatTime } from "../../../../utils/formatDate";
+import Reveal from "../components/ThemeReveal";
+import {
+  CalendarIcon,
+  MapPinIcon,
+  SectionHeading,
+} from "../components/ornaments";
 
 interface EventSectionProps {
   event: EventInfo;
   photoUrl: string;
 }
-
-interface EventCardProps {
+interface ScheduleProps {
+  number: string;
   title: string;
   date: string | null;
   location: string | null;
   mapsUrl: string | null;
-  photoUrl: string;
-  revealVariant: RevealVariant;
-  tilt: string;
-  shadowColor: string;
 }
 
-function EventCard({ title, date, location, mapsUrl, photoUrl, revealVariant, tilt, shadowColor }: EventCardProps) {
+function Schedule({ number, title, date, location, mapsUrl }: ScheduleProps) {
   return (
-    <Reveal variant={revealVariant}>
-      <div
-        className={`relative ${tilt} rounded-[2rem] border-4 bg-white p-6 transition-transform duration-500 hover:rotate-0`}
-        style={{ borderColor: COCOA, boxShadow: `6px 6px 0 ${shadowColor}` }}
-      >
-        <RetroArches className="pointer-events-none absolute -top-1 right-4 h-8 w-auto opacity-60" />
-
-        <div className="flex gap-4">
-          <div
-            className="h-24 w-24 shrink-0 overflow-hidden rounded-2xl border-2"
-            style={{ borderColor: COCOA }}
-          >
-            <img src={photoUrl} alt={title} className="w-full h-full object-cover" />
+    <article className="grid grid-cols-[42px_1fr] gap-4 border-t-2 border-dashed border-[var(--rp-line)] px-5 py-7 first:border-t-0">
+      <span className="font-retro text-3xl leading-none text-[var(--color-primary)]">
+        {number}
+      </span>
+      <div>
+        <h3 className="font-retro text-xl text-[var(--rp-ink)]">{title}</h3>
+        <div className="mt-4 grid grid-cols-[17px_1fr] gap-x-2 gap-y-1">
+          <CalendarIcon className="mt-0.5 h-4 w-4 text-[var(--rp-teal)]" />
+          <div>
+            <p className="text-sm text-[var(--rp-ink)]">
+              {date ? formatLongDate(date) : "Tanggal menyusul"}
+            </p>
+            {date && (
+              <p className="mt-1 text-xs text-[var(--rp-muted)]">
+                Pukul {formatTime(date)}
+              </p>
+            )}
           </div>
-          <div className="text-left">
-            <h3 className="font-retro text-xl" style={{ color: COCOA }}>
-              {title}
-            </h3>
-            <p className="mt-1 text-sm text-neutral-600">{date ? formatLongDate(date) : 'Tanggal menyusul'}</p>
-            <p className="text-sm font-bold text-[var(--color-primary)]">{date ? formatTime(date) : ''}</p>
-          </div>
-        </div>
-        <div className="mt-5 text-left">
-          <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[var(--color-primary)]">
-            Tempatnya di:
-          </p>
-          <p className="mt-1 text-sm text-neutral-600 leading-relaxed">
-            {location || 'Lokasi belum ditentukan'}
+          <MapPinIcon className="mt-4 h-4 w-4 text-[var(--rp-teal)]" />
+          <p className="mt-3 text-sm leading-relaxed text-[var(--rp-muted)]">
+            {location || "Lokasi belum ditentukan"}
           </p>
         </div>
         {mapsUrl && (
@@ -56,51 +49,57 @@ function EventCard({ title, date, location, mapsUrl, photoUrl, revealVariant, ti
             href={mapsUrl}
             target="_blank"
             rel="noreferrer"
-            className="mt-4 inline-flex items-center gap-2 rounded-full border-2 bg-[var(--color-primary)] px-5 py-2 text-sm font-bold text-white shadow-[3px_3px_0_#5C4033] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-[1px_1px_0_#5C4033] transition-all"
-            style={{ borderColor: COCOA }}
+            className="rp-button mt-5 inline-flex min-h-10 items-center gap-2 bg-[var(--rp-yellow)] px-3 text-[0.55rem] font-bold uppercase tracking-[0.18em] text-[var(--rp-ink)] transition-all"
           >
-            📍 Lihat Maps
+            <MapPinIcon className="h-4 w-4" /> Lihat Peta
           </a>
         )}
       </div>
-    </Reveal>
+    </article>
   );
 }
 
-/** Section 3: kapan & di mana pestanya. */
+/** Rundown pernikahan dalam satu tiket festival. */
 export default function EventSection({ event, photoUrl }: EventSectionProps) {
   return (
-    <section className="px-6 py-16 bg-white">
+    <section id="events" className="rp-section-paper px-6 py-24">
       <div className="mx-auto max-w-md">
         <Reveal variant="blur">
-          <h2 className="text-center font-retro text-3xl" style={{ color: COCOA }}>
-            Kapan &amp; Di Mana?
-          </h2>
-          <GroovyDivider className="mx-auto mt-3 w-48" />
+          <SectionHeading
+            eyebrow="The Main Event"
+            title="Where & When"
+            align="left"
+          />
         </Reveal>
-
-        <div className="mt-10 space-y-9">
-          <EventCard
-            title="Akad Nikah"
-            date={event.akad_date || event.wedding_date}
-            location={event.akad_location || event.location_address}
-            mapsUrl={event.akad_maps_url || event.maps_url}
-            photoUrl={photoUrl}
-            revealVariant="left"
-            tilt="-rotate-1"
-            shadowColor="#E3B23C"
-          />
-          <EventCard
-            title="Pesta Resepsi"
-            date={event.resepsi_date || event.wedding_date}
-            location={event.resepsi_location || event.location_address}
-            mapsUrl={event.resepsi_maps_url || event.maps_url}
-            photoUrl={photoUrl}
-            revealVariant="right"
-            tilt="rotate-1"
-            shadowColor="#C75B39"
-          />
-        </div>
+        <Reveal variant="zoom" className="mt-10">
+          <div className="rp-card overflow-hidden">
+            <figure className="relative aspect-[16/10] overflow-hidden">
+              <img
+                src={photoUrl}
+                alt="Lokasi pesta"
+                loading="lazy"
+                className="size-full object-cover"
+              />
+              <figcaption className="absolute bottom-4 left-4 bg-[var(--color-primary)] px-3 py-2 text-[0.52rem] font-bold uppercase tracking-[0.2em] text-white">
+                Wedding Day Pass
+              </figcaption>
+            </figure>
+            <Schedule
+              number="01"
+              title="Akad Nikah"
+              date={event.akad_date || event.wedding_date}
+              location={event.akad_location || event.location_address}
+              mapsUrl={event.akad_maps_url || event.maps_url}
+            />
+            <Schedule
+              number="02"
+              title="Pesta Resepsi"
+              date={event.resepsi_date || event.wedding_date}
+              location={event.resepsi_location || event.location_address}
+              mapsUrl={event.resepsi_maps_url || event.maps_url}
+            />
+          </div>
+        </Reveal>
       </div>
     </section>
   );

@@ -1,14 +1,14 @@
-import { useState } from 'react';
-import { formatCoverDate } from '../../../../utils/formatDate';
-import type { CoupleInfo } from '../../../../types/wedding';
-import CoverMedia from '../../../shared/CoverMedia';
+import { useState } from "react";
+import type { CoupleInfo } from "../../../../types/wedding";
+import { formatCoverDate } from "../../../../utils/formatDate";
+import CoverMedia from "../../../shared/CoverMedia";
 import {
   ArchDivider,
   Bismillah,
   IslamicArch,
   KhatamStar,
-  geometricBackground,
-} from '../components/ornaments';
+  MailIcon,
+} from "../components/ornaments";
 
 interface CoverSectionProps {
   couple: CoupleInfo;
@@ -19,9 +19,7 @@ interface CoverSectionProps {
   onOpen: () => void;
 }
 
-/** Cover Islami Modern: bismillah, foto berbingkai lengkung masjid,
- *  salam pembuka Assalamu'alaikum. Section ini permanen (tidak di-unmount)
- *  -- guest bisa scroll balik ke atas untuk melihatnya lagi. */
+/** Cover foto penuh dengan framing mihrab dan salam pembuka. */
 export default function CoverSection({
   couple,
   weddingDate,
@@ -35,102 +33,82 @@ export default function CoverSection({
   const handleOpen = () => {
     if (isOpening || isOpened) return;
     setIsOpening(true);
-    window.setTimeout(() => {
-      onOpen();
-    }, 820);
-    window.setTimeout(() => {
-      setIsOpening(false);
-    }, 1750);
+    window.setTimeout(onOpen, 720);
+    window.setTimeout(() => setIsOpening(false), 1650);
   };
 
   return (
-    <section className="relative flex h-[100svh] flex-col items-center justify-center overflow-hidden bg-[var(--color-secondary)] px-6 py-10 text-center min-[380px]:py-16">
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0" style={geometricBackground(0.05)} />
-      {/* Lengkungan besar samar di belakang konten */}
+    <section className="relative flex h-[100svh] min-h-[620px] flex-col items-center justify-center overflow-hidden px-6 py-8 text-center text-white">
+      <CoverMedia
+        src={coverPhotoUrl}
+        alt="Potret pernikahan"
+        className={`absolute inset-0 size-full object-cover transition-transform duration-[1800ms] ${
+          isOpening ? "scale-110" : "scale-100"
+        }`}
+      />
+      <div className="absolute inset-0 bg-gradient-to-t from-[var(--im-deep)] via-[var(--im-deep)]/68 to-black/25" />
+      <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(183,121,99,0.22),transparent_48%)]" />
       <IslamicArch
-        className={`pointer-events-none absolute top-6 left-1/2 h-[88%] w-auto -translate-x-1/2 text-[var(--color-primary)] opacity-15 transition-all duration-[1600ms] ${
-          isOpening ? 'scale-105 opacity-25' : 'scale-100'
+        className={`pointer-events-none absolute left-1/2 top-5 h-[94%] w-auto -translate-x-1/2 text-white/20 transition-all duration-[1500ms] ${
+          isOpening ? "scale-105 text-white/30" : "scale-100"
         }`}
       />
       <div
-        className={`pointer-events-none absolute inset-0 z-20 bg-[linear-gradient(180deg,color-mix(in_oklab,var(--color-secondary)_96%,white)_0%,color-mix(in_oklab,var(--color-primary)_14%,var(--color-secondary))_100%)] transition-all duration-[1450ms] ease-out ${
-          isOpening ? 'translate-y-0 opacity-95' : 'translate-y-full opacity-0'
-        }`}
         aria-hidden="true"
-      >
-        <div aria-hidden="true" className="absolute inset-0" style={geometricBackground(0.08)} />
-        <IslamicArch className="absolute top-10 left-1/2 h-[78%] w-auto -translate-x-1/2 text-[var(--color-primary)] opacity-18" />
-      </div>
+        className={`pointer-events-none absolute inset-0 z-20 bg-[var(--im-deep)] transition-all duration-[1300ms] ${
+          isOpening ? "translate-y-0 opacity-90" : "translate-y-full opacity-0"
+        }`}
+      />
 
       <div
-        className={`relative z-30 flex flex-col items-center transition-all duration-[1350ms] ${
-          isOpening ? '-translate-y-2 scale-[0.98] opacity-80 blur-[0.5px]' : 'translate-y-0 scale-100 opacity-100 blur-0'
+        className={`relative z-30 flex w-full max-w-sm flex-col items-center transition-all duration-[1200ms] ${
+          isOpening
+            ? "-translate-y-2 scale-[0.98] opacity-80"
+            : "translate-y-0 scale-100 opacity-100"
         }`}
       >
-        <Bismillah className="opacity-0 animate-fade-in-scale text-2xl md:text-3xl text-[var(--color-primary)]" />
-
-        <p className="opacity-0 animate-fade-up [animation-delay:200ms] mt-5 text-xs uppercase tracking-[0.35em] font-semibold text-neutral-500">
+        <Bismillah className="animate-fade-in-scale text-[1.7rem] text-white/90 opacity-0" />
+        <p className="mt-5 animate-fade-up text-[0.58rem] font-semibold uppercase tracking-[0.42em] text-white/70 opacity-0 [animation-delay:180ms]">
           Undangan Walimatul &lsquo;Ursy
         </p>
-
-        <h1 className="opacity-0 animate-fade-up [animation-delay:350ms] mt-5 font-serif text-4xl md:text-5xl leading-snug text-neutral-800">
-          {couple.groom_name} <span className="text-[var(--color-primary)]">&amp;</span> {couple.bride_name}
+        <h1 className="mt-4 flex max-w-full animate-fade-up flex-wrap justify-center gap-x-2 font-serif text-[2.9rem] leading-[1.08] text-white opacity-0 [animation-delay:320ms]">
+          <span className="whitespace-nowrap">{couple.groom_name}</span>
+          <span className="whitespace-nowrap text-[var(--im-clay)]">&amp;</span>
+          <span className="whitespace-nowrap">{couple.bride_name}</span>
         </h1>
-
-        {/* Foto berbingkai lengkung masjid (arch): rounded penuh di atas saja */}
-        <div className="opacity-0 animate-fade-up [animation-delay:500ms] mt-8 rounded-t-full border-2 border-[var(--color-primary)]/60 p-2 bg-white shadow-sm">
-          <div className="h-64 w-48 overflow-hidden rounded-t-full">
-            <CoverMedia
-              src={coverPhotoUrl}
-              alt="Cover"
-              className={`w-full h-full object-cover transition-transform duration-[1750ms] ${
-                isOpening ? 'scale-110' : 'scale-100'
-              }`}
-            />
-          </div>
-        </div>
-
         {weddingDate && (
-          <p className="opacity-0 animate-fade-up [animation-delay:650ms] mt-7 font-serif text-lg tracking-[0.3em] text-neutral-600">
+          <p className="mt-6 animate-fade-up font-serif text-base tracking-[0.22em] text-white/85 opacity-0 [animation-delay:480ms]">
             {formatCoverDate(weddingDate)}
           </p>
         )}
+        <ArchDivider className="mt-5 w-44 animate-fade-up text-white/60 opacity-0 [animation-delay:600ms]" />
 
-        <ArchDivider className="opacity-0 animate-fade-up [animation-delay:750ms] mt-4 w-48" />
-
-        <p className="opacity-0 animate-fade-up [animation-delay:850ms] mt-4 text-sm text-neutral-500">
-          Kepada Yth. Bapak/Ibu/Saudara/i
-        </p>
-        <p className="opacity-0 animate-fade-up [animation-delay:950ms] mt-1 font-serif text-lg font-semibold text-neutral-800">
-          {guestName || 'Tamu Undangan'}
-        </p>
+        <div className="mt-5 animate-fade-up opacity-0 [animation-delay:720ms]">
+          <p className="text-xs text-white/65">
+            Kepada Yth. Bapak/Ibu/Saudara/i
+          </p>
+          <p className="mt-1 break-words font-serif text-lg text-white">
+            {guestName || "Tamu Undangan"}
+          </p>
+        </div>
 
         {isOpened ? (
-          <div className="opacity-0 animate-fade-up [animation-delay:1100ms] mt-8 border border-[var(--color-primary)]/35 bg-white/80 px-6 py-4 shadow-sm backdrop-blur-sm">
-            <div className="flex items-center justify-center gap-2 text-[var(--color-primary)]">
-              <KhatamStar className="h-4 w-4" />
-              <p className="text-[0.65rem] font-semibold tracking-[0.28em] uppercase">
-                Undangan Telah Dibuka
-              </p>
-              <KhatamStar className="h-4 w-4" />
-            </div>
-            <p className="mt-2 font-serif text-sm italic text-neutral-500">
-              Silakan menikmati rangkaian acara
+          <div className="mt-7 animate-fade-up border border-white/25 bg-black/15 px-5 py-3 opacity-0 backdrop-blur-sm [animation-delay:850ms]">
+            <p className="flex items-center justify-center gap-2 text-[0.56rem] font-semibold uppercase tracking-[0.28em] text-white/80">
+              <KhatamStar className="h-4 w-4 text-[var(--im-clay)]" />
+              Undangan Telah Dibuka
             </p>
           </div>
         ) : (
-          <div className="opacity-0 animate-fade-up [animation-delay:1100ms] mt-8 inline-block">
-            <button
-              type="button"
-              onClick={handleOpen}
-              disabled={isOpening}
-              className="relative inline-flex items-center gap-2 overflow-hidden rounded-full border border-[var(--color-primary)]/30 bg-[var(--color-primary)] px-8 py-2.5 text-sm font-medium tracking-wide text-white shadow-[0_14px_34px_-22px_color-mix(in_oklab,var(--color-primary)_80%,transparent)] transition-all duration-700 hover:-translate-y-0.5 hover:shadow-[0_18px_42px_-22px_color-mix(in_oklab,var(--color-primary)_90%,transparent)] disabled:cursor-wait disabled:opacity-85"
-            >
-              <span className="absolute inset-x-5 top-px h-px bg-white/35" aria-hidden="true" />
-              <KhatamStar className="relative h-4 w-4" />
-              <span className="relative">{isOpening ? 'Membuka...' : 'Buka Undangan'}</span>
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={handleOpen}
+            disabled={isOpening}
+            className="mt-7 inline-flex min-h-12 animate-fade-up items-center gap-2 border border-white/35 bg-white px-6 text-[0.62rem] font-semibold uppercase tracking-[0.24em] text-[var(--im-deep)] opacity-0 shadow-[0_20px_48px_-28px_rgba(0,0,0,0.7)] transition hover:-translate-y-0.5 disabled:cursor-wait disabled:opacity-70 [animation-delay:850ms]"
+          >
+            <MailIcon className="h-4 w-4" />
+            {isOpening ? "Membuka..." : "Buka Undangan"}
+          </button>
         )}
       </div>
     </section>

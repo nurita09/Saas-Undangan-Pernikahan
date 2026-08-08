@@ -1,5 +1,5 @@
-import divider from '../../../../assets/theme1/divider.png';
-import corner from '../../../../assets/theme1/floral-corner.png';
+import divider from "../../../../assets/theme1/divider.png";
+import corner from "../../../../assets/theme1/floral-corner.png";
 
 /**
  * Ornamen & ikon Theme 1 - Floral Elegant (redesain "floral dreams" dari
@@ -8,7 +8,7 @@ import corner from '../../../../assets/theme1/floral-corner.png';
  */
 
 /** Garis pembatas bunga (asset PNG) -- dipakai di bawah judul & pemisah. */
-export function Divider({ className = '' }: { className?: string }) {
+export function Divider({ className = "" }: { className?: string }) {
   return (
     <img
       src={divider}
@@ -20,28 +20,31 @@ export function Divider({ className = '' }: { className?: string }) {
   );
 }
 
-type CornerSpot = 'tl' | 'tr' | 'bl' | 'br';
+type CornerSpot = "tl" | "tr" | "bl" | "br";
 
 /* Satu asset sudut yang sama dicerminkan ke 4 arah lewat scale negatif. */
 const SPOT_CLASS: Record<CornerSpot, string> = {
-  tl: 'left-0 top-0',
-  tr: 'right-0 top-0 -scale-x-100',
-  bl: 'left-0 bottom-0 -scale-y-100',
-  br: 'right-0 bottom-0 -scale-100',
+  tl: "left-0 top-0",
+  tr: "right-0 top-0 -scale-x-100",
+  bl: "left-0 bottom-0 -scale-y-100",
+  br: "right-0 bottom-0 -scale-100",
 };
 
 /** Ornamen bunga di sudut-sudut section, melayang pelan (drift-slow). */
 export function FloralCorners({
-  spots = ['tl', 'br'],
-  size = 'w-32',
-  opacity = 'opacity-50',
+  spots = ["tl", "br"],
+  size = "w-32",
+  opacity = "opacity-50",
 }: {
   spots?: CornerSpot[];
   size?: string;
   opacity?: string;
 }) {
   return (
-    <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+    <div
+      className="pointer-events-none absolute inset-0 overflow-hidden"
+      aria-hidden="true"
+    >
       {spots.map((spot) => (
         <img
           key={spot}
@@ -67,17 +70,17 @@ export function SectionTitle({
 }) {
   return (
     <div className="text-center">
-      {eyebrow && <p className="label-caps text-[var(--fl-muted)]">{eyebrow}</p>}
+      {eyebrow && <p className="label-caps text-[var(--fl-clay)]">{eyebrow}</p>}
       <h2
         className={
           script
-            ? 'mt-3 font-floral-script text-5xl leading-[1.15] text-[var(--color-primary)]'
-            : 'mt-4 font-floral-serif text-3xl font-light uppercase tracking-[0.2em] text-[var(--color-primary)]'
+            ? "mt-3 font-floral-script text-[3.5rem] leading-none text-[var(--color-primary)]"
+            : "mt-4 font-floral-serif text-[2.15rem] font-light uppercase tracking-[0.16em] text-[var(--color-primary)]"
         }
       >
         {title}
       </h2>
-      <Divider className="mt-2" />
+      <Divider className="mt-1 h-12" />
     </div>
   );
 }
@@ -93,7 +96,10 @@ export function Petals({ count = 14 }: { count?: number }) {
   }));
 
   return (
-    <div className="pointer-events-none fixed inset-0 z-40 overflow-hidden" aria-hidden="true">
+    <div
+      className="pointer-events-none fixed inset-0 z-40 overflow-hidden"
+      aria-hidden="true"
+    >
       {petals.map((petal, i) => (
         <span
           key={i}
@@ -121,13 +127,13 @@ interface IconProps {
 
 function iconAttrs(className: string | undefined) {
   return {
-    viewBox: '0 0 24 24',
-    fill: 'none',
-    stroke: 'currentColor',
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
     strokeWidth: 1.7,
-    strokeLinecap: 'round',
-    strokeLinejoin: 'round',
-    'aria-hidden': true,
+    strokeLinecap: "round",
+    strokeLinejoin: "round",
+    "aria-hidden": true,
     className,
   } as const;
 }
@@ -215,6 +221,30 @@ export function XIcon({ className }: IconProps) {
   return (
     <svg {...iconAttrs(className)}>
       <path d="M6 6l12 12M18 6 6 18" />
+    </svg>
+  );
+}
+
+export function ChevronLeftIcon({ className }: IconProps) {
+  return (
+    <svg {...iconAttrs(className)}>
+      <path d="m15 18-6-6 6-6" />
+    </svg>
+  );
+}
+
+export function ChevronRightIcon({ className }: IconProps) {
+  return (
+    <svg {...iconAttrs(className)}>
+      <path d="m9 18 6-6-6-6" />
+    </svg>
+  );
+}
+
+export function ExpandIcon({ className }: IconProps) {
+  return (
+    <svg {...iconAttrs(className)}>
+      <path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5" />
     </svg>
   );
 }

@@ -1,82 +1,93 @@
-import { useCountdown } from '../../../../hooks/useCountdown';
-import { formatShortDate, buildIcsDataUrl } from '../../../../utils/formatDate';
-import type { CoupleInfo, EventInfo } from '../../../../types/wedding';
-import Reveal from '../../../shared/Reveal';
-import { COCOA, GroovyDivider, MUSTARD } from '../components/ornaments';
+import { useCountdown } from "../../../../hooks/useCountdown";
+import type { CoupleInfo, EventInfo } from "../../../../types/wedding";
+import { buildIcsDataUrl, formatShortDate } from "../../../../utils/formatDate";
+import Reveal from "../components/ThemeReveal";
+import {
+  CalendarIcon,
+  SectionHeading,
+  stripeBackground,
+} from "../components/ornaments";
 
 interface SaveTheDateSectionProps {
   couple: CoupleInfo;
   event: EventInfo;
 }
 
-function CountdownBox({ value, label }: { value: number; label: string }) {
-  return (
-    <div
-      className="flex h-[72px] w-16 flex-col items-center justify-center rounded-2xl border-2 bg-white shadow-[3px_3px_0_#5C4033]"
-      style={{ borderColor: COCOA }}
-    >
-      <span className="font-retro text-2xl tabular-nums" style={{ color: COCOA }}>
-        {String(value).padStart(2, '0')}
-      </span>
-      <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">{label}</span>
-    </div>
-  );
-}
-
-/** Section 2a: hitung mundur pesta -- kotak sticker chunky. */
-export default function SaveTheDateSection({ couple, event }: SaveTheDateSectionProps) {
+export default function SaveTheDateSection({
+  couple,
+  event,
+}: SaveTheDateSectionProps) {
   const countdown = useCountdown(event.wedding_date);
-
   const calendarUrl = buildIcsDataUrl({
     title: `Pernikahan ${couple.groom_name} & ${couple.bride_name}`,
-    description: 'Undangan pernikahan',
-    location: event.location_address || '',
+    description: "Undangan pernikahan",
+    location: event.location_address || "",
     startDate: event.wedding_date,
   });
-
   const items = countdown
     ? [
-        { value: countdown.days, label: 'Hari' },
-        { value: countdown.hours, label: 'Jam' },
-        { value: countdown.minutes, label: 'Menit' },
-        { value: countdown.seconds, label: 'Detik' },
+        { value: countdown.days, label: "Hari" },
+        { value: countdown.hours, label: "Jam" },
+        { value: countdown.minutes, label: "Menit" },
+        { value: countdown.seconds, label: "Detik" },
       ]
     : [];
 
   return (
-    <section className="relative px-6 py-16 text-center overflow-hidden" style={{ backgroundColor: MUSTARD }}>
-      <div className="relative z-10">
+    <section
+      id="save-the-date"
+      className="rp-section-yellow relative overflow-hidden px-6 py-24"
+    >
+      <div
+        aria-hidden="true"
+        className="absolute inset-0"
+        style={stripeBackground(0.07)}
+      />
+      <div className="relative mx-auto max-w-md">
         <Reveal variant="blur">
-          <h2 className="font-retro text-3xl" style={{ color: COCOA }}>
-            Save The Date!
-          </h2>
+          <SectionHeading
+            eyebrow="Put It On Your Calendar"
+            title="Save The Date!"
+            align="left"
+          />
           {event.wedding_date && (
-            <p className="mt-2 font-bold tracking-[0.2em]" style={{ color: '#7A3B22' }}>
+            <p className="mt-5 font-retro text-xl tracking-[0.14em] text-[var(--color-primary)]">
               {formatShortDate(event.wedding_date)}
             </p>
           )}
-          <GroovyDivider className="mx-auto mt-4 w-48" />
         </Reveal>
-
         {items.length > 0 && (
-          <div className="mt-8 flex justify-center gap-3 md:gap-5">
-            {items.map((item, idx) => (
-              <Reveal key={item.label} variant="up" delay={idx * 120}>
-                <CountdownBox value={item.value} label={item.label} />
-              </Reveal>
+          <Reveal
+            variant="up"
+            className="mt-9 grid grid-cols-4 bg-[var(--rp-ink)] py-5 text-white"
+          >
+            {items.map((item, index) => (
+              <div
+                key={item.label}
+                className={
+                  index > 0
+                    ? "border-l border-white/20 text-center"
+                    : "text-center"
+                }
+              >
+                <span className="block font-retro text-2xl tabular-nums text-[var(--rp-yellow)]">
+                  {String(item.value).padStart(2, "0")}
+                </span>
+                <span className="mt-1 block text-[0.5rem] font-bold uppercase tracking-[0.18em] text-white/60">
+                  {item.label}
+                </span>
+              </div>
             ))}
-          </div>
+          </Reveal>
         )}
-
         {calendarUrl && (
-          <Reveal variant="up" delay={500}>
+          <Reveal variant="up" delay={100}>
             <a
               href={calendarUrl}
               download={`undangan-${couple.groom_name}-${couple.bride_name}.ics`}
-              className="mt-8 inline-flex items-center gap-2 rounded-full border-2 bg-white px-6 py-2.5 text-sm font-bold shadow-[4px_4px_0_#5C4033] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-[2px_2px_0_#5C4033] transition-all"
-              style={{ borderColor: COCOA, color: COCOA }}
+              className="rp-button mt-8 inline-flex min-h-12 items-center gap-2 bg-white px-5 text-[0.6rem] font-bold uppercase tracking-[0.2em] text-[var(--rp-ink)] transition-all"
             >
-              📅 Catat Tanggalnya!
+              <CalendarIcon className="h-4 w-4" /> Catat Tanggalnya
             </a>
           </Reveal>
         )}

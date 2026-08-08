@@ -1,5 +1,5 @@
-import type { ReactNode } from 'react';
-import batikPattern from '../../../../assets/theme2/batik-pattern.jpg';
+import type { ReactNode } from "react";
+import batikPattern from "../../../../assets/theme2/batik-pattern.jpg";
 
 /**
  * Ornamen & ikon Theme 2 - Adat Jawa (redesain "javanese elegance revival"
@@ -9,9 +9,14 @@ import batikPattern from '../../../../assets/theme2/batik-pattern.jpg';
 
 /** Siluet gunungan wayang (kayon) -- simbol pembuka lakon, dipakai di cover
  *  dan penutup undangan. */
-export function Gunungan({ className = '' }: { className?: string }) {
+export function Gunungan({ className = "" }: { className?: string }) {
   return (
-    <svg viewBox="0 0 80 130" fill="none" aria-hidden="true" className={className}>
+    <svg
+      viewBox="0 0 80 130"
+      fill="none"
+      aria-hidden="true"
+      className={className}
+    >
       <path
         d="M40 2C40 2 74 40 74 74c0 30-16 54-34 54S6 104 6 74C6 40 40 2 40 2Z"
         stroke="currentColor"
@@ -23,7 +28,12 @@ export function Gunungan({ className = '' }: { className?: string }) {
         strokeWidth="0.8"
         opacity="0.6"
       />
-      <path d="M40 30v70" stroke="currentColor" strokeWidth="0.8" opacity="0.7" />
+      <path
+        d="M40 30v70"
+        stroke="currentColor"
+        strokeWidth="0.8"
+        opacity="0.7"
+      />
       <circle cx="40" cy="62" r="11" stroke="currentColor" strokeWidth="1.1" />
       <circle cx="40" cy="62" r="4" stroke="currentColor" strokeWidth="0.8" />
       <path
@@ -44,15 +54,19 @@ export function Gunungan({ className = '' }: { className?: string }) {
 
 /** Pembatas: garis tipis emas bertemu rangkaian wajik (belah ketupat) di tengah. */
 export function Divider({
-  className = '',
-  tone = 'gold',
+  className = "",
+  tone = "gold",
 }: {
   className?: string;
-  tone?: 'gold' | 'light';
+  tone?: "gold" | "light";
 }) {
-  const color = tone === 'gold' ? 'text-[var(--jw-gold)]' : 'text-[var(--jw-gold-soft)]';
+  const color =
+    tone === "gold" ? "text-[var(--jw-gold)]" : "text-[var(--jw-gold-soft)]";
   return (
-    <div className={`flex items-center justify-center gap-3 ${color} ${className}`.trim()} aria-hidden="true">
+    <div
+      className={`flex items-center justify-center gap-3 ${color} ${className}`.trim()}
+      aria-hidden="true"
+    >
       <span className="h-px w-14 bg-current opacity-45 sm:w-20" />
       <span className="size-1 rotate-45 bg-current opacity-70" />
       <span className="size-2.5 rotate-45 border border-current" />
@@ -66,7 +80,7 @@ export function Divider({
 
 /** Bingkai sudut ukiran sulur -- taruh di pojok kartu (absolute + rotate). */
 export function CornerFlourish({
-  className = '',
+  className = "",
   rotate = 0,
 }: {
   className?: string;
@@ -80,8 +94,17 @@ export function CornerFlourish({
       className={className}
       style={{ transform: `rotate(${rotate}deg)` }}
     >
-      <path d="M2 30V6a4 4 0 0 1 4-4h24" stroke="currentColor" strokeWidth="1.2" />
-      <path d="M9 30V13a4 4 0 0 1 4-4h17" stroke="currentColor" strokeWidth="0.8" opacity="0.7" />
+      <path
+        d="M2 30V6a4 4 0 0 1 4-4h24"
+        stroke="currentColor"
+        strokeWidth="1.2"
+      />
+      <path
+        d="M9 30V13a4 4 0 0 1 4-4h17"
+        stroke="currentColor"
+        strokeWidth="0.8"
+        opacity="0.7"
+      />
       <path
         d="M14 22c6 0 10-4 10-10M24 16c4 0 7 2 7 6"
         stroke="currentColor"
@@ -96,9 +119,12 @@ export function CornerFlourish({
 /** Kartu berbingkai dengan 4 sudut ukiran (dipakai untuk foto, acara, dsb). */
 export function FramedCard({ children }: { children: ReactNode }) {
   return (
-    <div className="relative border border-[var(--jw-gold-soft)] bg-[var(--jw-card)] p-6 shadow-[var(--jw-shadow)] sm:p-7">
+    <div className="relative rounded-[4px] border border-[var(--jw-gold-soft)] bg-[var(--jw-card)] p-6 shadow-[var(--jw-shadow)] sm:p-7">
       <CornerFlourish className="absolute top-2 left-2 size-8 text-[var(--jw-gold)]/70" />
-      <CornerFlourish className="absolute right-2 bottom-2 size-8 text-[var(--jw-gold)]/70" rotate={180} />
+      <CornerFlourish
+        className="absolute right-2 bottom-2 size-8 text-[var(--jw-gold)]/70"
+        rotate={180}
+      />
       {children}
     </div>
   );
@@ -122,7 +148,7 @@ export function SectionTitle({
         </p>
       )}
       {script ? (
-        <h2 className="font-jawa-script text-5xl leading-none text-[var(--color-primary)]">
+        <h2 className="font-jawa-script text-[3.35rem] leading-none text-[var(--color-primary)]">
           {title}
         </h2>
       ) : (
@@ -137,11 +163,14 @@ export function SectionTitle({
 
 /** Tekstur batik samar sebagai overlay latar -- pakai aset foto asli, bukan
  *  pola CSS, supaya seratnya terasa autentik. */
-export function BatikBand({ className = '' }: { className?: string }) {
+export function BatikBand({ className = "" }: { className?: string }) {
   return (
     <div
       className={`pointer-events-none absolute inset-0 opacity-[0.07] ${className}`.trim()}
-      style={{ backgroundImage: `url(${batikPattern})`, backgroundSize: '260px' }}
+      style={{
+        backgroundImage: `url(${batikPattern})`,
+        backgroundSize: "260px",
+      }}
       aria-hidden="true"
     />
   );
@@ -157,13 +186,13 @@ interface IconProps {
 
 function iconAttrs(className: string | undefined) {
   return {
-    viewBox: '0 0 24 24',
-    fill: 'none',
-    stroke: 'currentColor',
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
     strokeWidth: 1.7,
-    strokeLinecap: 'round',
-    strokeLinejoin: 'round',
-    'aria-hidden': true,
+    strokeLinecap: "round",
+    strokeLinejoin: "round",
+    "aria-hidden": true,
     className,
   } as const;
 }
@@ -224,6 +253,30 @@ export function XIcon({ className }: IconProps) {
   return (
     <svg {...iconAttrs(className)}>
       <path d="M6 6l12 12M18 6 6 18" />
+    </svg>
+  );
+}
+
+export function ChevronLeftIcon({ className }: IconProps) {
+  return (
+    <svg {...iconAttrs(className)}>
+      <path d="m15 18-6-6 6-6" />
+    </svg>
+  );
+}
+
+export function ChevronRightIcon({ className }: IconProps) {
+  return (
+    <svg {...iconAttrs(className)}>
+      <path d="m9 18 6-6-6-6" />
+    </svg>
+  );
+}
+
+export function ExpandIcon({ className }: IconProps) {
+  return (
+    <svg {...iconAttrs(className)}>
+      <path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5" />
     </svg>
   );
 }

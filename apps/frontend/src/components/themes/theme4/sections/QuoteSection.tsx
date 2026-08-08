@@ -1,5 +1,5 @@
-import Reveal from '../../../shared/Reveal';
-import { ArchDivider, Bismillah } from '../components/ornaments';
+import Reveal from "../components/ThemeReveal";
+import { ArchDivider, Bismillah, IslamicArch } from "../components/ornaments";
 
 interface QuoteSectionProps {
   photoUrl: string;
@@ -8,43 +8,49 @@ interface QuoteSectionProps {
 }
 
 const DEFAULT_QUOTE_TEXT =
-  'Dan di antara tanda-tanda (kebesaran)-Nya ialah Dia menciptakan pasangan-pasangan ' +
-  'untukmu dari jenismu sendiri, agar kamu cenderung dan merasa tenteram kepadanya, dan Dia ' +
-  'menjadikan di antaramu rasa kasih dan sayang. Sungguh, pada yang demikian itu benar-benar ' +
-  'terdapat tanda-tanda (kebesaran Allah) bagi kaum yang berpikir.';
-const DEFAULT_QUOTE_SOURCE = 'Qs. Ar-Rum: 21';
+  "Dan di antara tanda-tanda (kebesaran)-Nya ialah Dia menciptakan pasangan-pasangan " +
+  "untukmu dari jenismu sendiri, agar kamu cenderung dan merasa tenteram kepadanya, dan Dia " +
+  "menjadikan di antaramu rasa kasih dan sayang. Sungguh, pada yang demikian itu benar-benar " +
+  "terdapat tanda-tanda (kebesaran Allah) bagi kaum yang berpikir.";
+const DEFAULT_QUOTE_SOURCE = "Qs. Ar-Rum: 21";
 
-/** Section 1: foto berbingkai lengkung + kutipan ayat (bisa diganti). */
-export default function QuoteSection({ photoUrl, quoteText, quoteSource }: QuoteSectionProps) {
-  const text = quoteText || DEFAULT_QUOTE_TEXT;
-  const source = quoteSource || DEFAULT_QUOTE_SOURCE;
-
+/** Pembuka ayat dengan portrait besar di dalam jendela mihrab. */
+export default function QuoteSection({
+  photoUrl,
+  quoteText,
+  quoteSource,
+}: QuoteSectionProps) {
   return (
-    <section className="px-6 py-20 bg-white">
-      <div className="mx-auto w-full max-w-sm text-center">
+    <section className="im-section relative overflow-hidden px-6 py-24 text-center">
+      <IslamicArch className="pointer-events-none absolute -right-20 top-10 h-80 w-auto text-[var(--color-primary)]/8" />
+      <div className="relative mx-auto max-w-sm">
         <Reveal variant="zoom">
-          <div className="mx-auto w-fit rounded-t-full border border-[var(--color-primary)]/50 p-2 bg-[var(--color-secondary)]">
-            <div className="h-72 w-56 overflow-hidden rounded-t-full">
-              <img
-                src={photoUrl}
-                alt="Couple"
-                className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
-              />
-            </div>
-          </div>
+          <figure className="im-mihrab-photo mx-auto aspect-[4/5] w-[78%] p-1.5">
+            <img
+              src={photoUrl}
+              alt="Potret pasangan"
+              loading="lazy"
+              className="size-full rounded-t-[999px] object-cover"
+            />
+          </figure>
         </Reveal>
 
-        <Reveal variant="up" delay={200}>
-          <Bismillah className="mt-8 text-xl text-[var(--color-primary)]" />
-          <p className="mt-4 italic text-neutral-600 leading-loose font-serif text-sm md:text-base">
-            &ldquo;{text}&rdquo;
+        <Reveal variant="up" delay={100}>
+          <Bismillah className="mt-10 text-2xl text-[var(--color-primary)]" />
+          <p
+            className="mt-3 font-arabic text-[1.55rem] leading-loose text-[var(--im-clay)]"
+            lang="ar"
+            dir="rtl"
+          >
+            وَمِنْ آيَاتِهِ أَنْ خَلَقَ لَكُم مِّنْ أَنفُسِكُمْ أَزْوَاجًا
           </p>
-        </Reveal>
-        <Reveal variant="up" delay={400}>
-          <ArchDivider className="mx-auto mt-5 w-44" />
-          <p className="mt-4 text-xs font-semibold tracking-[0.25em] uppercase text-[var(--color-primary)]">
-            {source}
-          </p>
+          <blockquote className="mt-5 font-serif text-sm italic leading-loose text-[var(--im-muted)] md:text-base">
+            &ldquo;{quoteText || DEFAULT_QUOTE_TEXT}&rdquo;
+          </blockquote>
+          <ArchDivider className="mx-auto mt-6 w-44 text-[var(--color-primary)]" />
+          <cite className="mt-4 block text-[0.58rem] font-semibold uppercase not-italic tracking-[0.3em] text-[var(--color-primary)]">
+            {quoteSource || DEFAULT_QUOTE_SOURCE}
+          </cite>
         </Reveal>
       </div>
     </section>

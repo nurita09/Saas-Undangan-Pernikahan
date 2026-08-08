@@ -1,19 +1,20 @@
-import { formatLongDate, formatTime } from '../../../../utils/formatDate';
-import type { EventInfo } from '../../../../types/wedding';
-import Reveal from '../../../shared/Reveal';
+import { formatLongDate, formatTime } from "../../../../utils/formatDate";
+import type { EventInfo } from "../../../../types/wedding";
+import Reveal from "../components/ThemeReveal";
 import {
   CalendarIcon,
   ClockIcon,
   FloralCorners,
   MapPinIcon,
   SectionTitle,
-} from '../components/ornaments';
+} from "../components/ornaments";
 
 interface EventSectionProps {
   event: EventInfo;
 }
 
 interface EventCardProps {
+  number: string;
   title: string;
   date: string | null;
   location: string | null;
@@ -21,15 +22,29 @@ interface EventCardProps {
   delay: number;
 }
 
-function EventCard({ title, date, location, mapsUrl, delay }: EventCardProps) {
+function EventCard({
+  number,
+  title,
+  date,
+  location,
+  mapsUrl,
+  delay,
+}: EventCardProps) {
   return (
     <Reveal variant="bloom" delay={delay}>
-      <article className="card-petal h-full px-7 py-9">
-        <h3 className="font-floral-script text-4xl text-[var(--color-primary)]">{title}</h3>
+      <article className="card-petal h-full overflow-hidden px-7 py-9">
+        <div className="flex items-start justify-between gap-5">
+          <h3 className="font-floral-script text-5xl leading-none text-[var(--color-primary)]">
+            {title}
+          </h3>
+          <span className="font-floral-serif text-3xl leading-none text-[var(--fl-gold)]/55">
+            {number}
+          </span>
+        </div>
         <div className="gold-rule my-5" />
         <p className="flex items-center gap-3 font-floral-serif text-lg text-[var(--fl-ink)]/85">
           <CalendarIcon className="h-4 w-4 shrink-0 text-[var(--fl-clay)]" />
-          {date ? formatLongDate(date) : 'Tanggal menyusul'}
+          {date ? formatLongDate(date) : "Tanggal menyusul"}
         </p>
         {date && (
           <p className="mt-2 flex items-center gap-3 font-floral-serif text-lg text-[var(--fl-ink)]/85">
@@ -37,16 +52,16 @@ function EventCard({ title, date, location, mapsUrl, delay }: EventCardProps) {
             {formatTime(date)}
           </p>
         )}
-        <p className="label-caps mt-7 text-[var(--fl-muted)]">Event Location</p>
+        <p className="label-caps mt-7 text-[var(--fl-muted)]">Lokasi Acara</p>
         <p className="mt-3 font-floral-serif text-base leading-relaxed text-[var(--fl-muted)]">
-          {location || 'Lokasi belum ditentukan'}
+          {location || "Lokasi belum ditentukan"}
         </p>
         {mapsUrl && (
           <a
             href={mapsUrl}
             target="_blank"
             rel="noreferrer"
-            className="label-caps mt-7 inline-flex items-center gap-3 border border-[var(--fl-clay)]/50 px-6 py-3 text-[var(--fl-clay)] transition-colors duration-500 hover:bg-[var(--fl-clay)] hover:text-white"
+            className="label-caps mt-7 inline-flex w-full items-center justify-center gap-3 border border-[var(--fl-clay)]/50 px-6 py-3 text-[var(--fl-clay)] transition-colors duration-500 hover:bg-[var(--fl-clay)] hover:text-white"
           >
             <MapPinIcon className="h-4 w-4" />
             Google Maps
@@ -60,14 +75,22 @@ function EventCard({ title, date, location, mapsUrl, delay }: EventCardProps) {
 /** Section 3: Wedding Event -- kartu Akad Nikah & Resepsi. */
 export default function EventSection({ event }: EventSectionProps) {
   return (
-    <section className="relative overflow-hidden bg-[var(--fl-tint)] px-6 py-20">
-      <FloralCorners spots={['tr', 'bl']} opacity="opacity-50" />
+    <section
+      id="events"
+      className="floral-section-tint relative overflow-hidden px-6 py-24"
+    >
+      <FloralCorners spots={["tr"]} size="w-32" opacity="opacity-35" />
       <div className="relative mx-auto max-w-md">
         <Reveal variant="bloom">
-          <SectionTitle eyebrow="Save Our Date" title="Wedding Event" script={false} />
+          <SectionTitle
+            eyebrow="Save Our Date"
+            title="Wedding Event"
+            script={false}
+          />
         </Reveal>
         <div className="mt-12 space-y-7">
           <EventCard
+            number="01"
             title="Akad Nikah"
             date={event.akad_date || event.wedding_date}
             location={event.akad_location || event.location_address}
@@ -75,6 +98,7 @@ export default function EventSection({ event }: EventSectionProps) {
             delay={0}
           />
           <EventCard
+            number="02"
             title="Resepsi"
             date={event.resepsi_date || event.wedding_date}
             location={event.resepsi_location || event.location_address}

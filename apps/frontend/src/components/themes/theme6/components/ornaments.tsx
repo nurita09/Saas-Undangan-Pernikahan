@@ -1,4 +1,4 @@
-import type { CoupleInfo } from '../../../../types/wedding';
+import type { CoupleInfo } from "../../../../types/wedding";
 
 /**
  * Ornamen & ikon Theme 6 - Vintage Monogram. Semuanya SVG/markup murni tanpa
@@ -9,7 +9,7 @@ import type { CoupleInfo } from '../../../../types/wedding';
 
 /** Inisial satu huruf dari nama ("Arka Pradipta" -> "A"). */
 function initialOf(name: string): string {
-  return (name.trim().charAt(0) || '?').toUpperCase();
+  return (name.trim().charAt(0) || "?").toUpperCase();
 }
 
 interface MonogramProps {
@@ -18,17 +18,20 @@ interface MonogramProps {
   className?: string;
 }
 
-/** Monogram lingkaran ganda berisi inisial pasangan dalam font script. */
-export function Monogram({ couple, className = '' }: MonogramProps) {
+/** Monogram bergaya stempel arsip dengan inisial pasangan. */
+export function Monogram({ couple, className = "" }: MonogramProps) {
   return (
     <div
       aria-hidden="true"
-      className={`relative grid shrink-0 place-items-center rounded-full border border-current/40 ${className}`.trim()}
+      className={`relative grid shrink-0 place-items-center rounded-full border border-current/50 ${className}`.trim()}
     >
       <span className="absolute inset-1 rounded-full border border-current/25" />
+      <span className="absolute inset-[0.65rem] rounded-full border border-dashed border-current/20" />
       <span className="font-vintage-script leading-none">
         {initialOf(couple.groom_name)}
-        <span className="mx-0.5 font-vintage text-[0.6em] align-middle opacity-80">&amp;</span>
+        <span className="mx-0.5 font-vintage text-[0.6em] align-middle opacity-80">
+          &amp;
+        </span>
         {initialOf(couple.bride_name)}
       </span>
     </div>
@@ -36,20 +39,69 @@ export function Monogram({ couple, className = '' }: MonogramProps) {
 }
 
 /** Label kicker diapit garis memudar (.deco-rule di index.css). */
-export function Ornament({ label }: { label: string }) {
+export function Ornament({
+  label,
+  inverse = false,
+}: {
+  label: string;
+  inverse?: boolean;
+}) {
   return (
-    <div className="deco-rule text-[0.62rem] tracking-[0.35em] text-[var(--color-primary)] uppercase">
+    <div
+      className={`deco-rule text-[0.62rem] tracking-[0.28em] uppercase ${
+        inverse ? "text-[var(--va-brass-soft)]" : "text-[var(--va-oxblood)]"
+      }`}
+    >
       {label}
     </div>
   );
 }
 
-/** Kicker + judul display -- dipakai hampir semua section. */
-export function SectionTitle({ kicker, title }: { kicker: string; title: string }) {
+interface SectionTitleProps {
+  kicker: string;
+  title: string;
+  inverse?: boolean;
+  align?: "left" | "center";
+  description?: string;
+}
+
+/** Kicker + judul display untuk setiap lembar arsip. */
+export function SectionTitle({
+  kicker,
+  title,
+  inverse = false,
+  align = "center",
+  description,
+}: SectionTitleProps) {
   return (
-    <div className="text-center">
-      <Ornament label={kicker} />
-      <h2 className="mt-3 font-vintage text-3xl text-[var(--sage-deep)]">{title}</h2>
+    <div className={align === "left" ? "text-left" : "text-center"}>
+      {align === "left" ? (
+        <p
+          className={`text-[0.62rem] tracking-[0.28em] uppercase ${
+            inverse ? "text-[var(--va-brass-soft)]" : "text-[var(--va-oxblood)]"
+          }`}
+        >
+          {kicker}
+        </p>
+      ) : (
+        <Ornament label={kicker} inverse={inverse} />
+      )}
+      <h2
+        className={`mt-3 font-vintage text-[2rem] leading-[1.05] ${
+          inverse ? "text-[var(--va-vellum)]" : "text-[var(--va-forest)]"
+        }`}
+      >
+        {title}
+      </h2>
+      {description && (
+        <p
+          className={`mt-4 text-sm leading-6 ${
+            inverse ? "text-[var(--va-vellum)]/72" : "text-[var(--va-muted)]"
+          }`}
+        >
+          {description}
+        </p>
+      )}
     </div>
   );
 }
@@ -64,13 +116,13 @@ interface IconProps {
 
 function iconAttrs(className: string | undefined) {
   return {
-    viewBox: '0 0 24 24',
-    fill: 'none',
-    stroke: 'currentColor',
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
     strokeWidth: 1.7,
-    strokeLinecap: 'round',
-    strokeLinejoin: 'round',
-    'aria-hidden': true,
+    strokeLinecap: "round",
+    strokeLinejoin: "round",
+    "aria-hidden": true,
     className,
   } as const;
 }
@@ -188,6 +240,56 @@ export function ChevronDownIcon({ className }: IconProps) {
   return (
     <svg {...iconAttrs(className)}>
       <path d="M5 9l7 7 7-7" />
+    </svg>
+  );
+}
+
+export function ChevronLeftIcon({ className }: IconProps) {
+  return (
+    <svg {...iconAttrs(className)}>
+      <path d="m15 18-6-6 6-6" />
+    </svg>
+  );
+}
+
+export function ChevronRightIcon({ className }: IconProps) {
+  return (
+    <svg {...iconAttrs(className)}>
+      <path d="m9 18 6-6-6-6" />
+    </svg>
+  );
+}
+
+export function MailIcon({ className }: IconProps) {
+  return (
+    <svg {...iconAttrs(className)}>
+      <rect x="3" y="5" width="18" height="14" rx="1" />
+      <path d="m3 7 9 6 9-6" />
+    </svg>
+  );
+}
+
+export function SendIcon({ className }: IconProps) {
+  return (
+    <svg {...iconAttrs(className)}>
+      <path d="m22 2-7 20-4-9-9-4Z" />
+      <path d="M22 2 11 13" />
+    </svg>
+  );
+}
+
+export function ExpandIcon({ className }: IconProps) {
+  return (
+    <svg {...iconAttrs(className)}>
+      <path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5" />
+    </svg>
+  );
+}
+
+export function XIcon({ className }: IconProps) {
+  return (
+    <svg {...iconAttrs(className)}>
+      <path d="M18 6 6 18M6 6l12 12" />
     </svg>
   );
 }

@@ -1,17 +1,22 @@
-import { useState } from 'react';
-import type { WeddingGiftInfo } from '../../../../types/wedding';
-import Reveal from '../../../shared/Reveal';
-import { ArchDivider, geometricBackground } from '../components/ornaments';
+import { useState } from "react";
+import type { WeddingGiftInfo } from "../../../../types/wedding";
+import Reveal from "../components/ThemeReveal";
+import {
+  CheckIcon,
+  CopyIcon,
+  GiftIcon,
+  SectionHeading,
+  geometricBackground,
+} from "../components/ornaments";
 
 interface GiftSectionProps {
   gifts: WeddingGiftInfo[];
 }
 
-/** Section 6: Tanda Kasih -- amplop digital / kado. */
+/** Pilihan tanda kasih dalam kartu mandiri di atas bidang hijau mineral. */
 export default function GiftSection({ gifts }: GiftSectionProps) {
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
   const [copyFailedIdx, setCopyFailedIdx] = useState<number | null>(null);
-
   if (!gifts || gifts.length === 0) return null;
 
   const copyWithFallback = async (value: string) => {
@@ -19,100 +24,123 @@ export default function GiftSection({ gifts }: GiftSectionProps) {
       await navigator.clipboard.writeText(value);
       return;
     }
-
-    const textarea = document.createElement('textarea');
+    const textarea = document.createElement("textarea");
     textarea.value = value;
-    textarea.setAttribute('readonly', '');
-    textarea.style.position = 'fixed';
-    textarea.style.top = '0';
-    textarea.style.left = '-9999px';
+    textarea.setAttribute("readonly", "");
+    textarea.style.position = "fixed";
+    textarea.style.left = "-9999px";
     document.body.appendChild(textarea);
-    textarea.focus();
     textarea.select();
-
-    const copied = document.execCommand('copy');
+    const copied = document.execCommand("copy");
     document.body.removeChild(textarea);
-
-    if (!copied) {
-      throw new Error('Gagal menyalin');
-    }
+    if (!copied) throw new Error("Gagal menyalin");
   };
 
-  const copyText = async (value: string, idx: number) => {
+  const copyText = async (value: string, index: number) => {
     if (!value.trim()) return;
-
     try {
       await copyWithFallback(value);
       setCopyFailedIdx(null);
-      setCopiedIdx(idx);
-      setTimeout(() => setCopiedIdx((prev) => (prev === idx ? null : prev)), 1800);
+      setCopiedIdx(index);
+      setTimeout(
+        () => setCopiedIdx((current) => (current === index ? null : current)),
+        1800,
+      );
     } catch {
       setCopiedIdx(null);
-      setCopyFailedIdx(idx);
-      setTimeout(() => setCopyFailedIdx((prev) => (prev === idx ? null : prev)), 2500);
+      setCopyFailedIdx(index);
+      setTimeout(
+        () =>
+          setCopyFailedIdx((current) => (current === index ? null : current)),
+        2500,
+      );
     }
   };
 
   return (
-    <section className="relative bg-[var(--color-secondary)] px-6 py-16 overflow-hidden">
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0" style={geometricBackground(0.05)} />
+    <section className="im-section-deep relative overflow-hidden px-6 py-24">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0"
+        style={geometricBackground(0.06)}
+      />
+      <div className="relative mx-auto max-w-md">
+        <Reveal variant="blur">
+          <GiftIcon className="mx-auto mb-5 h-7 w-7 text-[var(--im-clay)]" />
+          <SectionHeading
+            arabic="جَزَاكُمُ اللَّهُ خَيْرًا"
+            eyebrow="A Token Of Love"
+            title="Tanda Kasih"
+            description="Kehadiran dan doa restu Anda adalah hadiah terindah. Bagi yang berkenan, tanda kasih dapat disampaikan melalui pilihan berikut."
+            inverse
+          />
+        </Reveal>
 
-      <Reveal variant="up" className="relative z-10">
-        <div className="mx-auto max-w-md rounded-t-[3rem] rounded-b-2xl border border-[var(--color-primary)]/40 bg-white p-7 shadow-sm">
-          <h2 className="text-center font-serif text-2xl font-semibold text-neutral-800">Tanda Kasih</h2>
-          <ArchDivider className="mx-auto mt-3 w-40" />
-          <p className="mt-5 text-center text-sm text-neutral-500 leading-relaxed">
-            Doa restu Bapak/Ibu/Saudara/i adalah karunia terindah bagi kami. Namun jika berkenan
-            memberikan tanda kasih, dapat disampaikan melalui:
-          </p>
-
-          <div className="mt-7 space-y-4">
-            {gifts.map((gift, idx) => (
-              <Reveal key={idx} variant="up" delay={idx * 150}>
-                <div className="rounded-2xl border border-[var(--color-primary)]/30 p-5 text-left">
-                  <span className="float-right text-xl">{gift.gift_type === 'kado' ? '🎁' : '💳'}</span>
-
-                  {gift.gift_type === 'kado' ? (
-                    <>
-                      <h3 className="font-serif text-lg font-bold text-neutral-800">Kado</h3>
-                      <p className="mt-3 text-[11px] uppercase tracking-[0.25em] font-semibold text-[var(--color-primary)]">
-                        Nama Penerima
+        <div className="mt-10 space-y-5">
+          {gifts.map((gift, index) => {
+            const isDelivery = gift.gift_type === "kado";
+            const value = gift.account_number || "";
+            return (
+              <Reveal
+                key={`${gift.bank_name}-${index}`}
+                variant="up"
+                delay={index * 90}
+              >
+                <article className="im-card p-6 text-left">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="text-[0.52rem] font-semibold uppercase tracking-[0.28em] text-[var(--color-primary)]">
+                        {isDelivery ? "Kirim Hadiah" : "Bank Transfer"}
                       </p>
-                      <p className="text-sm text-neutral-700">{gift.account_name}</p>
-                      <p className="mt-3 text-[11px] uppercase tracking-[0.25em] font-semibold text-[var(--color-primary)]">
-                        Alamat
-                      </p>
-                    </>
-                  ) : (
-                    <>
-                      <h3 className="font-serif text-lg font-bold text-neutral-800">{gift.bank_name}</h3>
-                      <p className="mt-3 text-[11px] uppercase tracking-[0.25em] font-semibold text-[var(--color-primary)]">
-                        Atas Nama
-                      </p>
-                      <p className="text-sm text-neutral-700">{gift.account_name}</p>
-                      <p className="mt-3 text-[11px] uppercase tracking-[0.25em] font-semibold text-[var(--color-primary)]">
-                        Nomor Rekening
-                      </p>
-                    </>
-                  )}
-
-                  <div className="mt-1 flex items-center justify-between gap-3">
-                    <p className="truncate text-sm text-neutral-700">{gift.account_number}</p>
-                    <button
-                      type="button"
-                      onClick={() => copyText(gift.account_number || '', idx)}
-                      disabled={!gift.account_number?.trim()}
-                      className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-[var(--color-primary)] px-3 py-1.5 text-xs font-medium text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-45"
-                    >
-                      {copiedIdx === idx ? '✓ Tersalin' : copyFailedIdx === idx ? 'Gagal' : '📋 Salin'}
-                    </button>
+                      <h3 className="mt-2 font-serif text-xl text-[var(--im-ink)]">
+                        {isDelivery
+                          ? "Alamat Penerima"
+                          : gift.bank_name || "Rekening"}
+                      </h3>
+                    </div>
+                    <GiftIcon className="h-6 w-6 shrink-0 text-[var(--im-clay)]" />
                   </div>
-                </div>
+                  <dl className="mt-5 space-y-4 border-t border-[var(--im-line)] pt-5">
+                    <div>
+                      <dt className="text-[0.52rem] uppercase tracking-[0.26em] text-[var(--color-primary)]">
+                        {isDelivery ? "Nama Penerima" : "Atas Nama"}
+                      </dt>
+                      <dd className="mt-1 text-sm text-[var(--im-muted)]">
+                        {gift.account_name || "Belum ditentukan"}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-[0.52rem] uppercase tracking-[0.26em] text-[var(--color-primary)]">
+                        {isDelivery ? "Alamat" : "Nomor Rekening"}
+                      </dt>
+                      <dd className="mt-1 break-words text-sm leading-relaxed text-[var(--im-muted)]">
+                        {value || "Belum ditentukan"}
+                      </dd>
+                    </div>
+                  </dl>
+                  <button
+                    type="button"
+                    onClick={() => copyText(value, index)}
+                    disabled={!value.trim()}
+                    className="mt-6 inline-flex min-h-11 items-center gap-2 border border-[var(--color-primary)] px-4 text-[0.58rem] font-semibold uppercase tracking-[0.2em] text-[var(--color-primary)] transition hover:bg-[var(--color-primary)] hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    {copiedIdx === index ? (
+                      <CheckIcon className="h-4 w-4" />
+                    ) : (
+                      <CopyIcon className="h-4 w-4" />
+                    )}
+                    {copiedIdx === index
+                      ? "Tersalin"
+                      : copyFailedIdx === index
+                        ? "Gagal Menyalin"
+                        : "Salin Detail"}
+                  </button>
+                </article>
               </Reveal>
-            ))}
-          </div>
+            );
+          })}
         </div>
-      </Reveal>
+      </div>
     </section>
   );
 }

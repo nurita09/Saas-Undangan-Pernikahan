@@ -1,69 +1,85 @@
-import { useCountdown } from '../../../../hooks/useCountdown';
-import { buildIcsDataUrl } from '../../../../utils/formatDate';
-import type { CoupleInfo, EventInfo } from '../../../../types/wedding';
-import Reveal from '../../../shared/Reveal';
-import { CalendarIcon, SectionTitle } from '../components/ornaments';
+import { useCountdown } from "../../../../hooks/useCountdown";
+import { buildIcsDataUrl, formatLongDate } from "../../../../utils/formatDate";
+import type { CoupleInfo, EventInfo } from "../../../../types/wedding";
+import Reveal from "../components/ThemeReveal";
+import { CalendarIcon } from "../components/ornaments";
 
 interface SaveTheDateSectionProps {
   couple: CoupleInfo;
   event: EventInfo;
 }
 
-/** Section 2a: hitung mundur (kartu ber-border) + tombol simpan .ics. */
-export default function SaveTheDateSection({ couple, event }: SaveTheDateSectionProps) {
+export default function SaveTheDateSection({
+  couple,
+  event,
+}: SaveTheDateSectionProps) {
   const countdown = useCountdown(event.wedding_date);
-
   const calendarUrl = buildIcsDataUrl({
     title: `Pernikahan ${couple.groom_name} & ${couple.bride_name}`,
-    description: 'Undangan pernikahan',
-    location: event.location_address || '',
+    description: "Undangan pernikahan",
+    location: event.location_address || "",
     startDate: event.wedding_date,
   });
-
-  const countdownItems = countdown
+  const items = countdown
     ? [
-        { label: 'Hari', value: countdown.days },
-        { label: 'Jam', value: countdown.hours },
-        { label: 'Menit', value: countdown.minutes },
-        { label: 'Detik', value: countdown.seconds },
+        { label: "Hari", value: countdown.days },
+        { label: "Jam", value: countdown.hours },
+        { label: "Menit", value: countdown.minutes },
+        { label: "Detik", value: countdown.seconds },
       ]
     : [];
 
-  if (countdownItems.length === 0 && !calendarUrl) return null;
+  if (items.length === 0 && !calendarUrl) return null;
 
   return (
-    <section className="bg-[var(--sage-soft)] px-7 pt-20 pb-4">
-      <Reveal variant="up">
-        <SectionTitle kicker="Menuju Hari Bahagia" title="Hitung Mundur" />
+    <section className="bg-[var(--va-vellum)] px-5 py-20">
+      <Reveal variant="zoom">
+        <div className="relative overflow-hidden border border-[var(--va-brass)]/55 bg-[var(--va-forest)] px-5 py-7 text-[var(--va-vellum)] shadow-[0_22px_48px_-34px_rgba(20,38,31,0.8)]">
+          <div className="pointer-events-none absolute inset-2 border border-[var(--va-brass-soft)]/25" />
+          <div className="relative text-center">
+            <p className="text-[0.58rem] tracking-[0.3em] text-[var(--va-brass-soft)] uppercase">
+              Save the date certificate
+            </p>
+            <h2 className="mt-3 font-vintage text-[2rem]">Hari Bahagia Kami</h2>
+            {event.wedding_date && (
+              <p className="mt-2 text-[0.62rem] tracking-[0.16em] uppercase opacity-75">
+                {formatLongDate(event.wedding_date)}
+              </p>
+            )}
 
-        {countdownItems.length > 0 && (
-          <div className="mt-7 grid grid-cols-4 gap-2">
-            {countdownItems.map((item) => (
-              <div
-                key={item.label}
-                className="rounded-sm border border-[var(--color-primary)]/30 bg-[var(--t6-card)]/70 px-1 py-3 text-center"
-              >
-                <div className="font-vintage text-2xl leading-none text-[var(--sage-deep)] tabular-nums">
-                  {String(item.value).padStart(2, '0')}
-                </div>
-                <div className="mt-1 text-[0.6rem] tracking-[0.22em] text-[var(--t6-muted)] uppercase">
-                  {item.label}
-                </div>
+            {items.length > 0 && (
+              <div className="mt-7 grid grid-cols-4 border-y border-[var(--va-brass-soft)]/35 py-4">
+                {items.map((item, index) => (
+                  <div
+                    key={item.label}
+                    className={
+                      index > 0
+                        ? "border-l border-[var(--va-brass-soft)]/25"
+                        : ""
+                    }
+                  >
+                    <p className="font-vintage text-2xl leading-none tabular-nums">
+                      {String(item.value).padStart(2, "0")}
+                    </p>
+                    <p className="mt-1.5 text-[0.5rem] tracking-[0.16em] text-[var(--va-brass-soft)] uppercase">
+                      {item.label}
+                    </p>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        )}
+            )}
 
-        {calendarUrl && (
-          <a
-            href={calendarUrl}
-            download={`undangan-${couple.groom_name}-${couple.bride_name}.ics`}
-            className="mt-5 flex w-full items-center justify-center gap-2 rounded-sm border border-[var(--color-primary)]/40 bg-[var(--t6-card)] py-2.5 text-sm text-[var(--sage-deep)] transition-colors hover:bg-[var(--t6-card)]/60"
-          >
-            <CalendarIcon className="h-4 w-4" />
-            Simpan ke Kalender
-          </a>
-        )}
+            {calendarUrl && (
+              <a
+                href={calendarUrl}
+                download={`undangan-${couple.groom_name}-${couple.bride_name}.ics`}
+                className="mt-6 inline-flex h-11 items-center justify-center gap-2 border border-[var(--va-brass-soft)]/55 px-5 text-[0.62rem] tracking-[0.18em] uppercase transition hover:bg-[var(--va-vellum)] hover:text-[var(--va-forest)]"
+              >
+                <CalendarIcon className="h-4 w-4" /> Simpan ke kalender
+              </a>
+            )}
+          </div>
+        </div>
       </Reveal>
     </section>
   );

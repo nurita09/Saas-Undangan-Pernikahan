@@ -1,34 +1,35 @@
-import { useEffect, useRef, useState, type CSSProperties } from 'react';
-import type { ThemeComponentProps } from '../../../types/wedding';
-import LeftPane from './components/LeftPane';
-import { MusicIcon, PauseIcon, Petals } from './components/ornaments';
-import CoverSection from './sections/CoverSection';
-import QuoteSection from './sections/QuoteSection';
-import SaveTheDateSection from './sections/SaveTheDateSection';
-import CoupleSection from './sections/CoupleSection';
-import EventSection from './sections/EventSection';
-import LoveStorySection from './sections/LoveStorySection';
-import GallerySection from './sections/GallerySection';
-import GiftSection from './sections/GiftSection';
-import RsvpSection from './sections/RsvpSection';
-import ThankYouSection from './sections/ThankYouSection';
-import FooterSection from './sections/FooterSection';
-import fallbackCover from '../../../assets/theme1/hero.jpg';
+import { useEffect, useRef, useState, type CSSProperties } from "react";
+import type { ThemeComponentProps } from "../../../types/wedding";
+import LeftPane from "./components/LeftPane";
+import { MusicIcon, PauseIcon, Petals } from "./components/ornaments";
+import CoverSection from "./sections/CoverSection";
+import QuoteSection from "./sections/QuoteSection";
+import SaveTheDateSection from "./sections/SaveTheDateSection";
+import CoupleSection from "./sections/CoupleSection";
+import EventSection from "./sections/EventSection";
+import LoveStorySection from "./sections/LoveStorySection";
+import GallerySection from "./sections/GallerySection";
+import GiftSection from "./sections/GiftSection";
+import RsvpSection from "./sections/RsvpSection";
+import ThankYouSection from "./sections/ThankYouSection";
+import FooterSection from "./sections/FooterSection";
+import fallbackCover from "../../../assets/theme1/hero.jpg";
 
-const DEFAULT_PRIMARY_COLOR = '#8D7B68';
-const DEFAULT_SECONDARY_COLOR = '#F9F8F4';
+const DEFAULT_PRIMARY_COLOR = "#8D7B68";
+const DEFAULT_SECONDARY_COLOR = "#F9F8F4";
 
 interface ThemeCssVars extends CSSProperties {
-  '--color-primary': string;
-  '--color-secondary': string;
-  '--fl-clay': string;
-  '--fl-gold': string;
-  '--fl-blush': string;
-  '--fl-tint': string;
-  '--fl-card': string;
-  '--fl-ink': string;
-  '--fl-muted': string;
-  '--fl-veil': string;
+  "--color-primary": string;
+  "--color-secondary": string;
+  "--fl-clay": string;
+  "--fl-gold": string;
+  "--fl-blush": string;
+  "--fl-leaf": string;
+  "--fl-tint": string;
+  "--fl-card": string;
+  "--fl-ink": string;
+  "--fl-muted": string;
+  "--fl-veil": string;
 }
 
 /**
@@ -91,13 +92,17 @@ export default function Theme1({ data, guestName }: ThemeComponentProps) {
       .play()
       .then(() => setIsPlaying(true))
       .catch(() => {
-        document.addEventListener('pointerdown', startOnFirstGesture, { once: true });
-        document.addEventListener('keydown', startOnFirstGesture, { once: true });
+        document.addEventListener("pointerdown", startOnFirstGesture, {
+          once: true,
+        });
+        document.addEventListener("keydown", startOnFirstGesture, {
+          once: true,
+        });
       });
 
     return () => {
-      document.removeEventListener('pointerdown', startOnFirstGesture);
-      document.removeEventListener('keydown', startOnFirstGesture);
+      document.removeEventListener("pointerdown", startOnFirstGesture);
+      document.removeEventListener("keydown", startOnFirstGesture);
     };
   }, [musicUrl]);
 
@@ -118,17 +123,20 @@ export default function Theme1({ data, guestName }: ThemeComponentProps) {
           .catch(() => {});
       }
     };
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () =>
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
   }, []);
 
   const scrollToContent = () => {
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const prefersReducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
     const target = contentRef.current;
     if (!target) return;
 
     if (prefersReducedMotion) {
-      target.scrollIntoView({ behavior: 'auto' });
+      target.scrollIntoView({ behavior: "auto" });
       return;
     }
 
@@ -178,31 +186,38 @@ export default function Theme1({ data, guestName }: ThemeComponentProps) {
   };
 
   const cssVars: ThemeCssVars = {
-    '--color-primary': primaryColor,
-    '--color-secondary': secondaryColor,
-    '--fl-clay': 'color-mix(in oklab, var(--color-primary) 55%, #D9A778)',
-    '--fl-gold': '#C5A253',
-    '--fl-blush': '#E3B7AE',
-    '--fl-tint': 'color-mix(in oklab, var(--color-primary) 7%, var(--color-secondary))',
-    '--fl-card': 'color-mix(in oklab, var(--color-secondary) 25%, white)',
-    '--fl-ink': '#4A4238',
-    '--fl-muted': '#80756A',
-    '--fl-veil':
-      'linear-gradient(180deg, transparent 0%, color-mix(in oklab, var(--color-secondary) 55%, transparent) 60%, color-mix(in oklab, var(--color-secondary) 85%, transparent) 100%)',
+    "--color-primary": primaryColor,
+    "--color-secondary": secondaryColor,
+    "--fl-clay": "color-mix(in oklab, var(--color-primary) 55%, #D9A778)",
+    "--fl-gold": "#C5A253",
+    "--fl-blush": "#E3B7AE",
+    "--fl-leaf": "#8FA08A",
+    "--fl-tint":
+      "color-mix(in oklab, var(--color-primary) 6%, var(--color-secondary))",
+    "--fl-card": "color-mix(in oklab, var(--color-secondary) 18%, white)",
+    "--fl-ink": "#4A4238",
+    "--fl-muted": "#80756A",
+    "--fl-veil":
+      "linear-gradient(180deg, rgba(255,255,255,0.08) 0%, color-mix(in oklab, var(--color-secondary) 28%, transparent) 52%, color-mix(in oklab, var(--color-secondary) 70%, transparent) 100%)",
   };
 
   const coverPhotoUrl = data.cover_photo_url || fallbackCover;
+  const closingPhotoUrl = gallery_photos.at(-1)?.photo_url || coverPhotoUrl;
 
   return (
     <div
-      className="wedding-invitation flex w-full min-h-screen font-floral-serif text-[var(--fl-ink)] selection:bg-[var(--fl-blush)]/60"
+      className="wedding-invitation theme-floral-elegant flex w-full min-h-screen font-floral-serif text-[var(--fl-ink)] selection:bg-[var(--fl-blush)]/60"
       style={cssVars}
     >
       {/* ===== Left Pane (Desktop Background) ===== */}
-      <LeftPane couple={couple} weddingDate={event.wedding_date} coverPhotoUrl={coverPhotoUrl} />
+      <LeftPane
+        couple={couple}
+        weddingDate={event.wedding_date}
+        coverPhotoUrl={coverPhotoUrl}
+      />
 
       {/* ===== Right Pane (Mobile Frame) ===== */}
-      <div className="w-full lg:w-[420px] lg:shrink-0 min-h-screen bg-[var(--color-secondary)] relative overflow-x-hidden shadow-2xl z-20">
+      <div className="floral-pane w-full lg:w-[420px] lg:shrink-0 min-h-screen relative overflow-x-hidden shadow-2xl z-20">
         {musicUrl && <audio ref={audioRef} src={musicUrl} loop />}
 
         {/* Cover tetap jadi section paling atas (tidak di-unmount) -- guest
@@ -226,24 +241,31 @@ export default function Theme1({ data, guestName }: ThemeComponentProps) {
             <CoupleSection couple={couple} />
             <EventSection event={event} />
             <LoveStorySection stories={love_stories} />
-            <GallerySection photos={gallery_photos} videoUrl={gallery_video_url} />
+            <GallerySection
+              photos={gallery_photos}
+              videoUrl={gallery_video_url}
+            />
             <GiftSection gifts={wedding_gifts} />
             <RsvpSection guestName={guestName} />
-            <ThankYouSection couple={couple} />
+            <ThankYouSection couple={couple} photoUrl={closingPhotoUrl} />
             <FooterSection contact={contact} />
           </div>
         )}
 
-        {isOpened && <Petals />}
+        {isOpened && <Petals count={8} />}
 
         {isOpened && musicUrl && (
           <button
             type="button"
             onClick={toggleMusic}
-            aria-label={isPlaying ? 'Jeda musik' : 'Putar musik'}
-            className="fixed bottom-6 right-6 z-50 flex h-13 w-13 items-center justify-center rounded-full bg-[var(--fl-clay)] p-3.5 text-white shadow-[0_18px_40px_-20px_rgba(74,66,56,0.6)] transition-transform duration-500 hover:scale-105"
+            aria-label={isPlaying ? "Jeda musik" : "Putar musik"}
+            className="fixed bottom-6 right-6 z-50 flex h-13 w-13 items-center justify-center rounded-full border border-white/35 bg-[var(--fl-clay)] p-3.5 text-white shadow-[0_18px_40px_-20px_rgba(74,66,56,0.6)] transition-transform duration-500 hover:scale-105"
           >
-            {isPlaying ? <PauseIcon className="h-5 w-5" /> : <MusicIcon className="h-5 w-5" />}
+            {isPlaying ? (
+              <PauseIcon className="h-5 w-5" />
+            ) : (
+              <MusicIcon className="h-5 w-5" />
+            )}
           </button>
         )}
       </div>

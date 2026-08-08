@@ -1,7 +1,7 @@
-import { formatCoverDate } from '../../../../utils/formatDate';
-import type { CoupleInfo } from '../../../../types/wedding';
-import CoverMedia from '../../../shared/CoverMedia';
-import { RetroSun } from './ornaments';
+import type { CoupleInfo } from "../../../../types/wedding";
+import { formatCoverDate } from "../../../../utils/formatDate";
+import CoverMedia from "../../../shared/CoverMedia";
+import { Daisy, RetroSun, halftoneBackground } from "./ornaments";
 
 interface LeftPaneProps {
   couple: CoupleInfo;
@@ -9,24 +9,41 @@ interface LeftPaneProps {
   coverPhotoUrl: string;
 }
 
-/** Panel kiri desktop retro pop: foto full-screen + matahari 70-an & nama.
- *  Sticky + h-screen -- alasan sama dengan theme1 (lihat komentarnya). */
-export default function LeftPane({ couple, weddingDate, coverPhotoUrl }: LeftPaneProps) {
+/** Poster foto penuh untuk panggung desktop. */
+export default function LeftPane({
+  couple,
+  weddingDate,
+  coverPhotoUrl,
+}: LeftPaneProps) {
   return (
-    <div className="hidden lg:flex lg:flex-1 lg:sticky lg:top-0 lg:h-screen relative flex-col items-center justify-end pb-24 overflow-hidden shadow-[inset_-20px_0_40px_rgba(0,0,0,0.3)] z-10">
-      <CoverMedia src={coverPhotoUrl} alt="Cover" className="absolute inset-0 w-full h-full object-cover" />
-      <div className="absolute inset-0 bg-gradient-to-t from-[#3D2A1E]/90 via-[#3D2A1E]/25 to-transparent"></div>
-      <div className="relative z-20 text-center text-white max-w-2xl px-8">
-        <RetroSun className="mx-auto h-20 w-auto" />
-        <p className="mt-5 inline-block -rotate-2 rounded-full border-2 border-white bg-[#E3B23C] px-5 py-1 text-sm font-bold uppercase tracking-[0.2em] text-[#5C4033]">
-          We&rsquo;re Getting Married!
+    <div className="relative z-10 hidden h-screen flex-1 flex-col items-start justify-end overflow-hidden pb-20 pl-[9%] shadow-[inset_-20px_0_40px_rgba(0,0,0,0.26)] lg:sticky lg:top-0 lg:flex">
+      <CoverMedia
+        src={coverPhotoUrl}
+        alt="Potret pernikahan"
+        className="absolute inset-0 size-full object-cover"
+      />
+      <div className="absolute inset-0 bg-gradient-to-t from-[var(--rp-ink)] via-[var(--rp-ink)]/35 to-black/10" />
+      <div className="absolute inset-0 bg-[linear-gradient(90deg,color-mix(in_oklab,var(--rp-teal)_32%,transparent),transparent_58%)]" />
+      <div
+        className="absolute inset-0"
+        style={halftoneBackground(0.12)}
+        aria-hidden="true"
+      />
+      <Daisy className="absolute right-12 top-10 h-16 w-16 rotate-12 text-[var(--rp-yellow)]" />
+
+      <div className="relative z-20 max-w-3xl pr-10 text-left text-white">
+        <RetroSun className="h-20 w-auto text-white" />
+        <p className="mt-5 inline-block bg-[var(--rp-yellow)] px-4 py-2 text-[0.62rem] font-bold uppercase tracking-[0.26em] text-[var(--rp-ink)]">
+          Wedding Special Edition
         </p>
-        <h1 className="mt-5 font-retro text-6xl xl:text-7xl leading-tight drop-shadow-xl text-white">
-          {couple.groom_name} &amp; {couple.bride_name}
+        <h1 className="mt-5 break-words font-retro text-6xl leading-[1.02] text-white drop-shadow-xl xl:text-7xl">
+          {couple.groom_name}{" "}
+          <span className="text-[var(--rp-yellow)]">&amp;</span>{" "}
+          {couple.bride_name}
         </h1>
         {weddingDate && (
-          <p className="mt-6 font-retro text-2xl tracking-[0.15em] text-[#E3B23C] drop-shadow-md">
-            ✿ {formatCoverDate(weddingDate)} ✿
+          <p className="mt-6 font-retro text-xl tracking-[0.16em] text-[var(--rp-yellow)]">
+            {formatCoverDate(weddingDate)}
           </p>
         )}
       </div>

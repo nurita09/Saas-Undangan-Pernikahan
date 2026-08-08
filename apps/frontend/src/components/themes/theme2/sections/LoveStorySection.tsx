@@ -1,6 +1,6 @@
-import type { LoveStoryInfo } from '../../../../types/wedding';
-import Reveal from '../../../shared/Reveal';
-import { SectionTitle } from '../components/ornaments';
+import type { LoveStoryInfo } from "../../../../types/wedding";
+import Reveal from "../components/ThemeReveal";
+import { SectionTitle } from "../components/ornaments";
 
 const MAX_LOVE_STORIES = 5;
 
@@ -13,7 +13,7 @@ export default function LoveStorySection({ stories }: LoveStorySectionProps) {
   if (!stories || stories.length === 0) return null;
 
   return (
-    <section className="px-6 py-20">
+    <section className="jw-paper-section px-6 py-24">
       <div className="mx-auto max-w-md">
         <Reveal variant="bloom">
           <SectionTitle kicker="Lelampahan" title="Lampahing Katresnan" />
@@ -24,19 +24,19 @@ export default function LoveStorySection({ stories }: LoveStorySectionProps) {
             {stories.slice(0, MAX_LOVE_STORIES).map((story, idx) => (
               <Reveal key={idx} variant="bloom" delay={idx * 110}>
                 <div className="relative">
-                  <span className="absolute top-1.5 -left-[1.72rem] size-3 rotate-45 border border-[var(--jw-gold)] bg-[var(--color-secondary)]" />
+                  <span className="absolute top-1.5 -left-[1.72rem] size-3 rotate-45 border border-[var(--jw-russet)] bg-[var(--color-secondary)]" />
                   {story.date && (
-                    <p className="font-jawa-serif text-lg font-semibold tracking-wide text-[var(--color-primary)]">
+                    <p className="font-jawa-serif text-xl font-semibold tracking-wide text-[var(--color-primary)]">
                       {story.date}
                     </p>
                   )}
                   {story.description && (
-                    <p className="mt-2 text-sm leading-relaxed text-[var(--jw-muted)]">
+                    <p className="mt-3 text-[0.95rem] leading-relaxed text-[var(--jw-muted)]">
                       {story.description}
                     </p>
                   )}
                   {story.photo_url && (
-                    <div className="mt-4 aspect-[4/3] w-full overflow-hidden border border-[var(--jw-gold)]/40 bg-[var(--jw-card)] p-1.5">
+                    <div className="mt-5 aspect-[4/3] w-full overflow-hidden rounded-[4px] border border-[var(--jw-gold)]/40 bg-[var(--jw-card)] p-1.5 shadow-[var(--jw-shadow)]">
                       <img
                         src={story.photo_url}
                         alt="Lampahing katresnan"

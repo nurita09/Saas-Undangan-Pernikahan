@@ -1,91 +1,117 @@
-import type { CoupleInfo } from '../../../../types/wedding';
-import Reveal from '../../../shared/Reveal';
-import { ArchDivider } from '../components/ornaments';
+import type { CoupleInfo } from "../../../../types/wedding";
+import Reveal from "../components/ThemeReveal";
+import {
+  InstagramIcon,
+  KhatamStar,
+  SectionHeading,
+} from "../components/ornaments";
 
 interface CoupleSectionProps {
   couple: CoupleInfo;
   fallbackPhotoUrl: string;
 }
 
-interface PersonCardProps {
+interface PersonProfileProps {
   role: string;
   name: string;
   photoUrl: string;
   parents?: string | null;
   instagram?: string | null;
+  reverse?: boolean;
 }
 
-function PersonCard({ role, name, photoUrl, parents, instagram }: PersonCardProps) {
+function PersonProfile({
+  role,
+  name,
+  photoUrl,
+  parents,
+  instagram,
+  reverse = false,
+}: PersonProfileProps) {
+  const handle = instagram?.replace("@", "");
   return (
-    <div className="w-full max-w-[270px] text-center">
-      <div className="mx-auto w-fit rounded-t-full border border-[var(--color-primary)]/50 p-2 bg-white shadow-sm transition-transform duration-500 hover:-translate-y-1">
-        <div className="h-56 w-44 overflow-hidden rounded-t-full">
-          <img
-            src={photoUrl}
-            alt={role}
-            className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
-          />
-        </div>
+    <article
+      className={`im-card grid min-h-52 grid-cols-[42%_1fr] gap-4 overflow-hidden p-3 ${reverse ? "text-right" : "text-left"}`}
+    >
+      <figure
+        className={`im-mihrab-photo aspect-[3/4] p-1 ${reverse ? "order-2" : ""}`}
+      >
+        <img
+          src={photoUrl}
+          alt={name}
+          loading="lazy"
+          className="size-full rounded-t-[999px] object-cover"
+        />
+      </figure>
+      <div className="flex min-w-0 flex-col justify-center py-3">
+        <p className="text-[0.52rem] font-semibold uppercase tracking-[0.28em] text-[var(--color-primary)]">
+          {role}
+        </p>
+        <h3 className="mt-2 break-words font-serif text-[1.75rem] leading-tight text-[var(--im-ink)]">
+          {name}
+        </h3>
+        {parents && (
+          <p className="mt-3 text-xs leading-relaxed text-[var(--im-muted)]">
+            {parents}
+          </p>
+        )}
+        {handle && (
+          <a
+            href={`https://instagram.com/${handle}`}
+            target="_blank"
+            rel="noreferrer"
+            className={`mt-4 inline-flex items-center gap-2 text-[0.65rem] text-[var(--color-primary)] ${reverse ? "justify-end" : ""}`}
+          >
+            <InstagramIcon className="h-4 w-4 shrink-0" />
+            <span className="truncate">@{handle}</span>
+          </a>
+        )}
       </div>
-      <p className="mt-5 text-[11px] uppercase tracking-[0.3em] font-semibold text-[var(--color-primary)]">
-        {role}
-      </p>
-      <h3 className="mt-2 font-serif text-2xl font-semibold text-neutral-800">{name}</h3>
-      {parents && <p className="mt-3 text-sm text-neutral-500 leading-relaxed">{parents}</p>}
-      {instagram && (
-        <a
-          href={`https://instagram.com/${instagram.replace('@', '')}`}
-          target="_blank"
-          rel="noreferrer"
-          className="mt-4 inline-flex items-center gap-2 rounded-full border border-[var(--color-primary)]/40 px-4 py-1.5 text-xs text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 transition"
-        >
-          📸 {instagram}
-        </a>
-      )}
-    </div>
+    </article>
   );
 }
 
-/** Section 2b: kedua mempelai dengan foto berbingkai lengkung masjid. */
-export default function CoupleSection({ couple, fallbackPhotoUrl }: CoupleSectionProps) {
+/** Profil mempelai dalam dua panel editorial horizontal. */
+export default function CoupleSection({
+  couple,
+  fallbackPhotoUrl,
+}: CoupleSectionProps) {
   return (
-    <section className="px-6 py-16 text-center bg-[var(--color-secondary)]">
-      <Reveal variant="blur">
-        <p className="font-arabic text-lg text-[var(--color-primary)]" lang="ar" dir="rtl">
-          السَّلَامُ عَلَيْكُمْ وَرَحْمَةُ اللَّهِ وَبَرَكَاتُهُ
-        </p>
-        <h2 className="mt-3 font-serif text-2xl font-semibold text-neutral-800">Kedua Mempelai</h2>
-        <p className="mx-auto mt-3 max-w-sm text-sm text-neutral-500 leading-relaxed">
-          Dengan memohon rahmat dan ridha Allah SWT, kami bermaksud menyelenggarakan pernikahan
-          putra-putri kami:
-        </p>
-        <ArchDivider className="mx-auto mt-4 w-44" />
-      </Reveal>
-
-      <div className="mt-10 flex flex-col items-center gap-10">
-        <Reveal variant="left" className="flex w-full justify-center">
-          <PersonCard
-            role="Mempelai Wanita"
-            name={couple.bride_name}
-            photoUrl={couple.bride_photo_url || fallbackPhotoUrl}
-            parents={couple.bride_parents}
-            instagram={couple.bride_ig}
+    <section id="couple" className="im-section-tint px-6 py-24">
+      <div className="mx-auto max-w-md">
+        <Reveal variant="blur">
+          <SectionHeading
+            arabic="السَّلَامُ عَلَيْكُمْ وَرَحْمَةُ اللَّهِ وَبَرَكَاتُهُ"
+            eyebrow="Dengan Rahmat Allah"
+            title="Kedua Mempelai"
+            description="Dengan memohon rahmat dan ridha Allah SWT, kami bermaksud menyelenggarakan pernikahan putra-putri kami."
           />
         </Reveal>
 
-        <Reveal variant="zoom" delay={150}>
-          <p className="font-script text-4xl text-[var(--color-primary)]">&amp;</p>
-        </Reveal>
-
-        <Reveal variant="right" className="flex w-full justify-center">
-          <PersonCard
-            role="Mempelai Pria"
-            name={couple.groom_name}
-            photoUrl={couple.groom_photo_url || fallbackPhotoUrl}
-            parents={couple.groom_parents}
-            instagram={couple.groom_ig}
-          />
-        </Reveal>
+        <div className="mt-11 space-y-6">
+          <Reveal variant="left">
+            <PersonProfile
+              role="Mempelai Wanita"
+              name={couple.bride_name}
+              photoUrl={couple.bride_photo_url || fallbackPhotoUrl}
+              parents={couple.bride_parents}
+              instagram={couple.bride_ig}
+            />
+          </Reveal>
+          <Reveal variant="zoom">
+            <KhatamStar className="mx-auto h-7 w-7 text-[var(--im-clay)]" />
+          </Reveal>
+          <Reveal variant="right">
+            <PersonProfile
+              role="Mempelai Pria"
+              name={couple.groom_name}
+              photoUrl={couple.groom_photo_url || fallbackPhotoUrl}
+              parents={couple.groom_parents}
+              instagram={couple.groom_ig}
+              reverse
+            />
+          </Reveal>
+        </div>
       </div>
     </section>
   );

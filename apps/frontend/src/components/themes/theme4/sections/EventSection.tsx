@@ -1,91 +1,116 @@
-import { formatLongDate, formatTime } from '../../../../utils/formatDate';
-import type { EventInfo } from '../../../../types/wedding';
-import Reveal, { type RevealVariant } from '../../../shared/Reveal';
-import { ArchDivider, IslamicArch } from '../components/ornaments';
+import type { EventInfo } from "../../../../types/wedding";
+import { formatLongDate, formatTime } from "../../../../utils/formatDate";
+import Reveal from "../components/ThemeReveal";
+import {
+  CalendarIcon,
+  MapPinIcon,
+  SectionHeading,
+} from "../components/ornaments";
 
 interface EventSectionProps {
   event: EventInfo;
   photoUrl: string;
 }
 
-interface EventCardProps {
+interface AgendaProps {
+  number: string;
   title: string;
   date: string | null;
   location: string | null;
   mapsUrl: string | null;
-  photoUrl: string;
-  revealVariant: RevealVariant;
 }
 
-function EventCard({ title, date, location, mapsUrl, photoUrl, revealVariant }: EventCardProps) {
+function Agenda({ number, title, date, location, mapsUrl }: AgendaProps) {
   return (
-    <Reveal variant={revealVariant}>
-      <div className="relative overflow-hidden rounded-2xl border border-[var(--color-primary)]/30 bg-white p-6 shadow-sm transition-transform duration-500 hover:-translate-y-1">
-        <IslamicArch className="pointer-events-none absolute -right-4 -top-3 h-28 w-auto text-[var(--color-primary)] opacity-10" />
-
-        <div className="flex gap-4">
-          <div className="h-24 w-20 shrink-0 overflow-hidden rounded-t-full border border-[var(--color-primary)]/40">
-            <img src={photoUrl} alt={title} className="w-full h-full object-cover" />
-          </div>
-          <div>
-            <h3 className="font-serif text-xl font-bold text-neutral-800">{title}</h3>
-            <p className="mt-1 text-sm text-neutral-600">{date ? formatLongDate(date) : 'Tanggal menyusul'}</p>
-            <p className="text-sm text-[var(--color-primary)] font-medium">{date ? formatTime(date) : ''}</p>
-          </div>
-        </div>
-        <div className="mt-5">
-          <p className="text-[11px] uppercase tracking-[0.25em] font-semibold text-[var(--color-primary)]">
-            Lokasi
+    <article className="border-t border-[var(--im-line)] px-5 py-7 text-left first:border-t-0">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-[0.52rem] font-semibold uppercase tracking-[0.28em] text-[var(--color-primary)]">
+            Agenda {number}
           </p>
-          <p className="mt-1 text-sm text-neutral-600 leading-relaxed">
-            {location || 'Lokasi belum ditentukan'}
-          </p>
+          <h3 className="mt-2 font-serif text-2xl text-[var(--im-ink)]">
+            {title}
+          </h3>
         </div>
-        {mapsUrl && (
-          <a
-            href={mapsUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="mt-4 inline-flex items-center gap-2 rounded-full bg-[var(--color-primary)] px-5 py-2 text-sm font-medium text-white hover:opacity-90 transition"
-          >
-            📍 Google Maps
-          </a>
-        )}
+        <span className="font-serif text-4xl leading-none text-[var(--im-clay)]/45">
+          {number}
+        </span>
       </div>
-    </Reveal>
+      <div className="mt-5 grid grid-cols-[18px_1fr] gap-x-3 gap-y-1">
+        <CalendarIcon className="mt-0.5 h-4 w-4 text-[var(--color-primary)]" />
+        <div>
+          <p className="text-sm text-[var(--im-ink)]">
+            {date ? formatLongDate(date) : "Tanggal menyusul"}
+          </p>
+          {date && (
+            <p className="mt-1 text-xs text-[var(--im-muted)]">
+              Pukul {formatTime(date)}
+            </p>
+          )}
+        </div>
+        <MapPinIcon className="mt-4 h-4 w-4 text-[var(--color-primary)]" />
+        <p className="mt-3 text-sm leading-relaxed text-[var(--im-muted)]">
+          {location || "Lokasi belum ditentukan"}
+        </p>
+      </div>
+      {mapsUrl && (
+        <a
+          href={mapsUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="mt-5 inline-flex min-h-11 items-center gap-2 border border-[var(--color-primary)] px-4 text-[0.58rem] font-semibold uppercase tracking-[0.2em] text-[var(--color-primary)] transition hover:bg-[var(--color-primary)] hover:text-white"
+        >
+          <MapPinIcon className="h-4 w-4" />
+          Buka Peta
+        </a>
+      )}
+    </article>
   );
 }
 
-/** Section 3: rangkaian acara -- Akad Nikah & Walimatul 'Ursy. */
+/** Satu foto perayaan dan dua agenda dalam satu itinerary arsitektural. */
 export default function EventSection({ event, photoUrl }: EventSectionProps) {
   return (
-    <section className="px-6 py-16 bg-white">
+    <section id="events" className="im-section px-6 py-24">
       <div className="mx-auto max-w-md">
         <Reveal variant="blur">
-          <h2 className="text-center font-serif text-2xl font-semibold text-neutral-800">
-            Rangkaian Acara
-          </h2>
-          <ArchDivider className="mx-auto mt-3 w-44" />
+          <SectionHeading
+            arabic="وَمَا تَوْفِيقِي إِلَّا بِاللَّهِ"
+            eyebrow="Rangkaian Ibadah"
+            title="Rangkaian Acara"
+          />
         </Reveal>
 
-        <div className="mt-10 space-y-8">
-          <EventCard
-            title="Akad Nikah"
-            date={event.akad_date || event.wedding_date}
-            location={event.akad_location || event.location_address}
-            mapsUrl={event.akad_maps_url || event.maps_url}
-            photoUrl={photoUrl}
-            revealVariant="left"
-          />
-          <EventCard
-            title="Walimatul 'Ursy"
-            date={event.resepsi_date || event.wedding_date}
-            location={event.resepsi_location || event.location_address}
-            mapsUrl={event.resepsi_maps_url || event.maps_url}
-            photoUrl={photoUrl}
-            revealVariant="right"
-          />
-        </div>
+        <Reveal variant="zoom" className="mt-11">
+          <div className="im-card overflow-hidden">
+            <figure className="relative aspect-[16/11] overflow-hidden">
+              <img
+                src={photoUrl}
+                alt="Momen perayaan"
+                loading="lazy"
+                className="size-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[var(--im-deep)]/75 via-transparent to-transparent" />
+              <figcaption className="absolute bottom-5 left-5 text-[0.55rem] font-semibold uppercase tracking-[0.3em] text-white">
+                Walimatul &lsquo;Ursy
+              </figcaption>
+            </figure>
+            <Agenda
+              number="01"
+              title="Akad Nikah"
+              date={event.akad_date || event.wedding_date}
+              location={event.akad_location || event.location_address}
+              mapsUrl={event.akad_maps_url || event.maps_url}
+            />
+            <Agenda
+              number="02"
+              title="Walimatul 'Ursy"
+              date={event.resepsi_date || event.wedding_date}
+              location={event.resepsi_location || event.location_address}
+              mapsUrl={event.resepsi_maps_url || event.maps_url}
+            />
+          </div>
+        </Reveal>
       </div>
     </section>
   );

@@ -1,8 +1,14 @@
-import { useState } from 'react';
-import { formatCoverDate } from '../../../../utils/formatDate';
-import type { CoupleInfo } from '../../../../types/wedding';
-import CoverMedia from '../../../shared/CoverMedia';
-import { COCOA, Daisy, MUSTARD, OLIVE, RetroSun, wavyBackground } from '../components/ornaments';
+import { useState } from "react";
+import type { CoupleInfo } from "../../../../types/wedding";
+import { formatCoverDate } from "../../../../utils/formatDate";
+import CoverMedia from "../../../shared/CoverMedia";
+import {
+  Daisy,
+  MailIcon,
+  RetroSun,
+  halftoneBackground,
+  stripeBackground,
+} from "../components/ornaments";
 
 interface CoverSectionProps {
   couple: CoupleInfo;
@@ -13,9 +19,7 @@ interface CoverSectionProps {
   onOpen: () => void;
 }
 
-/** Cover retro pop: matahari 70-an, daisy, foto sticker miring, tombol chunky.
- *  Section ini permanen (tidak di-unmount) -- guest bisa scroll balik ke atas
- *  untuk melihatnya lagi. */
+/** Cover poster foto penuh dengan blok warna dan detail cetak. */
 export default function CoverSection({
   couple,
   weddingDate,
@@ -25,111 +29,96 @@ export default function CoverSection({
   onOpen,
 }: CoverSectionProps) {
   const [isOpening, setIsOpening] = useState(false);
-
   const handleOpen = () => {
     if (isOpening || isOpened) return;
     setIsOpening(true);
-    window.setTimeout(() => {
-      onOpen();
-    }, 760);
-    window.setTimeout(() => {
-      setIsOpening(false);
-    }, 1650);
+    window.setTimeout(onOpen, 700);
+    window.setTimeout(() => setIsOpening(false), 1550);
   };
 
   return (
-    <section className="relative flex h-[100svh] flex-col items-center justify-center overflow-hidden bg-[var(--color-secondary)] px-6 py-10 text-center min-[380px]:py-16">
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0" style={wavyBackground(0.09)} />
-      <Daisy className="pointer-events-none absolute top-10 left-6 h-12 w-12 text-[#C75B39] corner-float" />
-      <Daisy className="pointer-events-none absolute bottom-16 right-8 h-16 w-16 text-[#E3B23C] corner-float" />
+    <section className="relative flex h-[100svh] min-h-[620px] flex-col justify-between overflow-hidden px-6 py-7 text-white">
+      <CoverMedia
+        src={coverPhotoUrl}
+        alt="Potret pernikahan"
+        className={`absolute inset-0 size-full object-cover transition-transform duration-[1700ms] ${isOpening ? "scale-110" : "scale-100"}`}
+      />
+      <div className="absolute inset-0 bg-gradient-to-t from-[var(--rp-ink)] via-[var(--rp-ink)]/55 to-black/15" />
       <div
-        className={`pointer-events-none absolute inset-0 z-20 transition-all duration-[1300ms] ease-out ${
-          isOpening ? 'translate-x-0 opacity-95' : '-translate-x-full opacity-0'
-        }`}
         aria-hidden="true"
-        style={{
-          background: `linear-gradient(135deg, ${MUSTARD} 0%, var(--color-primary) 48%, ${OLIVE} 100%)`,
-        }}
+        className="absolute inset-0"
+        style={halftoneBackground(0.1)}
+      />
+      <div
+        className="absolute right-0 top-0 h-40 w-24 bg-[var(--rp-yellow)]/90"
+        aria-hidden="true"
       >
-        <div aria-hidden="true" className="absolute inset-0" style={wavyBackground(0.16)} />
-        <Daisy className="absolute left-8 top-16 h-20 w-20 rotate-12 text-white/35" />
-        <Daisy className="absolute bottom-20 right-8 h-24 w-24 -rotate-12 text-white/30" />
+        <div className="absolute inset-0" style={stripeBackground(0.18)} />
+      </div>
+      <Daisy className="absolute right-5 top-8 h-14 w-14 rotate-12 text-[var(--color-primary)]" />
+      <div
+        aria-hidden="true"
+        className={`pointer-events-none absolute inset-0 z-20 bg-[var(--rp-teal)] transition-all duration-[1200ms] ${
+          isOpening ? "translate-x-0 opacity-95" : "-translate-x-full opacity-0"
+        }`}
+      />
+
+      <div className="relative z-30 flex items-start justify-between">
+        <div>
+          <p className="animate-fade-up text-[0.55rem] font-bold uppercase tracking-[0.26em] text-white/70 opacity-0">
+            Wedding Invitation
+          </p>
+          <p className="mt-1 animate-fade-up font-retro text-sm text-[var(--rp-yellow)] opacity-0 [animation-delay:100ms]">
+            No. 05 / Special Edition
+          </p>
+        </div>
+        <RetroSun className="mr-1 h-14 w-auto animate-fade-in-scale text-[var(--rp-ink)] opacity-0" />
       </div>
 
       <div
-        className={`relative z-30 flex flex-col items-center transition-all duration-[1200ms] ${
-          isOpening ? 'rotate-[-1deg] scale-[0.97] opacity-80' : 'rotate-0 scale-100 opacity-100'
+        className={`relative z-30 transition-all duration-[1100ms] ${
+          isOpening
+            ? "-translate-y-2 scale-[0.98] opacity-80"
+            : "translate-y-0 scale-100 opacity-100"
         }`}
       >
-        <RetroSun className="opacity-0 animate-fade-in-scale h-20 w-auto" />
-
-        <p
-          className="opacity-0 animate-fade-up [animation-delay:200ms] mt-5 inline-block -rotate-2 rounded-full border-2 px-4 py-1 text-xs font-bold uppercase tracking-[0.2em]"
-          style={{ borderColor: COCOA, color: COCOA, backgroundColor: '#E3B23C' }}
-        >
-          We&rsquo;re Getting Married!
+        <p className="animate-fade-up text-[0.58rem] font-bold uppercase tracking-[0.28em] text-[var(--rp-yellow)] opacity-0 [animation-delay:200ms]">
+          We&rsquo;re Getting Married
         </p>
-
-        <h1
-          className="opacity-0 animate-fade-up [animation-delay:350ms] mt-6 font-retro text-4xl md:text-5xl leading-tight"
-          style={{ color: COCOA }}
-        >
-          {couple.groom_name} <span className="text-[var(--color-primary)]">&amp;</span> {couple.bride_name}
+        <h1 className="mt-3 flex max-w-full animate-fade-up flex-wrap gap-x-2 font-retro text-[3.25rem] leading-[0.98] text-white opacity-0 [animation-delay:320ms]">
+          <span className="whitespace-nowrap">{couple.groom_name}</span>
+          <span className="whitespace-nowrap text-[var(--rp-yellow)]">
+            &amp;
+          </span>
+          <span className="whitespace-nowrap">{couple.bride_name}</span>
         </h1>
-
-        {/* Foto ala sticker: border tebal + shadow offset + sedikit miring */}
-        <div
-          className={`opacity-0 animate-fade-up [animation-delay:500ms] mt-8 rounded-[2rem] border-4 bg-white p-2 shadow-[6px_6px_0_#5C4033] transition-transform duration-[1200ms] hover:rotate-0 ${
-            isOpening ? '-rotate-3 scale-105' : 'rotate-2 scale-100'
-          }`}
-          style={{ borderColor: COCOA }}
-        >
-          <div className="h-60 w-48 overflow-hidden rounded-[1.5rem]">
-            <CoverMedia src={coverPhotoUrl} alt="Cover" className="w-full h-full object-cover" />
-          </div>
-        </div>
-
         {weddingDate && (
-          <p
-            className="opacity-0 animate-fade-up [animation-delay:650ms] mt-7 font-retro text-xl tracking-[0.15em]"
-            style={{ color: '#8A8B4A' }}
-          >
-            ✿ {formatCoverDate(weddingDate)} ✿
+          <p className="mt-5 animate-fade-up font-retro text-base tracking-[0.16em] text-white/85 opacity-0 [animation-delay:450ms]">
+            {formatCoverDate(weddingDate)}
           </p>
         )}
 
-        <p className="opacity-0 animate-fade-up [animation-delay:800ms] mt-5 text-sm text-neutral-600">
-          Untuk kamu yang spesial:
-        </p>
-        <p
-          className="opacity-0 animate-fade-up [animation-delay:900ms] mt-1 font-retro text-xl"
-          style={{ color: COCOA }}
-        >
-          {guestName || 'Tamu Undangan'}
-        </p>
+        <div className="mt-6 animate-fade-up border-l-4 border-[var(--rp-yellow)] pl-4 opacity-0 [animation-delay:580ms]">
+          <p className="text-xs text-white/65">Khusus untuk</p>
+          <p className="mt-1 break-words font-retro text-lg text-white">
+            {guestName || "Tamu Undangan"}
+          </p>
+        </div>
 
         {isOpened ? (
-          <div
-            className="opacity-0 animate-fade-up [animation-delay:1050ms] mt-8 rounded-[1.5rem] border-2 bg-white px-6 py-4 shadow-[5px_5px_0_#5C4033]"
-            style={{ borderColor: COCOA }}
-          >
-            <p className="font-retro text-sm tracking-[0.18em]" style={{ color: COCOA }}>
-              Undangan Sudah Dibuka
-            </p>
-            <p className="mt-1 text-sm text-neutral-600">Yuk lanjut lihat acaranya</p>
-          </div>
+          <p className="mt-7 inline-block animate-fade-up bg-[var(--rp-yellow)] px-4 py-3 text-[0.58rem] font-bold uppercase tracking-[0.22em] text-[var(--rp-ink)] opacity-0 [animation-delay:720ms]">
+            Undangan Sudah Dibuka
+          </p>
         ) : (
-          <div className="opacity-0 animate-fade-up [animation-delay:1050ms] mt-8 inline-block">
-            <button
-              type="button"
-              onClick={handleOpen}
-              disabled={isOpening}
-              className="relative inline-flex items-center gap-2 rounded-full border-2 bg-[var(--color-primary)] px-8 py-3 font-retro text-sm tracking-wider text-white shadow-[4px_4px_0_#5C4033] transition-all duration-500 hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-[2px_2px_0_#5C4033] disabled:cursor-wait disabled:opacity-85"
-              style={{ borderColor: COCOA }}
-            >
-              ☮ {isOpening ? 'Membuka...' : 'Buka Undangan'}
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={handleOpen}
+            disabled={isOpening}
+            className="rp-button mt-7 inline-flex min-h-12 animate-fade-up items-center gap-2 bg-[var(--color-primary)] px-5 text-[0.62rem] font-bold uppercase tracking-[0.22em] text-white opacity-0 transition-all disabled:cursor-wait disabled:opacity-70 [animation-delay:720ms]"
+          >
+            <MailIcon className="h-4 w-4" />
+            {isOpening ? "Membuka..." : "Buka Undangan"}
+          </button>
         )}
       </div>
     </section>

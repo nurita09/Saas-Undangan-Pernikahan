@@ -1,8 +1,8 @@
-import type { CoupleInfo } from '../../../../types/wedding';
-import Reveal from '../../../shared/Reveal';
-import { SectionTitle } from '../components/ornaments';
-import fallbackBridePhoto from '../../../../assets/theme2/bride.jpg';
-import fallbackGroomPhoto from '../../../../assets/theme2/groom.jpg';
+import type { CoupleInfo } from "../../../../types/wedding";
+import Reveal from "../components/ThemeReveal";
+import { InstagramIcon, SectionTitle } from "../components/ornaments";
+import fallbackBridePhoto from "../../../../assets/theme2/bride.jpg";
+import fallbackGroomPhoto from "../../../../assets/theme2/groom.jpg";
 
 interface CoupleSectionProps {
   couple: CoupleInfo;
@@ -15,34 +15,61 @@ interface PersonProps {
   parents?: string | null;
   instagram?: string | null;
   delay: number;
+  reverse?: boolean;
 }
 
-function Person({ role, name, photoUrl, parents, instagram, delay }: PersonProps) {
+function Person({
+  role,
+  name,
+  photoUrl,
+  parents,
+  instagram,
+  delay,
+  reverse = false,
+}: PersonProps) {
   return (
-    <Reveal variant="bloom" delay={delay} className="text-center">
-      <div className="relative mx-auto w-fit">
-        <div className="absolute -inset-2.5 rounded-full border border-[var(--jw-gold-soft)]" />
-        <div className="size-44 overflow-hidden rounded-full border-2 border-[var(--jw-gold)]/70 shadow-[var(--jw-shadow)]">
-          <img src={photoUrl} alt={name} loading="lazy" className="size-full object-cover" />
+    <Reveal variant="bloom" delay={delay}>
+      <article
+        className={`grid items-center gap-5 ${
+          reverse
+            ? "grid-cols-[minmax(0,1fr)_minmax(7.5rem,9rem)]"
+            : "grid-cols-[minmax(7.5rem,9rem)_minmax(0,1fr)]"
+        }`}
+      >
+        <div className={`jw-person-portrait ${reverse ? "order-2" : ""}`}>
+          <img
+            src={photoUrl}
+            alt={name}
+            loading="lazy"
+            className="aspect-[4/5] w-full rounded-[999px] object-cover"
+          />
         </div>
-      </div>
-      <p className="mt-7 text-[0.6rem] font-medium tracking-[0.3em] text-[var(--jw-gold)] uppercase">
-        {role}
-      </p>
-      <p className="mt-2 font-jawa-script text-4xl text-[var(--color-primary)]">{name}</p>
-      {parents && (
-        <p className="mt-2 text-sm leading-relaxed text-[var(--jw-muted)]">{parents}</p>
-      )}
-      {instagram && (
-        <a
-          href={`https://instagram.com/${instagram.replace('@', '')}`}
-          target="_blank"
-          rel="noreferrer"
-          className="mt-4 inline-flex items-center gap-2 border border-[var(--jw-gold)]/50 rounded-full px-4 py-1.5 text-xs text-[var(--color-primary)] transition-colors hover:bg-[var(--jw-gold)]/10"
-        >
-          @{instagram.replace('@', '')}
-        </a>
-      )}
+        <div className={reverse ? "text-right" : "text-left"}>
+          <p className="text-[0.56rem] font-medium tracking-[0.26em] text-[var(--jw-gold)] uppercase">
+            {role}
+          </p>
+          <p className="mt-1.5 font-jawa-script text-[2.8rem] leading-none text-[var(--color-primary)]">
+            {name}
+          </p>
+          {parents && (
+            <p className="mt-3 text-sm leading-relaxed text-[var(--jw-muted)]">
+              {parents}
+            </p>
+          )}
+          {instagram && (
+            <a
+              href={`https://instagram.com/${instagram.replace("@", "")}`}
+              target="_blank"
+              rel="noreferrer"
+              className={`mt-4 inline-flex items-center gap-2 text-xs text-[var(--color-primary)] transition-colors hover:text-[var(--jw-russet)] ${
+                reverse ? "justify-end" : ""
+              }`}
+            >
+              <InstagramIcon className="h-4 w-4" />@{instagram.replace("@", "")}
+            </a>
+          )}
+        </div>
+      </article>
     </Reveal>
   );
 }
@@ -50,9 +77,9 @@ function Person({ role, name, photoUrl, parents, instagram, delay }: PersonProps
 function CoupleConnector() {
   return (
     <Reveal variant="bloom" delay={70}>
-      <div className="mx-auto flex w-full max-w-xs items-center justify-center gap-5 text-[var(--jw-gold)]">
+      <div className="mx-auto flex w-full max-w-48 items-center justify-center gap-4 text-[var(--jw-gold)]">
         <span className="h-px flex-1 bg-[var(--jw-gold)]/45" />
-        <span className="font-jawa-script text-6xl leading-none text-[var(--jw-gold)] drop-shadow-[0_8px_18px_rgba(201,162,39,0.18)]">
+        <span className="font-jawa-script text-5xl leading-none text-[var(--jw-gold)] drop-shadow-[0_8px_18px_rgba(201,162,39,0.18)]">
           &amp;
         </span>
         <span className="h-px flex-1 bg-[var(--jw-gold)]/45" />
@@ -64,13 +91,13 @@ function CoupleConnector() {
 /** Section 2b: Temanten -- profil Temanten Putri & Temanten Kakung. */
 export default function CoupleSection({ couple }: CoupleSectionProps) {
   return (
-    <section className="px-6 py-20">
+    <section id="couple" className="jw-paper-section px-6 py-24">
       <div className="mx-auto max-w-md">
         <Reveal variant="bloom">
           <SectionTitle kicker="Bismillahirrahmanirrahim" title="Temanten" />
         </Reveal>
 
-        <div className="mt-14 space-y-14">
+        <div className="mt-14 space-y-12">
           <Person
             role="Temanten Putri"
             name={couple.bride_name}
@@ -87,6 +114,7 @@ export default function CoupleSection({ couple }: CoupleSectionProps) {
             parents={couple.groom_parents}
             instagram={couple.groom_ig}
             delay={100}
+            reverse
           />
         </div>
       </div>

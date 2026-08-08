@@ -1,7 +1,13 @@
-import { useState } from 'react';
-import type { WeddingGiftInfo } from '../../../../types/wedding';
-import Reveal from '../../../shared/Reveal';
-import { BatikBand, CheckIcon, CopyIcon, GiftIcon, SectionTitle } from '../components/ornaments';
+import { useState } from "react";
+import type { WeddingGiftInfo } from "../../../../types/wedding";
+import Reveal from "../components/ThemeReveal";
+import {
+  BatikBand,
+  CheckIcon,
+  CopyIcon,
+  GiftIcon,
+  SectionTitle,
+} from "../components/ornaments";
 
 interface GiftSectionProps {
   gifts: WeddingGiftInfo[];
@@ -21,21 +27,21 @@ export default function GiftSection({ gifts }: GiftSectionProps) {
       return;
     }
 
-    const textarea = document.createElement('textarea');
+    const textarea = document.createElement("textarea");
     textarea.value = value;
-    textarea.setAttribute('readonly', '');
-    textarea.style.position = 'fixed';
-    textarea.style.top = '0';
-    textarea.style.left = '-9999px';
+    textarea.setAttribute("readonly", "");
+    textarea.style.position = "fixed";
+    textarea.style.top = "0";
+    textarea.style.left = "-9999px";
     document.body.appendChild(textarea);
     textarea.focus();
     textarea.select();
 
-    const copied = document.execCommand('copy');
+    const copied = document.execCommand("copy");
     document.body.removeChild(textarea);
 
     if (!copied) {
-      throw new Error('Gagal menyalin');
+      throw new Error("Gagal menyalin");
     }
   };
 
@@ -46,33 +52,39 @@ export default function GiftSection({ gifts }: GiftSectionProps) {
       await copyWithFallback(value);
       setCopyFailedIdx(null);
       setCopiedIdx(idx);
-      setTimeout(() => setCopiedIdx((prev) => (prev === idx ? null : prev)), 1800);
+      setTimeout(
+        () => setCopiedIdx((prev) => (prev === idx ? null : prev)),
+        1800,
+      );
     } catch {
       setCopiedIdx(null);
       setCopyFailedIdx(idx);
-      setTimeout(() => setCopyFailedIdx((prev) => (prev === idx ? null : prev)), 2500);
+      setTimeout(
+        () => setCopyFailedIdx((prev) => (prev === idx ? null : prev)),
+        2500,
+      );
     }
   };
 
   return (
-    <section className="px-6 py-20">
+    <section className="jw-paper-section px-6 py-24">
       <div className="mx-auto max-w-md">
         <Reveal variant="bloom">
           <SectionTitle kicker="Tanda Katresnan" title="Hadiah Pernikahan" />
           <p className="mx-auto mt-6 max-w-sm text-center text-sm leading-relaxed text-[var(--jw-muted)]">
-            Doa restu panjenengan sampun cekap kagem kula sekaliyan. Nanging menawi kepareng paring
-            tanda katresnan, saged lumantar:
+            Doa restu panjenengan sampun cekap kagem kula sekaliyan. Nanging
+            menawi kepareng paring tanda katresnan, saged lumantar:
           </p>
         </Reveal>
 
         <div className="mt-10 space-y-7">
           {gifts.map((gift, idx) => (
             <Reveal key={idx} variant="bloom" delay={idx * 120}>
-              <div className="relative min-h-64 overflow-hidden bg-[var(--jw-sogan-deep)] px-7 py-8 text-left text-[var(--color-secondary)] shadow-[var(--jw-shadow)]">
+              <div className="jw-night-panel relative min-h-64 overflow-hidden rounded-[4px] border border-[var(--jw-gold)]/45 px-7 py-8 text-left text-[var(--color-secondary)] shadow-[var(--jw-shadow)]">
                 <BatikBand className="opacity-[0.18] mix-blend-soft-light" />
                 <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.12),transparent_62%)]" />
                 <div className="relative flex min-h-48 flex-col items-start justify-center">
-                  {gift.gift_type === 'kado' ? (
+                  {gift.gift_type === "kado" ? (
                     <>
                       <p className="flex items-center gap-2 text-[0.55rem] font-medium tracking-[0.3em] text-[var(--jw-gold-soft)] uppercase">
                         <GiftIcon className="h-3.5 w-3.5" /> Kirim Kado
@@ -103,7 +115,7 @@ export default function GiftSection({ gifts }: GiftSectionProps) {
                   )}
                   <button
                     type="button"
-                    onClick={() => copyText(gift.account_number || '', idx)}
+                    onClick={() => copyText(gift.account_number || "", idx)}
                     disabled={!gift.account_number?.trim()}
                     className="mt-8 inline-flex min-w-52 items-center justify-center gap-2 border border-[var(--jw-gold-soft)]/45 px-7 py-4 text-[0.58rem] font-semibold tracking-[0.42em] text-[var(--jw-gold-soft)] uppercase transition-all duration-500 hover:-translate-y-0.5 hover:bg-[var(--jw-gold-soft)]/12 disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:translate-y-0 disabled:hover:bg-transparent"
                   >
@@ -113,12 +125,12 @@ export default function GiftSection({ gifts }: GiftSectionProps) {
                       <CopyIcon className="h-3.5 w-3.5" />
                     )}
                     {copiedIdx === idx
-                      ? 'Sampun Kasalin'
+                      ? "Sampun Kasalin"
                       : copyFailedIdx === idx
-                        ? 'Gagal'
-                        : gift.gift_type === 'kado'
-                          ? 'Salin Alamat'
-                          : 'Salin Nomer'}
+                        ? "Gagal"
+                        : gift.gift_type === "kado"
+                          ? "Salin Alamat"
+                          : "Salin Nomer"}
                   </button>
                 </div>
               </div>
