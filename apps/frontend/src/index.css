@@ -413,7 +413,9 @@ html:has(.wedding-invitation)::-webkit-scrollbar {
 }
 
 .theme-noir-deco .noir-reveal.reveal-blur {
-  clip-path: inset(44% 0 44% 0);
+  /* Sisakan 24% area geometris agar melewati threshold observer 15%.
+     Opacity awal tetap 0, jadi aperture belum terlihat sebelum dipicu. */
+  clip-path: inset(38% 0 38% 0);
   transform: scaleX(0.96);
   filter: contrast(1.35) brightness(0.72);
 }
@@ -430,12 +432,12 @@ html:has(.wedding-invitation)::-webkit-scrollbar {
 }
 
 .theme-noir-deco .noir-reveal.reveal-left {
-  clip-path: inset(0 100% 0 0);
+  clip-path: inset(0 78% 0 0);
   transform: translateX(-16px);
 }
 
 .theme-noir-deco .noir-reveal.reveal-right {
-  clip-path: inset(0 0 0 100%);
+  clip-path: inset(0 0 0 78%);
   transform: translateX(16px);
 }
 
