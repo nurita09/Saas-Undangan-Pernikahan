@@ -146,22 +146,32 @@ export default function Theme1({ data, guestName }: ThemeComponentProps) {
     const duration = 1600;
     const startTime = performance.now();
     const easeInOutSine = (t: number) => -(Math.cos(Math.PI * t) - 1) / 2;
+    const root = document.documentElement;
+    const previousScrollBehavior = root.style.scrollBehavior;
+    const previousScrollSnapType = root.style.scrollSnapType;
+
+    // Pergerakan dikendalikan per frame; matikan smooth/snap CSS sementara
+    // agar keduanya tidak menahan posisi lalu melompat pada akhir transisi.
+    root.style.scrollBehavior = "auto";
+    root.style.scrollSnapType = "none";
 
     const step = (now: number) => {
       const progress = Math.min((now - startTime) / duration, 1);
       window.scrollTo(0, startY + distance * easeInOutSine(progress));
-      if (progress < 1) requestAnimationFrame(step);
+      if (progress < 1) {
+        requestAnimationFrame(step);
+        return;
+      }
+
+      root.style.scrollBehavior = previousScrollBehavior;
+      root.style.scrollSnapType = previousScrollSnapType;
     };
 
     requestAnimationFrame(step);
   };
 
-  /* Cover TIDAK dihapus dari halaman -- tetap jadi section paling atas yang
-     bisa didatangi lagi dengan scroll ke atas. "Buka Undangan" cuma memicu
-     smooth-scroll turun ke section pertama (transisinya scroll sungguhan,
-     bukan simulasi fade/transform). Efek ini menangani scroll begitu konten
-     baru saja ter-mount; klik berikutnya (setelah kembali ke cover) ditangani
-     langsung di handleOpenInvitation karena isOpened sudah true. */
+  /* Cover tetap berada di halaman. Setelah bloom wipe menutup sampul, konten
+     di-mount dan viewport bergerak turun secara halus ke halaman pembuka. */
   useEffect(() => {
     if (isOpened) scrollToContent();
   }, [isOpened]);
@@ -206,6 +216,7 @@ export default function Theme1({ data, guestName }: ThemeComponentProps) {
 
   return (
     <div
+      data-cover-locked={!isOpened}
       className="wedding-invitation theme-floral-elegant flex w-full min-h-screen font-floral-serif text-[var(--fl-ink)] selection:bg-[var(--fl-blush)]/60"
       style={cssVars}
     >

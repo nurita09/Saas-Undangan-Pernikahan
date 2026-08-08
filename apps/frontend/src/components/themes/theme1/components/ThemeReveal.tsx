@@ -3,7 +3,16 @@ import SharedReveal from "../../../shared/Reveal";
 
 type ThemeRevealProps = Omit<ComponentProps<typeof SharedReveal>, "once">;
 
-/** Theme 1 memakai reveal sekali agar konten tidak menghilang saat scroll balik. */
-export default function ThemeReveal(props: ThemeRevealProps) {
-  return <SharedReveal {...props} once />;
+/** Theme 1 memakai gerak "mekar" yang lembut dan hanya dijalankan sekali. */
+export default function ThemeReveal({
+  className = "",
+  ...props
+}: ThemeRevealProps) {
+  return (
+    <SharedReveal
+      {...props}
+      once
+      className={`floral-reveal ${className}`.trim()}
+    />
+  );
 }

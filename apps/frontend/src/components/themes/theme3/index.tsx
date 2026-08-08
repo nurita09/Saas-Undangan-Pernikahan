@@ -140,25 +140,38 @@ export default function Theme3({ data, guestName }: ThemeComponentProps) {
     const startY = window.scrollY;
     const targetY = startY + target.getBoundingClientRect().top;
     const distance = targetY - startY;
-    const duration = 1750;
+    const duration = 1550;
     const startTime = performance.now();
-    const easeOutQuint = (t: number) => 1 - Math.pow(1 - t, 5);
+    const easeInOutExpo = (t: number) => {
+      if (t === 0 || t === 1) return t;
+      return t < 0.5
+        ? Math.pow(2, 20 * t - 10) / 2
+        : (2 - Math.pow(2, -20 * t + 10)) / 2;
+    };
+    const root = document.documentElement;
+    const previousScrollBehavior = root.style.scrollBehavior;
+    const previousScrollSnapType = root.style.scrollSnapType;
+
+    root.style.scrollBehavior = "auto";
+    root.style.scrollSnapType = "none";
 
     const step = (now: number) => {
       const progress = Math.min((now - startTime) / duration, 1);
-      window.scrollTo(0, startY + distance * easeOutQuint(progress));
-      if (progress < 1) requestAnimationFrame(step);
+      window.scrollTo(0, startY + distance * easeInOutExpo(progress));
+      if (progress < 1) {
+        requestAnimationFrame(step);
+        return;
+      }
+
+      root.style.scrollBehavior = previousScrollBehavior;
+      root.style.scrollSnapType = previousScrollSnapType;
     };
 
     requestAnimationFrame(step);
   };
 
-  /* Cover TIDAK dihapus dari halaman -- tetap jadi section paling atas yang
-     bisa didatangi lagi dengan scroll ke atas. "Buka Undangan" cuma memicu
-     smooth-scroll turun ke section pertama (transisinya scroll sungguhan,
-     bukan simulasi fade/transform). Efek ini menangani scroll begitu konten
-     baru saja ter-mount; klik berikutnya (setelah kembali ke cover) ditangani
-     langsung di handleOpenInvitation karena isOpened sudah true. */
+  /* Setelah shutter membentuk title card, konten di-mount dan viewport
+     bergerak dengan kurva expo saat bilah noir keluar ke atas. */
   useEffect(() => {
     if (isOpened) scrollToContent();
   }, [isOpened]);
@@ -204,6 +217,7 @@ export default function Theme3({ data, guestName }: ThemeComponentProps) {
 
   return (
     <div
+      data-cover-locked={!isOpened}
       className="wedding-invitation theme-noir-deco flex w-full min-h-screen font-sans text-[var(--dk-ivory)] selection:bg-[var(--color-primary)] selection:text-black"
       style={cssVars}
     >

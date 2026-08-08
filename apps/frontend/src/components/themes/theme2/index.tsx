@@ -151,22 +151,30 @@ export default function Theme2({ data, guestName }: ThemeComponentProps) {
     const startTime = performance.now();
     const easeInOutCubic = (t: number) =>
       t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    const root = document.documentElement;
+    const previousScrollBehavior = root.style.scrollBehavior;
+    const previousScrollSnapType = root.style.scrollSnapType;
+
+    root.style.scrollBehavior = "auto";
+    root.style.scrollSnapType = "none";
 
     const step = (now: number) => {
       const progress = Math.min((now - startTime) / duration, 1);
       window.scrollTo(0, startY + distance * easeInOutCubic(progress));
-      if (progress < 1) requestAnimationFrame(step);
+      if (progress < 1) {
+        requestAnimationFrame(step);
+        return;
+      }
+
+      root.style.scrollBehavior = previousScrollBehavior;
+      root.style.scrollSnapType = previousScrollSnapType;
     };
 
     requestAnimationFrame(step);
   };
 
-  /* Cover TIDAK dihapus dari halaman -- tetap jadi section paling atas yang
-     bisa didatangi lagi dengan scroll ke atas. "Buka Undangan" cuma memicu
-     smooth-scroll turun ke section pertama (transisinya scroll sungguhan,
-     bukan simulasi fade/transform). Efek ini menangani scroll begitu konten
-     baru saja ter-mount; klik berikutnya (setelah kembali ke cover) ditangani
-     langsung di handleOpenInvitation karena isOpened sudah true. */
+  /* Setelah dua daun gebyok bertemu, konten di-mount dan kedua daun membuka
+     sambil viewport bergerak menuju halaman pembuka. */
   useEffect(() => {
     if (isOpened) scrollToContent();
   }, [isOpened]);
@@ -219,6 +227,7 @@ export default function Theme2({ data, guestName }: ThemeComponentProps) {
 
   return (
     <div
+      data-cover-locked={!isOpened}
       className="wedding-invitation theme-javanese flex w-full min-h-screen font-jawa-sans text-[var(--jw-ink)] selection:bg-[var(--jw-gold)]/40"
       style={cssVars}
     >

@@ -144,23 +144,34 @@ export default function Theme4({ data, guestName }: ThemeComponentProps) {
     const distance = targetY - startY;
     const duration = 1650;
     const startTime = performance.now();
-    const easeInOutSine = (t: number) => -(Math.cos(Math.PI * t) - 1) / 2;
+    const easeInOutCirc = (t: number) =>
+      t < 0.5
+        ? (1 - Math.sqrt(1 - Math.pow(2 * t, 2))) / 2
+        : (Math.sqrt(1 - Math.pow(-2 * t + 2, 2)) + 1) / 2;
+    const root = document.documentElement;
+    const previousScrollBehavior = root.style.scrollBehavior;
+    const previousScrollSnapType = root.style.scrollSnapType;
+
+    root.style.scrollBehavior = "auto";
+    root.style.scrollSnapType = "none";
 
     const step = (now: number) => {
       const progress = Math.min((now - startTime) / duration, 1);
-      window.scrollTo(0, startY + distance * easeInOutSine(progress));
-      if (progress < 1) requestAnimationFrame(step);
+      window.scrollTo(0, startY + distance * easeInOutCirc(progress));
+      if (progress < 1) {
+        requestAnimationFrame(step);
+        return;
+      }
+
+      root.style.scrollBehavior = previousScrollBehavior;
+      root.style.scrollSnapType = previousScrollSnapType;
     };
 
     requestAnimationFrame(step);
   };
 
-  /* Cover TIDAK dihapus dari halaman -- tetap jadi section paling atas yang
-     bisa didatangi lagi dengan scroll ke atas. "Buka Undangan" cuma memicu
-     smooth-scroll turun ke section pertama (transisinya scroll sungguhan,
-     bukan simulasi fade/transform). Efek ini menangani scroll begitu konten
-     baru saja ter-mount; klik berikutnya (setelah kembali ke cover) ditangani
-     langsung di handleOpenInvitation karena isOpened sudah true. */
+  /* Garis mihrab ditelusuri lebih dulu. Saat portal mulai melebar, konten
+     di-mount dan viewport turun dengan kurva circular yang tenang. */
   useEffect(() => {
     if (isOpened) scrollToContent();
   }, [isOpened]);
@@ -206,6 +217,7 @@ export default function Theme4({ data, guestName }: ThemeComponentProps) {
 
   return (
     <div
+      data-cover-locked={!isOpened}
       className="wedding-invitation theme-islamic-modern flex min-h-screen w-full font-sans text-[var(--im-ink)] selection:bg-[var(--color-primary)] selection:text-white"
       style={cssVars}
     >

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { formatCoverDate } from "../../../../utils/formatDate";
 import type { CoupleInfo } from "../../../../types/wedding";
 import CoverMedia from "../../../shared/CoverMedia";
@@ -25,52 +25,75 @@ export default function CoverSection({
   onOpen,
 }: CoverSectionProps) {
   const [isOpening, setIsOpening] = useState(false);
+  const openTimerRef = useRef<number | null>(null);
+  const resetTimerRef = useRef<number | null>(null);
+
+  useEffect(
+    () => () => {
+      if (openTimerRef.current) window.clearTimeout(openTimerRef.current);
+      if (resetTimerRef.current) window.clearTimeout(resetTimerRef.current);
+    },
+    [],
+  );
 
   const handleOpen = () => {
     if (isOpening || isOpened) return;
-    setIsOpening(true);
-    window.setTimeout(() => {
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       onOpen();
-    }, 780);
-    window.setTimeout(() => {
+      return;
+    }
+
+    setIsOpening(true);
+    openTimerRef.current = window.setTimeout(() => {
+      onOpen();
+    }, 900);
+    resetTimerRef.current = window.setTimeout(() => {
       setIsOpening(false);
-    }, 1700);
+    }, 2600);
   };
 
   return (
-    <section className="relative h-[100svh] w-full overflow-hidden">
+    <section
+      aria-busy={isOpening}
+      className={`floral-cover invitation-cover relative h-[100svh] w-full overflow-hidden ${
+        isOpening ? "is-opening" : ""
+      }`}
+    >
       <CoverMedia
         src={coverPhotoUrl}
         alt={`Foto pengantin ${couple.groom_name} dan ${couple.bride_name}`}
-        className={`absolute inset-0 h-full w-full object-cover transition-transform duration-[1800ms] ${
-          isOpening ? "scale-110" : "scale-105"
-        }`}
+        className="floral-cover-media absolute inset-0 h-full w-full object-cover"
       />
       <div className="absolute inset-0 bg-[var(--fl-veil)]" />
       <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.18)_0%,rgba(0,0,0,0.08)_38%,rgba(0,0,0,0.26)_100%)]" />
       <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-white/18 to-transparent" />
-      <FloralCorners
-        spots={["tl", "tr", "bl", "br"]}
-        size="w-40"
-        opacity="opacity-85"
-      />
+
       <div
-        className={`pointer-events-none absolute inset-0 z-10 bg-[linear-gradient(180deg,color-mix(in_oklab,var(--color-secondary)_88%,white)_0%,color-mix(in_oklab,var(--color-primary)_18%,var(--color-secondary))_100%)] transition-all duration-[1450ms] ease-out ${
-          isOpening ? "translate-y-0 opacity-95" : "translate-y-full opacity-0"
-        }`}
+        className="floral-cover-corners pointer-events-none absolute inset-0"
         aria-hidden="true"
       >
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(255,255,255,0.18)_62%,rgba(255,255,255,0.35)_100%)]" />
-        <FloralCorners spots={["tl", "br"]} size="w-44" opacity="opacity-35" />
+        <FloralCorners
+          spots={["tl", "tr", "bl", "br"]}
+          size="w-40"
+          opacity="opacity-85"
+        />
       </div>
 
       <div
-        className={`relative z-20 flex h-full flex-col items-center justify-center px-6 pt-10 text-center transition-all duration-[1300ms] ${
-          isOpening
-            ? "-translate-y-2 scale-[0.98] opacity-80 blur-[0.5px]"
-            : "translate-y-0 scale-100 opacity-100 blur-0"
-        }`}
+        className="floral-bloom-wipe pointer-events-none absolute inset-0 z-30"
+        aria-hidden="true"
       >
+        <div className="floral-bloom-wipe__wash absolute inset-0" />
+        <FloralCorners spots={["tl", "br"]} size="w-44" opacity="opacity-45" />
+        <div className="floral-bloom-wipe__emblem absolute left-1/2 top-1/2 w-64 text-center">
+          <p className="label-caps text-[var(--fl-clay)]">Dengan penuh kasih</p>
+          <Divider className="mt-2 h-14" />
+          <span className="mx-auto mt-1 block h-10 w-px bg-gradient-to-b from-[var(--fl-gold)]/70 to-transparent" />
+        </div>
+      </div>
+
+      <div className="floral-cover-content relative z-20 flex h-full flex-col items-center justify-center px-6 pt-10 text-center">
         <p className="label-caps text-white/90">The Wedding Of</p>
         <h1 className="mt-5 max-w-[21rem] font-floral-script text-[3.35rem] leading-[1.02] text-white drop-shadow-[0_2px_18px_rgba(0,0,0,0.38)]">
           {couple.groom_name}{" "}
@@ -84,7 +107,7 @@ export default function CoverSection({
           </p>
         )}
 
-        <div className="card-petal mt-11 w-full max-w-sm px-7 py-7 text-[var(--fl-ink)] shadow-[0_26px_70px_-35px_rgba(0,0,0,0.72)] backdrop-blur-sm">
+        <div className="floral-cover-card card-petal mt-11 w-full max-w-sm px-7 py-7 text-[var(--fl-ink)] shadow-[0_26px_70px_-35px_rgba(0,0,0,0.72)] backdrop-blur-sm">
           <p className="label-caps text-[var(--fl-muted)]">Kepada Yth.</p>
           <p className="mt-2.5 font-floral-serif text-base text-[var(--fl-muted)]">
             Bapak / Ibu / Saudara / i
@@ -116,10 +139,13 @@ export default function CoverSection({
               type="button"
               onClick={handleOpen}
               disabled={isOpening}
-              className="label-caps mt-6 inline-flex w-full items-center justify-center gap-3 bg-[var(--color-primary)] px-6 py-4 text-white shadow-[0_18px_42px_-24px_rgba(74,66,56,0.85)] transition-all duration-700 hover:-translate-y-0.5 hover:bg-[var(--fl-clay)] disabled:cursor-wait disabled:opacity-85 disabled:hover:translate-y-0"
+              className="floral-cover-button label-caps relative mt-6 inline-flex w-full items-center justify-center gap-3 overflow-hidden bg-[var(--color-primary)] px-6 py-4 text-white shadow-[0_18px_42px_-24px_rgba(74,66,56,0.85)] transition-all duration-700 hover:-translate-y-0.5 hover:bg-[var(--fl-clay)] disabled:cursor-wait disabled:hover:translate-y-0"
             >
-              <MailIcon className="h-4 w-4" />
-              {isOpening ? "Membuka..." : "Buka Undangan"}
+              <span className="floral-cover-button__glint" aria-hidden="true" />
+              <MailIcon className="relative h-4 w-4" />
+              <span className="relative">
+                {isOpening ? "Mekar..." : "Buka Undangan"}
+              </span>
             </button>
           )}
         </div>

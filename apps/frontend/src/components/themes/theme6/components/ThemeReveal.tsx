@@ -4,5 +4,13 @@ import SharedReveal from "../../../shared/Reveal";
 type ThemeRevealProps = Omit<ComponentProps<typeof SharedReveal>, "once">;
 
 export default function ThemeReveal(props: ThemeRevealProps) {
-  return <SharedReveal {...props} once />;
+  const { className = "", ...rest } = props;
+
+  return (
+    <SharedReveal
+      {...rest}
+      once
+      className={`archive-reveal ${className}`.trim()}
+    />
+  );
 }

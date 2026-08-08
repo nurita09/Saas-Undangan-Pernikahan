@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { formatCoverDate } from "../../../../utils/formatDate";
 import type { CoupleInfo } from "../../../../types/wedding";
 import CoverMedia from "../../../shared/CoverMedia";
@@ -13,6 +13,8 @@ interface CoverSectionProps {
   onOpen: () => void;
 }
 
+type OpeningPhase = "idle" | "closing" | "parting";
+
 /** Cover 1 layar penuh bergaya Jawa: gunungan wayang "membuka lakon", sapaan
  *  "Sugeng Rawuh", nama script, foto bundar, dan kartu tamu + tombol buka.
  *  Section ini permanen (tidak di-unmount) -- guest bisa scroll balik ke atas
@@ -25,40 +27,49 @@ export default function CoverSection({
   isOpened,
   onOpen,
 }: CoverSectionProps) {
-  const [isOpening, setIsOpening] = useState(false);
+  const [openingPhase, setOpeningPhase] = useState<OpeningPhase>("idle");
+  const openTimerRef = useRef<number | null>(null);
+  const resetTimerRef = useRef<number | null>(null);
+  const isOpening = openingPhase !== "idle";
+
+  useEffect(
+    () => () => {
+      if (openTimerRef.current) window.clearTimeout(openTimerRef.current);
+      if (resetTimerRef.current) window.clearTimeout(resetTimerRef.current);
+    },
+    [],
+  );
 
   const handleOpen = () => {
     if (isOpening || isOpened) return;
-    setIsOpening(true);
-    window.setTimeout(() => {
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       onOpen();
-    }, 900);
-    window.setTimeout(() => {
-      setIsOpening(false);
-    }, 1800);
+      return;
+    }
+
+    setOpeningPhase("closing");
+    openTimerRef.current = window.setTimeout(() => {
+      setOpeningPhase("parting");
+      onOpen();
+    }, 760);
+    resetTimerRef.current = window.setTimeout(() => {
+      setOpeningPhase("idle");
+    }, 2550);
   };
 
   return (
-    <section className="group relative h-[100svh] w-full overflow-hidden bg-[var(--color-secondary)]">
+    <section
+      aria-busy={isOpening}
+      data-opening-phase={openingPhase}
+      className={`javanese-cover invitation-cover group relative h-[100svh] w-full overflow-hidden bg-[var(--color-secondary)] is-gate-${openingPhase}`}
+    >
       <BatikBand className="opacity-[0.025]" />
       <div className="pointer-events-none absolute inset-3 border border-[var(--jw-gold)]/60 transition-all duration-[1400ms] group-hover:inset-4" />
       <div className="pointer-events-none absolute inset-5 border border-[var(--jw-gold)]/30 transition-all delay-150 duration-[1400ms] group-hover:inset-6" />
-      <div
-        className={`pointer-events-none absolute inset-0 z-10 bg-[var(--jw-night)] transition-all duration-[1500ms] ease-out ${
-          isOpening ? "translate-y-0 opacity-90" : "translate-y-full opacity-0"
-        }`}
-        aria-hidden="true"
-      >
-        <BatikBand className="opacity-[0.2] mix-blend-soft-light" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.22)_74%)]" />
-      </div>
 
-      <div className="relative z-20 flex h-full flex-col items-center justify-center px-7 py-8 text-center min-[380px]:py-10">
-        <Gunungan
-          className={`h-16 w-auto text-[var(--color-primary)] transition-all duration-[1200ms] min-[380px]:h-20 ${
-            isOpening ? "scale-110 opacity-80" : "scale-100 opacity-100"
-          }`}
-        />
+      <div className="javanese-cover-content relative z-20 flex h-full flex-col items-center justify-center px-7 py-8 text-center min-[380px]:py-10">
+        <Gunungan className="javanese-cover-kayon h-16 w-auto text-[var(--color-primary)] min-[380px]:h-20" />
 
         <p className="mt-3 font-jawa-script text-3xl text-[var(--jw-gold)] min-[380px]:mt-4">
           Sugeng Rawuh
@@ -67,23 +78,13 @@ export default function CoverSection({
           Undangan Pernikahan
         </p>
 
-        <h1
-          className={`mt-4 font-jawa-script text-5xl leading-[0.95] text-[var(--color-primary)] transition-all delay-100 duration-[1200ms] min-[380px]:mt-5 min-[380px]:text-6xl ${
-            isOpening
-              ? "-translate-y-1 opacity-90"
-              : "translate-y-0 opacity-100"
-          }`}
-        >
+        <h1 className="mt-4 font-jawa-script text-5xl leading-[0.95] text-[var(--color-primary)] min-[380px]:mt-5 min-[380px]:text-6xl">
           {couple.groom_name}{" "}
           <span className="text-[var(--jw-gold)]">&amp;</span>{" "}
           {couple.bride_name}
         </h1>
 
-        <div
-          className={`relative mt-5 transition-all delay-150 duration-[1400ms] min-[380px]:mt-7 ${
-            isOpening ? "scale-95 opacity-85" : "scale-100 opacity-100"
-          }`}
-        >
+        <div className="javanese-cover-portrait relative mt-5 min-[380px]:mt-7">
           <div className="absolute -inset-2.5 rounded-full border border-[var(--jw-gold-soft)] transition-transform duration-[1600ms] group-hover:scale-105" />
           <div className="size-36 overflow-hidden rounded-full border-2 border-[var(--jw-gold)]/70 shadow-[var(--jw-shadow)] min-[380px]:size-44">
             <CoverMedia
@@ -133,15 +134,32 @@ export default function CoverSection({
               disabled={isOpening}
               className="inline-flex w-full items-center justify-center gap-3 border border-[var(--jw-gold-soft)]/30 bg-[linear-gradient(180deg,color-mix(in_oklab,var(--jw-night)_86%,#172f35)_0%,var(--jw-night)_100%)] px-8 py-3.5 text-[0.6rem] font-semibold tracking-[0.32em] text-[var(--color-secondary)] uppercase shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition-all delay-100 duration-[900ms] hover:-translate-y-0.5 hover:brightness-110 hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] active:scale-95 disabled:cursor-wait disabled:opacity-85"
             >
-              <span
-                className={`size-1.5 rotate-45 bg-[var(--jw-gold-soft)] transition-transform duration-[900ms] ${
-                  isOpening ? "scale-[1.9]" : "scale-100"
-                }`}
-              />
+              <span className="javanese-cover-button__diamond size-1.5 rotate-45 bg-[var(--jw-gold-soft)]" />
               {isOpening ? "Membuka..." : "Buka Undangan"}
             </button>
           </div>
         )}
+      </div>
+
+      <div
+        className="javanese-gate pointer-events-none absolute inset-0 z-30"
+        aria-hidden="true"
+      >
+        <div className="javanese-gate__leaf javanese-gate__leaf--left absolute inset-y-0 left-0 w-[calc(50%+1px)] overflow-hidden">
+          <BatikBand className="opacity-[0.2] mix-blend-soft-light" />
+          <span className="javanese-gate__frame absolute inset-3 border border-[var(--jw-gold)]/45" />
+        </div>
+        <div className="javanese-gate__leaf javanese-gate__leaf--right absolute inset-y-0 right-0 w-[calc(50%+1px)] overflow-hidden">
+          <BatikBand className="opacity-[0.2] mix-blend-soft-light" />
+          <span className="javanese-gate__frame absolute inset-3 border border-[var(--jw-gold)]/45" />
+        </div>
+        <div className="javanese-gate__seal absolute left-1/2 top-1/2 w-52 text-center">
+          <Gunungan className="mx-auto h-24 w-auto text-[var(--jw-gold-soft)]" />
+          <p className="mt-4 text-[0.58rem] font-medium tracking-[0.42em] text-[var(--jw-gold-soft)] uppercase">
+            Pambuka
+          </p>
+          <Divider className="mt-4" tone="light" />
+        </div>
       </div>
     </section>
   );

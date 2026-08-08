@@ -97,6 +97,13 @@ body {
    (dipasang di root tiap tema, lihat theme1-6/index.tsx) lewat :has() supaya
    TIDAK ikut memengaruhi landing page/admin yang juga punya elemen <section>.
    --------------------------------------------------------------------------- */
+html:has(.wedding-invitation),
+body:has(.wedding-invitation) {
+  max-width: 100%;
+  overflow-x: clip;
+  overscroll-behavior-x: none;
+}
+
 html:has(.wedding-invitation) {
   scroll-snap-type: y proximity;
   scroll-behavior: smooth;
@@ -106,6 +113,85 @@ html:has(.wedding-invitation) {
      disembunyikan. Scoped supaya admin/landing tetap pakai scrollbar biasa. */
   scrollbar-width: none;
   -ms-overflow-style: none;
+}
+
+/* Selama cover belum dibuka, viewport menjadi satu kanvas tetap. Body lock
+   mencegah wheel, swipe, rubber-band iOS, dan pergeseran horizontal. Setelah
+   data-cover-locked berubah menjadi false, scroll vertikal kembali normal. */
+html:has(.wedding-invitation[data-cover-locked="true"]),
+body:has(.wedding-invitation[data-cover-locked="true"]) {
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+  touch-action: none;
+}
+
+body:has(.wedding-invitation[data-cover-locked="true"]) {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+}
+
+.wedding-invitation {
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+.wedding-invitation[data-cover-locked="true"] {
+  height: 100svh;
+  min-height: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+.invitation-cover {
+  height: 100svh;
+  min-height: 0 !important;
+  max-height: 100svh;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+/* Theme noir memiliki susunan vertikal paling tinggi. Komposisi ringkas ini
+   menjaga CTA tetap terlihat pada ponsel pendek tanpa membuat cover scroll. */
+@media (max-height: 640px) {
+  .theme-noir-deco .invitation-cover {
+    padding-top: 1.25rem;
+    padding-bottom: 1.25rem;
+  }
+
+  .theme-noir-deco .noir-cover-fan {
+    height: 3rem;
+  }
+
+  .theme-noir-deco .noir-cover-kicker,
+  .theme-noir-deco .noir-cover-title {
+    margin-top: 0.75rem;
+  }
+
+  .theme-noir-deco .noir-cover-portrait-frame {
+    margin-top: 1rem;
+    padding: 0.375rem;
+  }
+
+  .theme-noir-deco .noir-cover-portrait {
+    width: 11rem;
+    height: 11rem;
+  }
+
+  .theme-noir-deco .noir-cover-date {
+    margin-top: 1rem;
+    font-size: 1rem;
+  }
+
+  .theme-noir-deco .noir-cover-divider,
+  .theme-noir-deco .noir-cover-recipient {
+    margin-top: 0.625rem;
+  }
+
+  .theme-noir-deco .noir-cover-action {
+    margin-top: 1rem;
+  }
 }
 
 html:has(.wedding-invitation)::-webkit-scrollbar {
@@ -176,6 +262,197 @@ html:has(.wedding-invitation)::-webkit-scrollbar {
     color-mix(in oklab, var(--dk-wine, #743148) 48%, var(--color-secondary))
   );
   box-shadow: var(--dk-shadow);
+}
+
+/* Theme 3 - Art Deco title sequence. Enam bilah noir bergerak berurutan
+   seperti shutter panggung, lalu keluar ke atas saat babak undangan dimulai. */
+.theme-noir-deco .noir-cover-content {
+  transform: translateY(0) scale(1);
+  filter: contrast(1) saturate(1);
+  transition:
+    opacity 0.5s ease-out,
+    transform 0.85s cubic-bezier(0.76, 0, 0.24, 1),
+    filter 0.7s ease-out;
+}
+
+.theme-noir-deco .noir-cover-border {
+  transform: scale(1);
+  transition:
+    opacity 0.45s ease-out,
+    transform 0.9s cubic-bezier(0.76, 0, 0.24, 1);
+}
+
+.theme-noir-deco .noir-cover-border--inner {
+  transition-delay: 90ms;
+}
+
+.theme-noir-deco .noir-cover-portrait-frame {
+  transition:
+    opacity 0.5s ease-out,
+    transform 0.9s cubic-bezier(0.76, 0, 0.24, 1);
+}
+
+.theme-noir-deco .noir-cover-photo {
+  transform: scale(1);
+  filter: grayscale(0) contrast(1);
+  transition:
+    transform 1.7s cubic-bezier(0.16, 1, 0.3, 1),
+    filter 0.8s ease-out;
+}
+
+.theme-noir-deco .noir-shutter__slat {
+  transform: translateY(104%);
+  border-right: 1px solid
+    color-mix(in oklab, var(--color-primary) 48%, transparent);
+  background: linear-gradient(
+    165deg,
+    color-mix(in oklab, var(--color-secondary) 94%, #07070a),
+    color-mix(in oklab, var(--dk-wine) 35%, var(--color-secondary))
+  );
+  box-shadow: 0 0 28px rgba(0, 0, 0, 0.48);
+  transition: transform 0.68s cubic-bezier(0.76, 0, 0.24, 1);
+  will-change: transform;
+}
+
+.theme-noir-deco .noir-shutter__slat:nth-child(even) {
+  background: linear-gradient(
+    195deg,
+    color-mix(in oklab, var(--dk-wine) 44%, var(--color-secondary)),
+    color-mix(in oklab, var(--color-secondary) 96%, black)
+  );
+}
+
+.theme-noir-deco .noir-shutter__slat::before,
+.theme-noir-deco .noir-shutter__slat::after {
+  content: "";
+  position: absolute;
+  inset-block: 1rem;
+  width: 1px;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    color-mix(in oklab, var(--color-primary) 42%, transparent),
+    transparent
+  );
+}
+
+.theme-noir-deco .noir-shutter__slat::before {
+  left: 0.45rem;
+}
+
+.theme-noir-deco .noir-shutter__slat::after {
+  right: 0.45rem;
+}
+
+.theme-noir-deco .noir-shutter__title {
+  opacity: 0;
+  transform: translate(-50%, -44%) scale(0.86);
+  transition:
+    opacity 0.35s ease-out,
+    transform 0.62s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.theme-noir-deco .noir-cover.is-shutter-rising .noir-cover-content {
+  transform: translateY(-12px) scale(1.025);
+  filter: contrast(1.16) saturate(0.55);
+  opacity: 0.12;
+}
+
+.theme-noir-deco .noir-cover.is-shutter-rising .noir-cover-border {
+  transform: scale(0.96);
+  opacity: 0.22;
+}
+
+.theme-noir-deco .noir-cover.is-shutter-rising .noir-cover-portrait-frame {
+  transform: scale(1.06) rotate(1deg);
+  opacity: 0.22;
+}
+
+.theme-noir-deco .noir-cover.is-shutter-rising .noir-cover-photo {
+  transform: scale(1.13);
+  filter: grayscale(0.65) contrast(1.15);
+}
+
+.theme-noir-deco .noir-cover.is-shutter-rising .noir-shutter__slat {
+  transform: translateY(0);
+}
+
+.theme-noir-deco .noir-cover.is-shutter-rising .noir-shutter__title {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+  transition-delay: 0.52s;
+}
+
+.theme-noir-deco .noir-cover.is-shutter-exiting .noir-cover-content {
+  transform: scale(1.03);
+  opacity: 0;
+}
+
+.theme-noir-deco .noir-cover.is-shutter-exiting .noir-shutter__slat,
+.theme-noir-deco .noir-cover.is-shutter-done .noir-shutter__slat {
+  transform: translateY(-104%);
+  transition-duration: 0.82s;
+}
+
+.theme-noir-deco .noir-cover.is-shutter-done .noir-shutter__slat {
+  transition: none;
+}
+
+.theme-noir-deco .noir-cover.is-shutter-exiting .noir-shutter__title,
+.theme-noir-deco .noir-cover.is-shutter-done .noir-shutter__title {
+  transform: translate(-50%, -56%) scale(1.06);
+  opacity: 0;
+}
+
+/* Reveal Theme 3 memakai aperture garis dan wajik. Gerak tetap tajam tanpa
+   blur lembut agar karakter noir tidak menyerupai Theme 1 maupun Theme 2. */
+.theme-noir-deco .noir-reveal {
+  transition-property: opacity, transform, filter, clip-path;
+  transition-duration: 0.95s;
+  transition-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+}
+
+.theme-noir-deco .noir-reveal.reveal-blur {
+  clip-path: inset(44% 0 44% 0);
+  transform: scaleX(0.96);
+  filter: contrast(1.35) brightness(0.72);
+}
+
+.theme-noir-deco .noir-reveal.reveal-zoom {
+  clip-path: polygon(50% 5%, 95% 50%, 50% 95%, 5% 50%);
+  transform: scale(0.96);
+  filter: contrast(1.18) brightness(0.8);
+}
+
+.theme-noir-deco .noir-reveal.reveal-up {
+  clip-path: inset(16% 0 0 0);
+  transform: translateY(26px);
+}
+
+.theme-noir-deco .noir-reveal.reveal-left {
+  clip-path: inset(0 100% 0 0);
+  transform: translateX(-16px);
+}
+
+.theme-noir-deco .noir-reveal.reveal-right {
+  clip-path: inset(0 0 0 100%);
+  transform: translateX(16px);
+}
+
+.theme-noir-deco .noir-reveal.reveal-blur.is-visible,
+.theme-noir-deco .noir-reveal.reveal-up.is-visible,
+.theme-noir-deco .noir-reveal.reveal-left.is-visible,
+.theme-noir-deco .noir-reveal.reveal-right.is-visible {
+  clip-path: inset(0);
+}
+
+.theme-noir-deco .noir-reveal.reveal-zoom.is-visible {
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+}
+
+.theme-noir-deco .noir-reveal.is-visible {
+  transform: none;
+  filter: none;
 }
 
 /* ---------------------------------------------------------------------------
@@ -251,6 +528,194 @@ html:has(.wedding-invitation)::-webkit-scrollbar {
   box-shadow: var(--im-shadow);
 }
 
+/* Theme 4 - portal mihrab. Siluet lengkung tumbuh dari garis tengah, garis
+   arsitekturnya digambar, lalu bidang hijau melebar menjadi halaman penuh. */
+.theme-islamic-modern .islamic-cover-photo {
+  transform: scale(1);
+  filter: brightness(1) saturate(1);
+  transition:
+    transform 2s cubic-bezier(0.22, 1, 0.36, 1),
+    filter 0.9s ease-out;
+}
+
+.theme-islamic-modern .islamic-cover-arch {
+  transform-origin: 50% 100%;
+  transition:
+    opacity 0.65s ease-out,
+    transform 1.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.theme-islamic-modern .islamic-cover-content {
+  transform: translateY(0) scale(1);
+  filter: blur(0);
+  transition:
+    opacity 0.65s ease-out,
+    transform 1.05s cubic-bezier(0.22, 1, 0.36, 1),
+    filter 0.7s ease-out;
+}
+
+.theme-islamic-modern .islamic-portal__field {
+  clip-path: polygon(
+    50% 18%,
+    50% 18%,
+    50% 50%,
+    50% 100%,
+    50% 100%,
+    50% 50%,
+    50% 18%
+  );
+  opacity: 0;
+  transition:
+    clip-path 0.82s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.16s linear,
+    transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: clip-path, transform;
+}
+
+.theme-islamic-modern .islamic-portal__arch {
+  translate: -50% 0;
+  opacity: 0;
+}
+
+.theme-islamic-modern .islamic-portal__arch path {
+  stroke-dasharray: 430;
+  stroke-dashoffset: 430;
+  transition: stroke-dashoffset 1.05s cubic-bezier(0.22, 1, 0.36, 1) 0.12s;
+}
+
+.theme-islamic-modern .islamic-portal__message {
+  opacity: 0;
+  transform: translate(-50%, -42%) scale(0.94);
+  transition:
+    opacity 0.55s ease-out 0.28s,
+    transform 0.85s cubic-bezier(0.22, 1, 0.36, 1) 0.2s;
+}
+
+.theme-islamic-modern .islamic-cover.is-portal-tracing .islamic-cover-photo {
+  transform: scale(1.08);
+  filter: brightness(0.78) saturate(0.78);
+}
+
+.theme-islamic-modern .islamic-cover.is-portal-tracing .islamic-cover-arch {
+  transform: scale(1.04);
+  opacity: 0.42;
+}
+
+.theme-islamic-modern .islamic-cover.is-portal-tracing .islamic-cover-content {
+  transform: translateY(-8px) scale(0.985);
+  filter: blur(1px);
+  opacity: 0.42;
+}
+
+.theme-islamic-modern .islamic-cover.is-portal-tracing .islamic-portal__field {
+  clip-path: polygon(
+    50% 3%,
+    78% 20%,
+    90% 38%,
+    90% 100%,
+    10% 100%,
+    10% 38%,
+    22% 20%
+  );
+  opacity: 1;
+}
+
+.theme-islamic-modern .islamic-cover.is-portal-tracing .islamic-portal__arch {
+  opacity: 1;
+}
+
+.theme-islamic-modern
+  .islamic-cover.is-portal-tracing
+  .islamic-portal__arch
+  path {
+  stroke-dashoffset: 0;
+}
+
+.theme-islamic-modern
+  .islamic-cover.is-portal-tracing
+  .islamic-portal__message {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.theme-islamic-modern .islamic-cover.is-portal-opening .islamic-cover-photo {
+  transform: scale(1.11);
+  filter: brightness(0.72) saturate(0.7);
+}
+
+.theme-islamic-modern .islamic-cover.is-portal-opening .islamic-cover-content {
+  transform: translateY(-14px) scale(0.98);
+  opacity: 0;
+}
+
+.theme-islamic-modern .islamic-cover.is-portal-opening .islamic-portal__field {
+  clip-path: polygon(50% 0, 100% 0, 100% 50%, 100% 100%, 0 100%, 0 50%, 0 0);
+  opacity: 1;
+}
+
+.theme-islamic-modern .islamic-cover.is-portal-opening .islamic-portal__arch {
+  opacity: 0.48;
+}
+
+.theme-islamic-modern
+  .islamic-cover.is-portal-opening
+  .islamic-portal__arch
+  path {
+  stroke-dashoffset: 0;
+}
+
+.theme-islamic-modern
+  .islamic-cover.is-portal-opening
+  .islamic-portal__message {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.theme-islamic-modern .islamic-cover.is-portal-done .islamic-portal__field {
+  transform: translateY(-104%);
+  opacity: 0;
+}
+
+/* Reveal Theme 4 turun dari atas dengan kurva panjang dan lembut. Foto serta
+   kartu mempertahankan siluet mihrab saat pertama kali muncul. */
+.theme-islamic-modern .islamic-reveal {
+  transition-property: opacity, transform, filter, clip-path;
+  transition-duration: 1.15s;
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.theme-islamic-modern .islamic-reveal.reveal-blur {
+  clip-path: inset(0 0 28% 0);
+  transform: translateY(-22px);
+  filter: blur(6px) brightness(1.12);
+}
+
+.theme-islamic-modern .islamic-reveal.reveal-zoom {
+  clip-path: inset(0 0 20% 0 round 999px 999px 4px 4px);
+  transform: translateY(-14px) scale(0.97);
+}
+
+.theme-islamic-modern .islamic-reveal.reveal-up {
+  clip-path: inset(0 0 16% 0);
+  transform: translateY(-24px);
+}
+
+.theme-islamic-modern .islamic-reveal.reveal-left {
+  clip-path: inset(0 14% 0 0 round 999px 0 0 999px);
+  transform: translateX(-20px);
+}
+
+.theme-islamic-modern .islamic-reveal.reveal-right {
+  clip-path: inset(0 0 0 14% round 0 999px 999px 0);
+  transform: translateX(20px);
+}
+
+.theme-islamic-modern .islamic-reveal.is-visible {
+  clip-path: inset(0 round 0);
+  transform: none;
+  filter: none;
+}
+
 /* ---------------------------------------------------------------------------
    Theme 5 - Retro Editorial Pop. Terracotta tetap menjadi aksen utama, tetapi
    teal, ink, mustard, dan biru cetak menjaga palet tetap hidup dan seimbang.
@@ -313,6 +778,199 @@ html:has(.wedding-invitation)::-webkit-scrollbar {
   box-shadow: 2px 2px 0 var(--rp-ink, #26343a);
 }
 
+/* Theme 5 - poster cetak bergerak. Lima strip warna masuk bergantian seperti
+   lembar hasil press, menahan label edisi di tengah, lalu terkelupas ke arah
+   sebaliknya. Geraknya sengaja pendek, tegas, dan sedikit tidak simetris. */
+.theme-retro-editorial .retro-cover-photo {
+  transform: scale(1);
+  filter: saturate(1) contrast(1);
+  transition:
+    transform 1.45s cubic-bezier(0.34, 1.2, 0.64, 1),
+    filter 0.65s ease-out;
+}
+
+.theme-retro-editorial .retro-cover-copy {
+  transform: translate(0) rotate(0) scale(1);
+  transform-origin: left center;
+  transition:
+    opacity 0.38s ease-out,
+    transform 0.7s cubic-bezier(0.34, 1.28, 0.64, 1);
+}
+
+.theme-retro-editorial .retro-poster-wipe__band {
+  overflow: hidden;
+  border-block: 1px solid color-mix(in oklab, var(--rp-ink) 38%, transparent);
+  opacity: 1;
+  transform: translateX(-104%);
+  transition: transform 0.58s cubic-bezier(0.76, 0, 0.24, 1);
+  will-change: transform;
+}
+
+.theme-retro-editorial .retro-poster-wipe__band::after {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(
+    circle,
+    color-mix(in oklab, var(--rp-ink) 45%, transparent) 1px,
+    transparent 1.2px
+  );
+  background-size: 8px 8px;
+  content: "";
+  opacity: 0.2;
+}
+
+.theme-retro-editorial .retro-poster-wipe__band:nth-child(even) {
+  transform: translateX(104%);
+}
+
+.theme-retro-editorial .retro-poster-wipe__band:nth-child(1) {
+  background: var(--rp-yellow);
+}
+
+.theme-retro-editorial .retro-poster-wipe__band:nth-child(2) {
+  background: var(--rp-teal);
+}
+
+.theme-retro-editorial .retro-poster-wipe__band:nth-child(3) {
+  background: var(--color-primary);
+}
+
+.theme-retro-editorial .retro-poster-wipe__band:nth-child(4) {
+  background: var(--rp-blue);
+}
+
+.theme-retro-editorial .retro-poster-wipe__band:nth-child(5) {
+  background: var(--rp-paper);
+}
+
+.theme-retro-editorial .retro-poster-wipe__stamp {
+  border: 2px solid var(--rp-ink);
+  border-radius: 3px;
+  background: var(--rp-yellow);
+  box-shadow: 7px 7px 0 var(--rp-ink);
+  opacity: 0;
+  padding: 1.15rem 1rem;
+  transform: translate(-50%, -45%) rotate(-8deg) scale(0.72);
+  transition:
+    opacity 0.18s ease-out,
+    transform 0.62s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.theme-retro-editorial .retro-cover.is-poster-printing .retro-cover-photo {
+  transform: scale(1.06);
+  filter: saturate(1.2) contrast(1.06);
+}
+
+.theme-retro-editorial .retro-cover.is-poster-printing .retro-cover-copy {
+  transform: translate(4px, 2px) rotate(-0.7deg) scale(0.98);
+  opacity: 0.35;
+}
+
+.theme-retro-editorial
+  .retro-cover.is-poster-printing
+  .retro-poster-wipe__band {
+  transform: translateX(0);
+}
+
+.theme-retro-editorial
+  .retro-cover.is-poster-printing
+  .retro-poster-wipe__stamp {
+  opacity: 1;
+  transform: translate(-50%, -50%) rotate(-2deg) scale(1);
+  transition-delay: 0.42s;
+}
+
+.theme-retro-editorial .retro-cover.is-poster-peeling .retro-cover-photo {
+  transform: scale(1.09);
+  filter: saturate(1.12) contrast(1.08);
+}
+
+.theme-retro-editorial .retro-cover.is-poster-peeling .retro-cover-copy {
+  transform: translate(-8px, -3px) rotate(1deg) scale(0.97);
+  opacity: 0;
+}
+
+.theme-retro-editorial
+  .retro-cover.is-poster-peeling
+  .retro-poster-wipe__band:nth-child(odd) {
+  transform: translateX(104%);
+}
+
+.theme-retro-editorial
+  .retro-cover.is-poster-peeling
+  .retro-poster-wipe__band:nth-child(even) {
+  transform: translateX(-104%);
+}
+
+.theme-retro-editorial
+  .retro-cover.is-poster-peeling
+  .retro-poster-wipe__stamp {
+  opacity: 0;
+  transform: translate(-50%, -56%) rotate(7deg) scale(1.12);
+  transition-delay: 0s;
+}
+
+.theme-retro-editorial
+  .retro-cover.is-poster-done
+  .retro-poster-wipe__band:nth-child(odd) {
+  transform: translateX(104%);
+  transition: none;
+}
+
+.theme-retro-editorial
+  .retro-cover.is-poster-done
+  .retro-poster-wipe__band:nth-child(even) {
+  transform: translateX(-104%);
+  transition: none;
+}
+
+.theme-retro-editorial .retro-cover.is-poster-done .retro-poster-wipe__stamp {
+  opacity: 0;
+  transition: none;
+}
+
+/* Reveal Theme 5 meniru elemen layout majalah yang ditempel ke halaman:
+   sedikit miring saat masuk lalu terkunci cepat di grid tanpa efek blur. */
+.theme-retro-editorial .retro-reveal {
+  transform-origin: center;
+  transition-property: opacity, transform, filter, clip-path;
+  transition-duration: 0.76s;
+  transition-timing-function: cubic-bezier(0.34, 1.45, 0.64, 1);
+}
+
+.theme-retro-editorial .retro-reveal.reveal-up {
+  transform: translateY(30px) rotate(-1deg) scale(0.98);
+}
+
+.theme-retro-editorial .retro-reveal.reveal-left {
+  transform: translateX(-34px) rotate(-2deg) scale(0.98);
+}
+
+.theme-retro-editorial .retro-reveal.reveal-right {
+  transform: translateX(34px) rotate(2deg) scale(0.98);
+}
+
+.theme-retro-editorial .retro-reveal.reveal-zoom {
+  clip-path: inset(8% 6% 8% 6%);
+  transform: scale(0.86) rotate(-1.5deg);
+}
+
+.theme-retro-editorial .retro-reveal.reveal-blur {
+  clip-path: inset(0 0 34% 0);
+  transform: translateY(22px) rotate(1deg);
+  filter: saturate(0.65) contrast(1.16);
+}
+
+.theme-retro-editorial .retro-reveal.reveal-bloom {
+  transform: scale(0.9) rotate(1.5deg);
+}
+
+.theme-retro-editorial .retro-reveal.is-visible {
+  clip-path: inset(0);
+  transform: none;
+  filter: none;
+}
+
 /* ---------------------------------------------------------------------------
    Theme 2 - Adat Jawa. Sogan tetap menjadi identitas utama, dengan indigo
    gelap dan netral arang sebagai penyeimbang agar palet tidak satu nada.
@@ -356,6 +1014,37 @@ html:has(.wedding-invitation)::-webkit-scrollbar {
   );
 }
 
+.jw-footer {
+  background:
+    linear-gradient(
+      135deg,
+      transparent 48%,
+      color-mix(in oklab, var(--jw-russet, #a15f49) 12%, transparent)
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--jw-night, #293d3c) 88%, var(--jw-indigo, #29434a)),
+      color-mix(in oklab, var(--jw-indigo, #29434a) 84%, #142528)
+    );
+  box-shadow: inset 0 1px 0
+    color-mix(in oklab, var(--jw-gold-soft, #e4d09a) 14%, transparent);
+}
+
+.jw-footer-link {
+  border: 1px solid
+    color-mix(in oklab, var(--jw-gold-soft, #e4d09a) 52%, transparent);
+  background: color-mix(in oklab, #081311 16%, transparent);
+  color: var(--jw-gold-soft, #e4d09a);
+  box-shadow: inset 0 0 0 1px
+    color-mix(in oklab, var(--jw-indigo, #29434a) 32%, transparent);
+}
+
+.jw-footer-link:hover {
+  border-color: var(--jw-gold-soft, #e4d09a);
+  background: var(--jw-gold-soft, #e4d09a);
+  color: var(--jw-indigo, #29434a);
+}
+
 .jw-person-portrait {
   overflow: hidden;
   border: 1px solid
@@ -373,6 +1062,161 @@ html:has(.wedding-invitation)::-webkit-scrollbar {
   border-radius: 4px;
   background: color-mix(in oklab, var(--jw-card, #fff) 94%, white);
   box-shadow: var(--jw-shadow);
+}
+
+/* Theme 2 - pembukaan lakon dengan sepasang daun gebyok. Berbeda dari bloom
+   Theme 1: gerak utama selalu horizontal, tegas, dan simetris dari garis tengah. */
+.theme-javanese .javanese-cover-content {
+  transform: scale(1);
+  filter: saturate(1);
+  transition:
+    opacity 0.55s ease-out,
+    transform 0.9s cubic-bezier(0.65, 0, 0.35, 1),
+    filter 0.65s ease-out;
+}
+
+.theme-javanese .javanese-cover-kayon {
+  transform-origin: 50% 100%;
+  transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.theme-javanese .javanese-cover-portrait {
+  transition:
+    opacity 0.55s ease-out,
+    transform 0.85s cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+.theme-javanese .javanese-cover-button__diamond {
+  transition: transform 0.65s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.theme-javanese .javanese-gate__leaf {
+  background: linear-gradient(
+    160deg,
+    color-mix(in oklab, var(--jw-night) 86%, #172f35),
+    color-mix(in oklab, var(--jw-sogan-deep) 82%, var(--jw-indigo))
+  );
+  box-shadow: 0 0 42px rgba(14, 20, 19, 0.42);
+  transition: transform 0.76s cubic-bezier(0.65, 0, 0.35, 1);
+  will-change: transform;
+}
+
+.theme-javanese .javanese-gate__leaf::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0 72%,
+    color-mix(in oklab, var(--jw-gold) 16%, transparent) 72% 73%,
+    transparent 73%
+  );
+}
+
+.theme-javanese .javanese-gate__leaf--left {
+  transform: translateX(-102%);
+  border-right: 1px solid var(--jw-gold);
+}
+
+.theme-javanese .javanese-gate__leaf--right {
+  transform: translateX(102%);
+  border-left: 1px solid var(--jw-gold);
+}
+
+.theme-javanese .javanese-gate__leaf--right::after {
+  transform: scaleX(-1);
+}
+
+.theme-javanese .javanese-gate__seal {
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.82);
+  transition:
+    opacity 0.28s ease-out,
+    transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.theme-javanese .javanese-cover.is-gate-closing .javanese-cover-content {
+  transform: scale(0.975);
+  filter: saturate(0.76);
+  opacity: 0.3;
+}
+
+.theme-javanese .javanese-cover.is-gate-closing .javanese-cover-kayon {
+  transform: scale(1.12);
+}
+
+.theme-javanese .javanese-cover.is-gate-closing .javanese-cover-portrait {
+  transform: scale(0.94);
+  opacity: 0.4;
+}
+
+.theme-javanese
+  .javanese-cover.is-gate-closing
+  .javanese-cover-button__diamond {
+  transform: rotate(225deg) scale(1.8);
+}
+
+.theme-javanese .javanese-cover.is-gate-closing .javanese-gate__leaf {
+  transform: translateX(0);
+}
+
+.theme-javanese .javanese-cover.is-gate-closing .javanese-gate__seal {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+  transition-delay: 0.28s;
+}
+
+.theme-javanese .javanese-cover.is-gate-parting .javanese-cover-content {
+  transform: scale(0.97);
+  opacity: 0;
+}
+
+.theme-javanese .javanese-cover.is-gate-parting .javanese-gate__leaf {
+  transition-duration: 1.05s;
+}
+
+.theme-javanese .javanese-cover.is-gate-parting .javanese-gate__seal {
+  transform: translate(-50%, -50%) scale(1.08);
+  opacity: 0;
+}
+
+/* Reveal section Theme 2 terbuka dari garis tengah seperti kain batik yang
+   direntangkan. Efeknya tajam dan minim blur agar tetap terasa seremonial. */
+.theme-javanese .javanese-reveal {
+  transform-origin: 50% 0;
+  transition-duration: 1.05s;
+  transition-timing-function: cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+.theme-javanese .javanese-reveal.reveal-bloom {
+  clip-path: inset(0 18% 0 18%);
+  transform: translateY(24px) scaleY(0.985);
+}
+
+.theme-javanese .javanese-reveal.reveal-up {
+  clip-path: inset(8% 0 0 0);
+  transform: translateY(30px);
+}
+
+.theme-javanese .javanese-reveal.reveal-left {
+  clip-path: inset(0 12% 0 0);
+  transform: translateX(-24px);
+}
+
+.theme-javanese .javanese-reveal.reveal-right {
+  clip-path: inset(0 0 0 12%);
+  transform: translateX(24px);
+}
+
+.theme-javanese .javanese-reveal.reveal-zoom {
+  clip-path: inset(5% 8%);
+  transform: scale(0.96);
+}
+
+.theme-javanese .javanese-reveal.is-visible {
+  clip-path: inset(0);
+  transform: none;
+  filter: none;
 }
 
 /* ---------------------------------------------------------------------------
@@ -588,6 +1432,182 @@ html:has(.wedding-invitation)::-webkit-scrollbar {
 }
 
 /* ---------------------------------------------------------------------------
+   Theme 1 - transisi floral bloom.
+   Sampul ditutup oleh bidang kertas yang mekar dari pusat kartu, lalu bidang
+   itu ikut bergeser bersama cover saat viewport menuju halaman pembuka.
+   --------------------------------------------------------------------------- */
+.theme-floral-elegant .floral-cover-media {
+  transform: scale(1.045);
+  transition:
+    transform 2.4s cubic-bezier(0.16, 1, 0.3, 1),
+    filter 1.1s ease-out;
+  will-change: transform, filter;
+}
+
+.theme-floral-elegant .floral-cover-corners {
+  transform: scale(1);
+  transform-origin: center;
+  transition:
+    opacity 0.7s ease-out,
+    transform 1.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.theme-floral-elegant .floral-cover-content {
+  transform: translateY(0) scale(1);
+  filter: blur(0);
+  transition:
+    opacity 0.55s ease-out,
+    transform 0.95s cubic-bezier(0.16, 1, 0.3, 1),
+    filter 0.6s ease-out;
+  will-change: opacity, transform, filter;
+}
+
+.theme-floral-elegant .floral-cover-card {
+  transform-origin: center 72%;
+  transition: transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.theme-floral-elegant .floral-bloom-wipe {
+  clip-path: circle(0% at 50% 64%);
+  opacity: 0;
+  background: var(--color-secondary);
+  transition:
+    clip-path 1.05s cubic-bezier(0.65, 0, 0.2, 1),
+    opacity 0.12s linear;
+  will-change: clip-path, opacity;
+}
+
+.theme-floral-elegant .floral-bloom-wipe__wash {
+  background:
+    radial-gradient(
+      circle at 50% 48%,
+      rgba(255, 255, 255, 0.82) 0%,
+      rgba(255, 255, 255, 0.26) 38%,
+      transparent 68%
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--color-secondary) 90%, white),
+      color-mix(in oklab, var(--color-primary) 14%, var(--color-secondary))
+    );
+}
+
+.theme-floral-elegant .floral-bloom-wipe__emblem {
+  opacity: 0;
+  transform: translate(-50%, -43%) scale(0.82);
+  transition:
+    opacity 0.5s ease-out 0.32s,
+    transform 0.85s cubic-bezier(0.16, 1, 0.3, 1) 0.24s;
+}
+
+.theme-floral-elegant .floral-cover-button__glint {
+  position: absolute;
+  inset-block: 0;
+  left: -45%;
+  width: 30%;
+  transform: skewX(-20deg);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.5),
+    transparent
+  );
+  opacity: 0;
+}
+
+.theme-floral-elegant .floral-cover.is-opening .floral-cover-media {
+  transform: scale(1.14) rotate(0.25deg);
+  filter: saturate(0.82) blur(1.2px);
+}
+
+.theme-floral-elegant .floral-cover.is-opening .floral-cover-corners {
+  transform: scale(1.12);
+  opacity: 0;
+}
+
+.theme-floral-elegant .floral-cover.is-opening .floral-cover-content {
+  transform: translateY(-18px) scale(0.965);
+  filter: blur(2.5px);
+  opacity: 0;
+}
+
+.theme-floral-elegant .floral-cover.is-opening .floral-cover-card {
+  transform: translateY(-8px) scale(0.96);
+}
+
+.theme-floral-elegant .floral-cover.is-opening .floral-bloom-wipe {
+  clip-path: circle(145% at 50% 64%);
+  opacity: 1;
+}
+
+.theme-floral-elegant .floral-cover.is-opening .floral-bloom-wipe__emblem {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.theme-floral-elegant .floral-cover.is-opening .floral-cover-button__glint {
+  animation: floral-button-glint 0.8s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+}
+
+@keyframes floral-button-glint {
+  0% {
+    left: -45%;
+    opacity: 0;
+  }
+  18% {
+    opacity: 1;
+  }
+  100% {
+    left: 120%;
+    opacity: 0;
+  }
+}
+
+/* Reveal section Theme 1: lebih lambat, sedikit blur, dan membuka seperti
+   kelopak. Namespace ini mencegah karakter geraknya menular ke tema lain. */
+.theme-floral-elegant .floral-reveal {
+  transition-duration: 1.15s;
+  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.theme-floral-elegant .floral-reveal.reveal-up {
+  transform: translateY(38px) scale(0.99);
+  filter: blur(3px);
+}
+
+.theme-floral-elegant .floral-reveal.reveal-left {
+  transform: translateX(-26px) rotate(-0.8deg);
+  filter: blur(2px);
+}
+
+.theme-floral-elegant .floral-reveal.reveal-right {
+  transform: translateX(26px) rotate(0.8deg);
+  filter: blur(2px);
+}
+
+.theme-floral-elegant .floral-reveal.reveal-zoom {
+  transform: scale(0.94);
+  filter: saturate(0.82) blur(2px);
+}
+
+.theme-floral-elegant .floral-reveal.reveal-blur {
+  transform: translateY(18px) scale(0.99);
+  filter: blur(10px);
+}
+
+.theme-floral-elegant .floral-reveal.reveal-bloom {
+  clip-path: inset(0 0 12% 0 round 6px);
+  transform: translateY(34px) scale(0.975);
+  filter: blur(5px) saturate(0.88);
+}
+
+.theme-floral-elegant .floral-reveal.is-visible {
+  clip-path: inset(0 0 0 0 round 0);
+  transform: none;
+  filter: none;
+}
+
+/* ---------------------------------------------------------------------------
    Theme 6 - Vintage Archive Editorial.
    --------------------------------------------------------------------------- */
 
@@ -701,6 +1721,199 @@ html:has(.wedding-invitation)::-webkit-scrollbar {
   );
 }
 
+/* Theme 6 - lembar katalog arsip. Sampul dimasukkan ke balik file vellum,
+   identitas pasangan dicatat, lalu lembar terangkat seperti halaman album. */
+.theme-vintage-archive .archive-cover-photo {
+  transform: scale(1);
+  filter: saturate(0.86) sepia(0);
+  transition:
+    transform 1.8s cubic-bezier(0.16, 1, 0.3, 1),
+    filter 0.9s ease-out;
+}
+
+.theme-vintage-archive .archive-cover-copy {
+  transform: translateY(0) scale(1);
+  transition:
+    opacity 0.55s ease-out,
+    transform 1s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.theme-vintage-archive .archive-cover-border {
+  transition:
+    inset 0.9s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.45s ease-out;
+}
+
+.theme-vintage-archive .archive-file-transition {
+  perspective: 1100px;
+  perspective-origin: 20% 15%;
+}
+
+.theme-vintage-archive .archive-file-sheet {
+  backface-visibility: hidden;
+  box-shadow: 0 -24px 60px rgba(21, 37, 31, 0.32);
+  opacity: 0;
+  transform: translate3d(0, 106%, 0) rotateZ(1.8deg);
+  transform-origin: 8% 0;
+  transition:
+    transform 0.88s cubic-bezier(0.76, 0, 0.24, 1),
+    opacity 0.12s linear;
+  will-change: transform, opacity;
+}
+
+.theme-vintage-archive .archive-file-sheet::before {
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(
+      color-mix(in oklab, var(--va-ink) 20%, transparent) 0.45px,
+      transparent 0.6px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      transparent 0 6px,
+      rgba(255, 255, 255, 0.16) 6px 7px
+    );
+  background-size:
+    4px 4px,
+    100% 7px;
+  content: "";
+  opacity: 0.36;
+  pointer-events: none;
+}
+
+.theme-vintage-archive .archive-file-tab {
+  background: var(--va-oxblood);
+  clip-path: polygon(10% 0, 100% 0, 100% 100%, 0 100%);
+}
+
+.theme-vintage-archive .archive-file-spine {
+  background: color-mix(in oklab, var(--va-brass-soft) 18%, transparent);
+}
+
+.theme-vintage-archive .archive-file-hole {
+  border: 1px solid color-mix(in oklab, var(--va-forest) 42%, transparent);
+  background: color-mix(in oklab, var(--va-forest) 12%, var(--va-vellum));
+  box-shadow: inset 0 1px 3px rgba(21, 37, 31, 0.28);
+}
+
+.theme-vintage-archive .archive-file-content {
+  opacity: 0;
+  transform: translateY(20px);
+  transition:
+    opacity 0.42s ease-out 0.38s,
+    transform 0.72s cubic-bezier(0.16, 1, 0.3, 1) 0.32s;
+}
+
+.theme-vintage-archive .archive-file-barcode {
+  background-image: repeating-linear-gradient(
+    90deg,
+    var(--va-forest) 0 1px,
+    transparent 1px 3px,
+    var(--va-forest) 3px 5px,
+    transparent 5px 8px
+  );
+  opacity: 0.72;
+}
+
+.theme-vintage-archive .archive-cover.is-file-filing .archive-cover-photo {
+  transform: scale(1.055);
+  filter: saturate(0.68) sepia(0.14) brightness(0.83);
+}
+
+.theme-vintage-archive .archive-cover.is-file-filing .archive-cover-copy {
+  transform: translateY(-7px) scale(0.985);
+  opacity: 0.34;
+}
+
+.theme-vintage-archive .archive-cover.is-file-filing .archive-cover-border {
+  inset: 1.35rem;
+  opacity: 0.42;
+}
+
+.theme-vintage-archive .archive-cover.is-file-filing .archive-file-sheet {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) rotateZ(0);
+}
+
+.theme-vintage-archive .archive-cover.is-file-filing .archive-file-content,
+.theme-vintage-archive .archive-cover.is-file-turning .archive-file-content {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.theme-vintage-archive .archive-cover.is-file-turning .archive-cover-photo {
+  transform: scale(1.08);
+  filter: saturate(0.7) sepia(0.1) brightness(0.8);
+}
+
+.theme-vintage-archive .archive-cover.is-file-turning .archive-cover-copy {
+  transform: translateY(-12px) scale(0.98);
+  opacity: 0;
+}
+
+.theme-vintage-archive .archive-cover.is-file-turning .archive-file-sheet {
+  opacity: 0;
+  transform: translate3d(-14%, -112%, 0) rotateZ(-8deg) rotateY(-14deg);
+  transition:
+    transform 1.12s cubic-bezier(0.7, 0, 0.18, 1),
+    opacity 0.22s ease-in 0.8s;
+}
+
+.theme-vintage-archive .archive-cover.is-file-done .archive-file-sheet {
+  opacity: 0;
+  transform: translate3d(-14%, -112%, 0) rotateZ(-8deg) rotateY(-14deg);
+  transition: none;
+}
+
+/* Reveal Theme 6 terasa seperti cetak foto yang dikeluarkan dari sleeve:
+   bergerak pelan, sedikit miring, lalu warna analog berkembang menjadi penuh. */
+.theme-vintage-archive .archive-reveal {
+  transform-origin: center top;
+  transition-property: opacity, transform, filter, clip-path;
+  transition-duration: 1.05s;
+  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.theme-vintage-archive .archive-reveal.reveal-up {
+  clip-path: inset(0 0 24% 0);
+  transform: translateY(32px) rotate(0.65deg);
+  filter: sepia(0.22) saturate(0.72);
+}
+
+.theme-vintage-archive .archive-reveal.reveal-left {
+  transform: perspective(900px) translateX(-28px) rotateY(-6deg)
+    rotate(-0.8deg);
+  filter: sepia(0.18) saturate(0.76);
+}
+
+.theme-vintage-archive .archive-reveal.reveal-right {
+  transform: perspective(900px) translateX(28px) rotateY(6deg) rotate(0.8deg);
+  filter: sepia(0.18) saturate(0.76);
+}
+
+.theme-vintage-archive .archive-reveal.reveal-zoom {
+  clip-path: inset(5% 4% 5% 4%);
+  transform: scale(0.94) rotate(-0.75deg);
+  filter: grayscale(0.28) sepia(0.24) saturate(0.68);
+}
+
+.theme-vintage-archive .archive-reveal.reveal-blur {
+  transform: translateY(18px) rotate(0.6deg);
+  filter: grayscale(0.35) sepia(0.24) saturate(0.62);
+}
+
+.theme-vintage-archive .archive-reveal.reveal-bloom {
+  transform: scale(0.95) rotate(0.8deg);
+  filter: sepia(0.2) saturate(0.7);
+}
+
+.theme-vintage-archive .archive-reveal.is-visible {
+  clip-path: inset(0);
+  transform: none;
+  filter: none;
+}
+
 /* ---------------------------------------------------------------------------
    Scroll reveal (dipakai komponen <Reveal> di themes/theme1/components).
    Elemen mulai tersembunyi sesuai varian arahnya; saat masuk viewport,
@@ -747,6 +1960,19 @@ html:has(.wedding-invitation)::-webkit-scrollbar {
   opacity: 1;
   transform: none;
   filter: none;
+}
+
+/* Footer pendek di ujung dokumen tidak selalu melewati ambang observer ketika
+   scroll-snap berhenti di section sebelumnya. Theme 3-5 memakai Reveal di
+   footer, jadi paksa state akhirnya agar judul, ikon, dan handle selalu tampil. */
+.theme-noir-deco footer .noir-reveal.reveal,
+.theme-islamic-modern footer .islamic-reveal.reveal,
+.theme-retro-editorial footer .retro-reveal.reveal {
+  clip-path: inset(0);
+  opacity: 1;
+  transform: none;
+  filter: none;
+  transition: none;
 }
 
 /* Garis timeline Love Story "menggambar dirinya" dari atas ke bawah begitu

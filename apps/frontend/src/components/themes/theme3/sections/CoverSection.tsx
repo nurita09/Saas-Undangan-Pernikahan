@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { formatCoverDate } from "../../../../utils/formatDate";
 import type { CoupleInfo } from "../../../../types/wedding";
 import CoverMedia from "../../../shared/CoverMedia";
@@ -18,6 +18,10 @@ interface CoverSectionProps {
   onOpen: () => void;
 }
 
+type OpeningPhase = "idle" | "rising" | "exiting" | "done";
+
+const SHUTTER_COLUMNS = Array.from({ length: 6 }, (_, index) => index);
+
 /** Cover dark premium: pendar emas, kipas art-deco, tipografi renggang.
  *  Section ini permanen (tidak di-unmount) -- guest bisa scroll balik ke atas
  *  untuk melihatnya lagi. */
@@ -29,21 +33,44 @@ export default function CoverSection({
   isOpened,
   onOpen,
 }: CoverSectionProps) {
-  const [isOpening, setIsOpening] = useState(false);
+  const [openingPhase, setOpeningPhase] = useState<OpeningPhase>("idle");
+  const openTimerRef = useRef<number | null>(null);
+  const resetTimerRef = useRef<number | null>(null);
+  const isOpening = openingPhase === "rising" || openingPhase === "exiting";
+
+  useEffect(
+    () => () => {
+      if (openTimerRef.current) window.clearTimeout(openTimerRef.current);
+      if (resetTimerRef.current) window.clearTimeout(resetTimerRef.current);
+    },
+    [],
+  );
 
   const handleOpen = () => {
     if (isOpening || isOpened) return;
-    setIsOpening(true);
-    window.setTimeout(() => {
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setOpeningPhase("done");
       onOpen();
-    }, 900);
-    window.setTimeout(() => {
-      setIsOpening(false);
-    }, 1900);
+      return;
+    }
+
+    setOpeningPhase("rising");
+    openTimerRef.current = window.setTimeout(() => {
+      setOpeningPhase("exiting");
+      onOpen();
+    }, 1050);
+    resetTimerRef.current = window.setTimeout(() => {
+      setOpeningPhase("done");
+    }, 3000);
   };
 
   return (
-    <section className="noir-section relative flex h-[100svh] flex-col items-center justify-center overflow-hidden px-6 py-10 text-center min-[380px]:py-16">
+    <section
+      aria-busy={isOpening}
+      data-opening-phase={openingPhase}
+      className={`noir-cover invitation-cover noir-section relative flex h-[100svh] flex-col items-center justify-center overflow-hidden px-6 py-10 text-center min-[380px]:py-16 is-shutter-${openingPhase}`}
+    >
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-x-0 top-0 h-96"
@@ -52,63 +79,45 @@ export default function CoverSection({
       {/* Bingkai garis tipis ganda */}
       <div
         aria-hidden="true"
-        className={`pointer-events-none absolute inset-4 border border-[var(--color-primary)]/40 transition-all duration-[1600ms] ${
-          isOpening ? "inset-6 opacity-25" : "opacity-100"
-        }`}
+        className="noir-cover-border pointer-events-none absolute inset-4 border border-[var(--color-primary)]/40"
       />
       <div
         aria-hidden="true"
-        className={`pointer-events-none absolute inset-6 border border-[var(--color-primary)]/15 transition-all delay-150 duration-[1600ms] ${
-          isOpening ? "inset-9 opacity-20" : "opacity-100"
-        }`}
-      />
-      <div
-        aria-hidden="true"
-        className={`pointer-events-none absolute inset-0 z-20 bg-[linear-gradient(180deg,color-mix(in_oklab,var(--color-primary)_18%,var(--dk-wine))_0%,color-mix(in_oklab,var(--color-secondary)_94%,black)_72%)] transition-all duration-[1600ms] ease-out ${
-          isOpening ? "scale-100 opacity-95" : "scale-110 opacity-0"
-        }`}
+        className="noir-cover-border noir-cover-border--inner pointer-events-none absolute inset-6 border border-[var(--color-primary)]/15"
       />
 
-      <div
-        className={`relative z-10 flex flex-col items-center transition-all duration-[1500ms] ${
-          isOpening
-            ? "-translate-y-3 scale-[0.97] opacity-70 blur-[1px]"
-            : "translate-y-0 scale-100 opacity-100 blur-0"
-        }`}
-      >
-        <DecoFan className="opacity-0 animate-fade-in-scale h-16 w-auto" />
+      <div className="noir-cover-content relative z-10 flex flex-col items-center">
+        <DecoFan className="noir-cover-fan opacity-0 animate-fade-in-scale h-16 w-auto" />
 
-        <p className="opacity-0 animate-fade-up [animation-delay:200ms] mt-6 text-xs uppercase tracking-[0.5em] font-medium text-[var(--color-primary)]">
+        <p className="noir-cover-kicker opacity-0 animate-fade-up [animation-delay:200ms] mt-6 text-xs uppercase tracking-[0.5em] font-medium text-[var(--color-primary)]">
           The Wedding Of
         </p>
 
-        <h1 className="opacity-0 animate-fade-up [animation-delay:350ms] mt-5 max-w-[21rem] break-words font-script text-5xl leading-tight text-[var(--dk-ivory)] md:text-6xl">
+        <h1 className="noir-cover-title opacity-0 animate-fade-up [animation-delay:350ms] mt-5 max-w-[21rem] break-words font-script text-5xl leading-tight text-[var(--dk-ivory)] md:text-6xl">
           {couple.groom_name}
           <span className="mx-1 text-[var(--color-primary)]">&amp;</span>
           {couple.bride_name}
         </h1>
 
-        <div className="opacity-0 animate-fade-up [animation-delay:500ms] mt-9 rounded-full border border-[var(--color-primary)]/70 p-2 shadow-[0_22px_55px_-32px_rgba(0,0,0,0.9)]">
-          <div className="h-52 w-52 overflow-hidden rounded-full">
+        <div className="noir-cover-portrait-frame opacity-0 animate-fade-up [animation-delay:500ms] mt-9 rounded-full border border-[var(--color-primary)]/70 p-2 shadow-[0_22px_55px_-32px_rgba(0,0,0,0.9)]">
+          <div className="noir-cover-portrait h-52 w-52 overflow-hidden rounded-full">
             <CoverMedia
               src={coverPhotoUrl}
               alt="Cover"
-              className={`w-full h-full object-cover transition-transform duration-[1900ms] ${
-                isOpening ? "scale-110" : "scale-100"
-              }`}
+              className="noir-cover-photo h-full w-full object-cover"
             />
           </div>
         </div>
 
         {weddingDate && (
-          <p className="opacity-0 animate-fade-up [animation-delay:650ms] mt-8 font-serif text-xl tracking-[0.35em] text-[var(--color-primary)]">
+          <p className="noir-cover-date opacity-0 animate-fade-up [animation-delay:650ms] mt-8 font-serif text-xl tracking-[0.35em] text-[var(--color-primary)]">
             {formatCoverDate(weddingDate)}
           </p>
         )}
 
-        <GoldDivider className="opacity-0 animate-fade-up [animation-delay:750ms] mt-5 w-52" />
+        <GoldDivider className="noir-cover-divider opacity-0 animate-fade-up [animation-delay:750ms] mt-5 w-52" />
 
-        <div className="opacity-0 animate-fade-up [animation-delay:850ms] mt-5 text-sm text-neutral-400 space-y-1">
+        <div className="noir-cover-recipient opacity-0 animate-fade-up [animation-delay:850ms] mt-5 text-sm text-neutral-400 space-y-1">
           <p>Kepada Yth. Bapak/Ibu/Saudara/i</p>
         </div>
         <p className="opacity-0 animate-fade-up [animation-delay:950ms] mt-1 font-serif text-lg font-semibold text-neutral-100">
@@ -125,7 +134,7 @@ export default function CoverSection({
             </p>
           </div>
         ) : (
-          <div className="opacity-0 animate-fade-up [animation-delay:1100ms] relative mt-9 inline-block">
+          <div className="noir-cover-action opacity-0 animate-fade-up [animation-delay:1100ms] relative mt-9 inline-block">
             <button
               type="button"
               onClick={handleOpen}
@@ -143,6 +152,29 @@ export default function CoverSection({
             </button>
           </div>
         )}
+      </div>
+
+      <div
+        className="noir-shutter pointer-events-none absolute inset-0 z-30 grid grid-cols-6 overflow-hidden"
+        aria-hidden="true"
+      >
+        {SHUTTER_COLUMNS.map((index) => (
+          <span
+            key={index}
+            className="noir-shutter__slat relative h-full"
+            style={{ transitionDelay: `${index * 55}ms` }}
+          />
+        ))}
+        <div className="noir-shutter__title absolute left-1/2 top-1/2 w-64 text-center">
+          <DecoFan className="mx-auto h-14 w-auto" />
+          <p className="mt-5 text-[0.58rem] font-semibold uppercase tracking-[0.46em] text-[var(--color-primary)]">
+            A New Chapter
+          </p>
+          <GoldDivider className="mx-auto mt-5 w-48" />
+          <p className="mt-4 font-serif text-sm italic tracking-[0.14em] text-[var(--dk-muted)]">
+            Noir Edition / No. 03
+          </p>
+        </div>
       </div>
     </section>
   );

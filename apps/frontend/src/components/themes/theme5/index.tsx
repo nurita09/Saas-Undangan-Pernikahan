@@ -150,22 +150,30 @@ export default function Theme5({ data, guestName }: ThemeComponentProps) {
       const c3 = c1 + 1;
       return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
     };
+    const root = document.documentElement;
+    const previousScrollBehavior = root.style.scrollBehavior;
+    const previousScrollSnapType = root.style.scrollSnapType;
+
+    root.style.scrollBehavior = "auto";
+    root.style.scrollSnapType = "none";
 
     const step = (now: number) => {
       const progress = Math.min((now - startTime) / duration, 1);
       window.scrollTo(0, startY + distance * easeOutBack(progress));
-      if (progress < 1) requestAnimationFrame(step);
+      if (progress < 1) {
+        requestAnimationFrame(step);
+        return;
+      }
+
+      root.style.scrollBehavior = previousScrollBehavior;
+      root.style.scrollSnapType = previousScrollSnapType;
     };
 
     requestAnimationFrame(step);
   };
 
-  /* Cover TIDAK dihapus dari halaman -- tetap jadi section paling atas yang
-     bisa didatangi lagi dengan scroll ke atas. "Buka Undangan" cuma memicu
-     smooth-scroll turun ke section pertama (transisinya scroll sungguhan,
-     bukan simulasi fade/transform). Efek ini menangani scroll begitu konten
-     baru saja ter-mount; klik berikutnya (setelah kembali ke cover) ditangani
-     langsung di handleOpenInvitation karena isOpened sudah true. */
+  /* Strip poster menutup cover lebih dulu. Setelah konten di-mount, viewport
+     turun dengan sedikit overshoot seperti lembar majalah yang disentakkan. */
   useEffect(() => {
     if (isOpened) scrollToContent();
   }, [isOpened]);
@@ -212,6 +220,7 @@ export default function Theme5({ data, guestName }: ThemeComponentProps) {
 
   return (
     <div
+      data-cover-locked={!isOpened}
       className="wedding-invitation theme-retro-editorial flex min-h-screen w-full font-sans text-[var(--rp-ink)] selection:bg-[var(--color-primary)] selection:text-white"
       style={cssVars}
     >

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { CoupleInfo } from "../../../../types/wedding";
 import { formatCoverDate } from "../../../../utils/formatDate";
 import CoverMedia from "../../../shared/CoverMedia";
@@ -19,6 +19,10 @@ interface CoverSectionProps {
   onOpen: () => void;
 }
 
+type OpeningPhase = "idle" | "printing" | "peeling" | "done";
+
+const POSTER_BANDS = Array.from({ length: 5 }, (_, index) => index);
+
 /** Cover poster foto penuh dengan blok warna dan detail cetak. */
 export default function CoverSection({
   couple,
@@ -28,20 +32,48 @@ export default function CoverSection({
   isOpened,
   onOpen,
 }: CoverSectionProps) {
-  const [isOpening, setIsOpening] = useState(false);
+  const [openingPhase, setOpeningPhase] = useState<OpeningPhase>("idle");
+  const openTimerRef = useRef<number | null>(null);
+  const resetTimerRef = useRef<number | null>(null);
+  const isOpening = openingPhase === "printing" || openingPhase === "peeling";
+
+  useEffect(
+    () => () => {
+      if (openTimerRef.current) window.clearTimeout(openTimerRef.current);
+      if (resetTimerRef.current) window.clearTimeout(resetTimerRef.current);
+    },
+    [],
+  );
+
   const handleOpen = () => {
     if (isOpening || isOpened) return;
-    setIsOpening(true);
-    window.setTimeout(onOpen, 700);
-    window.setTimeout(() => setIsOpening(false), 1550);
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setOpeningPhase("done");
+      onOpen();
+      return;
+    }
+
+    setOpeningPhase("printing");
+    openTimerRef.current = window.setTimeout(() => {
+      setOpeningPhase("peeling");
+      onOpen();
+    }, 920);
+    resetTimerRef.current = window.setTimeout(() => {
+      setOpeningPhase("done");
+    }, 2550);
   };
 
   return (
-    <section className="relative flex h-[100svh] min-h-[620px] flex-col justify-between overflow-hidden px-6 py-7 text-white">
+    <section
+      aria-busy={isOpening}
+      data-opening-phase={openingPhase}
+      className={`retro-cover invitation-cover relative flex h-[100svh] flex-col justify-between overflow-hidden px-6 py-7 text-white is-poster-${openingPhase}`}
+    >
       <CoverMedia
         src={coverPhotoUrl}
         alt="Potret pernikahan"
-        className={`absolute inset-0 size-full object-cover transition-transform duration-[1700ms] ${isOpening ? "scale-110" : "scale-100"}`}
+        className="retro-cover-photo absolute inset-0 size-full object-cover"
       />
       <div className="absolute inset-0 bg-gradient-to-t from-[var(--rp-ink)] via-[var(--rp-ink)]/55 to-black/15" />
       <div
@@ -56,14 +88,8 @@ export default function CoverSection({
         <div className="absolute inset-0" style={stripeBackground(0.18)} />
       </div>
       <Daisy className="absolute right-5 top-8 h-14 w-14 rotate-12 text-[var(--color-primary)]" />
-      <div
-        aria-hidden="true"
-        className={`pointer-events-none absolute inset-0 z-20 bg-[var(--rp-teal)] transition-all duration-[1200ms] ${
-          isOpening ? "translate-x-0 opacity-95" : "-translate-x-full opacity-0"
-        }`}
-      />
 
-      <div className="relative z-30 flex items-start justify-between">
+      <div className="retro-cover-copy relative z-20 flex items-start justify-between">
         <div>
           <p className="animate-fade-up text-[0.55rem] font-bold uppercase tracking-[0.26em] text-white/70 opacity-0">
             Wedding Invitation
@@ -75,13 +101,7 @@ export default function CoverSection({
         <RetroSun className="mr-1 h-14 w-auto animate-fade-in-scale text-[var(--rp-ink)] opacity-0" />
       </div>
 
-      <div
-        className={`relative z-30 transition-all duration-[1100ms] ${
-          isOpening
-            ? "-translate-y-2 scale-[0.98] opacity-80"
-            : "translate-y-0 scale-100 opacity-100"
-        }`}
-      >
+      <div className="retro-cover-copy relative z-20">
         <p className="animate-fade-up text-[0.58rem] font-bold uppercase tracking-[0.28em] text-[var(--rp-yellow)] opacity-0 [animation-delay:200ms]">
           We&rsquo;re Getting Married
         </p>
@@ -120,6 +140,35 @@ export default function CoverSection({
             {isOpening ? "Membuka..." : "Buka Undangan"}
           </button>
         )}
+      </div>
+
+      <div
+        className="retro-poster-wipe pointer-events-none absolute inset-0 z-30 overflow-hidden"
+        aria-hidden="true"
+      >
+        {POSTER_BANDS.map((index) => (
+          <span
+            key={index}
+            className="retro-poster-wipe__band absolute inset-x-0"
+            style={{
+              top: `${index * 20}%`,
+              height: "calc(20% + 1px)",
+              transitionDelay: `${index * 60}ms`,
+            }}
+          />
+        ))}
+        <div className="retro-poster-wipe__stamp absolute left-1/2 top-1/2 w-64 text-center">
+          <p className="text-[0.56rem] font-bold uppercase tracking-[0.34em] text-[var(--rp-ink)]">
+            Special Edition
+          </p>
+          <RetroSun className="mx-auto mt-4 h-16 w-auto text-[var(--rp-ink)]" />
+          <p className="mt-3 font-retro text-[1.7rem] leading-none text-[var(--rp-ink)]">
+            Let&rsquo;s Celebrate
+          </p>
+          <p className="mt-3 text-[0.54rem] font-bold uppercase tracking-[0.26em] text-[var(--rp-ink)]/70">
+            Issue No. 05
+          </p>
+        </div>
       </div>
     </section>
   );
