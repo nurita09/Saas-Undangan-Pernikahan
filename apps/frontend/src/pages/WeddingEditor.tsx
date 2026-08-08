@@ -84,7 +84,6 @@ interface EditorFormState {
   maps_url: string;
   cover_photo_url: string;
   section1_photo_url: string;
-  section2_photo_url: string;
   quote_text: string;
   quote_source: string;
   groom_photo_url: string;
@@ -224,7 +223,6 @@ function toFormState(data: WeddingEditData): EditorFormState {
     maps_url: data.maps_url ?? "",
     cover_photo_url: data.cover_photo_url ?? "",
     section1_photo_url: data.theme_settings?.section1_photo_url ?? "",
-    section2_photo_url: data.theme_settings?.section2_photo_url ?? "",
     quote_text: data.theme_settings?.quote_text ?? "",
     quote_source: data.theme_settings?.quote_source ?? "",
     groom_photo_url: data.groom_photo_url ?? "",
@@ -917,7 +915,6 @@ export default function WeddingEditor({ slug }: WeddingEditorProps) {
         expected_updated_at: updatedAt,
         theme_settings: {
           section1_photo_url: form.section1_photo_url || null,
-          section2_photo_url: form.section2_photo_url || null,
           quote_text: form.quote_text.trim() || null,
           quote_source: form.quote_source.trim() || null,
         },
@@ -1555,23 +1552,6 @@ export default function WeddingEditor({ slug }: WeddingEditorProps) {
                       </article>
                     ))}
 
-                    <PhotoField
-                      id="event-photo"
-                      label="Foto suasana atau lokasi acara"
-                      hint="Tema akan menyesuaikan foto ini ke komposisi masing-masing."
-                      photoUrl={form.section2_photo_url}
-                      upload={getUploadFeedback("event")}
-                      onSelect={(event) =>
-                        uploadThen("event", event, (url) =>
-                          updateField("section2_photo_url", url),
-                        )
-                      }
-                      onClear={() =>
-                        clearMedia("event", () =>
-                          updateField("section2_photo_url", ""),
-                        )
-                      }
-                    />
                   </fieldset>
                 )}
 

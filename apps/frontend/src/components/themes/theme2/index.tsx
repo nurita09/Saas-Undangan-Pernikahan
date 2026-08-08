@@ -222,8 +222,6 @@ export default function Theme2({ data, guestName }: ThemeComponentProps) {
   const coverPhotoUrl = data.cover_photo_url || fallbackCover;
   const section1PhotoUrl =
     data.theme_settings?.section1_photo_url || coverPhotoUrl;
-  const section2PhotoUrl =
-    data.theme_settings?.section2_photo_url || coverPhotoUrl;
 
   return (
     <div
@@ -262,7 +260,7 @@ export default function Theme2({ data, guestName }: ThemeComponentProps) {
             />
             <SaveTheDateSection couple={couple} event={event} />
             <CoupleSection couple={couple} />
-            <EventSection event={event} photoUrl={section2PhotoUrl} />
+            <EventSection event={event} />
             <LoveStorySection stories={love_stories} />
             <GallerySection
               photos={gallery_photos}

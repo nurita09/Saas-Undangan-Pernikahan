@@ -214,8 +214,6 @@ export default function Theme5({ data, guestName }: ThemeComponentProps) {
   const coverPhotoUrl = data.cover_photo_url || FALLBACK_COVER_URL;
   const section1PhotoUrl =
     data.theme_settings?.section1_photo_url || coverPhotoUrl;
-  const section2PhotoUrl =
-    data.theme_settings?.section2_photo_url || coverPhotoUrl;
   const closingPhotoUrl = gallery_photos.at(-1)?.photo_url || coverPhotoUrl;
 
   return (
@@ -254,7 +252,7 @@ export default function Theme5({ data, guestName }: ThemeComponentProps) {
             />
             <SaveTheDateSection couple={couple} event={event} />
             <CoupleSection couple={couple} fallbackPhotoUrl={coverPhotoUrl} />
-            <EventSection event={event} photoUrl={section2PhotoUrl} />
+            <EventSection event={event} />
             <LoveStorySection stories={love_stories} />
             <GallerySection
               photos={gallery_photos}

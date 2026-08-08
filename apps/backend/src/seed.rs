@@ -128,7 +128,6 @@ pub async fn ensure_demo_weddings(pool: &PgPool) -> Result<(), sqlx::Error> {
             "quote_text": spec.quote_text,
             "quote_source": spec.quote_source,
             "section1_photo_url": null,
-            "section2_photo_url": null,
         });
 
         let wedding_id: Uuid = sqlx::query_scalar(

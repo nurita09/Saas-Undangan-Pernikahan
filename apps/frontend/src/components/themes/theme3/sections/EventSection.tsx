@@ -4,13 +4,13 @@ import Reveal from "../components/ThemeReveal";
 import {
   CalendarIcon,
   DecoCorner,
+  DecoFan,
   GoldDivider,
   MapPinIcon,
 } from "../components/ornaments";
 
 interface EventSectionProps {
   event: EventInfo;
-  photoUrl: string;
 }
 
 interface EventCardProps {
@@ -82,8 +82,11 @@ function EventCard({
   );
 }
 
-/** Jadwal acara: satu hero foto, lalu dua agenda yang mudah dipindai. */
-export default function EventSection({ event, photoUrl }: EventSectionProps) {
+/** Jadwal acara: marquee Art Deco, lalu dua agenda yang mudah dipindai. */
+export default function EventSection({ event }: EventSectionProps) {
+  const marqueeDate =
+    event.akad_date || event.resepsi_date || event.wedding_date;
+
   return (
     <section id="events" className="noir-section-alt px-6 py-24">
       <div className="mx-auto max-w-md">
@@ -98,20 +101,35 @@ export default function EventSection({ event, photoUrl }: EventSectionProps) {
         </Reveal>
 
         <Reveal variant="zoom" className="mt-11">
-          <figure className="noir-card relative aspect-[16/11] overflow-hidden p-1.5">
-            <img
-              src={photoUrl}
-              alt="Lokasi perayaan pernikahan"
-              loading="lazy"
-              className="size-full object-cover"
-            />
-            <div className="absolute inset-1.5 bg-gradient-to-t from-[var(--color-secondary)]/90 via-transparent to-transparent" />
-            <figcaption className="absolute bottom-6 left-6 text-left">
-              <span className="text-[0.58rem] font-semibold uppercase tracking-[0.34em] text-[var(--color-primary)]">
-                The Celebration
-              </span>
-            </figcaption>
-          </figure>
+          <div className="noir-card relative flex min-h-[15rem] items-center justify-center overflow-hidden px-10 py-12 text-center">
+            <DecoCorner className="absolute left-2 top-2 h-10 w-10" />
+            <DecoCorner className="absolute right-2 top-2 h-10 w-10 rotate-90" />
+            <DecoCorner className="absolute bottom-2 left-2 h-10 w-10 -rotate-90" />
+            <DecoCorner className="absolute bottom-2 right-2 h-10 w-10 rotate-180" />
+            <DecoFan className="absolute -top-2 left-1/2 w-40 -translate-x-1/2 opacity-45" />
+            <div className="relative mt-7">
+              <p className="text-[0.58rem] font-semibold uppercase tracking-[0.38em] text-[var(--color-primary)]">
+                One Grand Celebration
+              </p>
+              <p className="mt-4 font-serif text-2xl leading-snug text-[var(--dk-ivory)]">
+                {marqueeDate
+                  ? formatLongDate(marqueeDate)
+                  : "Tanggal akan diumumkan"}
+              </p>
+              <GoldDivider className="mx-auto mt-5 w-44" />
+              <div className="mt-5 flex items-center justify-center gap-4 font-serif text-[var(--color-primary)]">
+                <span className="text-4xl">01</span>
+                <span className="h-8 w-px bg-[var(--dk-line)]" />
+                <span className="text-[0.55rem] font-semibold uppercase tracking-[0.3em] text-[var(--dk-muted)]">
+                  Akad
+                  <br />
+                  Resepsi
+                </span>
+                <span className="h-8 w-px bg-[var(--dk-line)]" />
+                <span className="text-4xl">02</span>
+              </div>
+            </div>
+          </div>
         </Reveal>
 
         <div className="mt-6 space-y-5">

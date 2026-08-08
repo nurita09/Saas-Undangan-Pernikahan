@@ -5,13 +5,14 @@ import {
   BatikBand,
   CalendarIcon,
   CornerFlourish,
+  Divider,
+  Gunungan,
   MapPinIcon,
   SectionTitle,
 } from "../components/ornaments";
 
 interface EventSectionProps {
   event: EventInfo;
-  photoUrl: string;
 }
 
 interface EventEntryProps {
@@ -81,7 +82,7 @@ function EventEntry({
 }
 
 /** Section 3: satu lembar itinerary untuk Akad Nikah dan Resepsi. */
-export default function EventSection({ event, photoUrl }: EventSectionProps) {
+export default function EventSection({ event }: EventSectionProps) {
   return (
     <section
       id="events"
@@ -104,17 +105,32 @@ export default function EventSection({ event, photoUrl }: EventSectionProps) {
               className="absolute bottom-3 right-3 z-10 size-9 text-[var(--jw-gold)]/80"
               rotate={180}
             />
-            <figure className="relative aspect-[16/10] overflow-hidden">
-              <img
-                src={photoUrl}
-                alt="Rangkaian acara pernikahan"
-                className="size-full object-cover"
+            <div className="relative grid min-h-[15rem] place-items-center overflow-hidden bg-[var(--jw-indigo)] px-8 py-10 text-center">
+              <BatikBand />
+              <CornerFlourish className="absolute left-4 top-4 size-10 text-[var(--jw-gold-soft)]/60" />
+              <CornerFlourish
+                className="absolute right-4 top-4 size-10 text-[var(--jw-gold-soft)]/60"
+                rotate={90}
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-[var(--jw-night)]/65 via-transparent to-transparent" />
-              <p className="absolute bottom-5 left-5 text-[0.58rem] font-medium tracking-[0.3em] text-white uppercase">
-                Pawiwahan
-              </p>
-            </figure>
+              <CornerFlourish
+                className="absolute bottom-4 left-4 size-10 text-[var(--jw-gold-soft)]/60"
+                rotate={270}
+              />
+              <CornerFlourish
+                className="absolute bottom-4 right-4 size-10 text-[var(--jw-gold-soft)]/60"
+                rotate={180}
+              />
+              <div className="relative">
+                <Gunungan className="mx-auto h-24 w-auto text-[var(--jw-gold-soft)]" />
+                <p className="mt-4 text-[0.58rem] font-medium tracking-[0.34em] text-[var(--jw-gold-soft)] uppercase">
+                  Adicara Pawiwahan
+                </p>
+                <p className="mt-2 font-jawa-serif text-2xl text-white">
+                  Sakral &amp; Penuh Makna
+                </p>
+                <Divider className="mt-5" tone="light" />
+              </div>
+            </div>
 
             <div className="px-5 sm:px-6">
               <EventEntry

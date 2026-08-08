@@ -3,13 +3,15 @@ import { formatLongDate, formatTime } from "../../../../utils/formatDate";
 import Reveal from "../components/ThemeReveal";
 import {
   CalendarIcon,
+  Daisy,
   MapPinIcon,
+  RetroSun,
   SectionHeading,
+  stripeBackground,
 } from "../components/ornaments";
 
 interface EventSectionProps {
   event: EventInfo;
-  photoUrl: string;
 }
 interface ScheduleProps {
   number: string;
@@ -60,7 +62,10 @@ function Schedule({ number, title, date, location, mapsUrl }: ScheduleProps) {
 }
 
 /** Rundown pernikahan dalam satu tiket festival. */
-export default function EventSection({ event, photoUrl }: EventSectionProps) {
+export default function EventSection({ event }: EventSectionProps) {
+  const headlineDate =
+    event.akad_date || event.resepsi_date || event.wedding_date;
+
   return (
     <section id="events" className="rp-section-paper px-6 py-24">
       <div className="mx-auto max-w-md">
@@ -73,17 +78,43 @@ export default function EventSection({ event, photoUrl }: EventSectionProps) {
         </Reveal>
         <Reveal variant="zoom" className="mt-10">
           <div className="rp-card overflow-hidden">
-            <figure className="relative aspect-[16/10] overflow-hidden">
-              <img
-                src={photoUrl}
-                alt="Lokasi pesta"
-                loading="lazy"
-                className="size-full object-cover"
+            <div className="relative min-h-[16rem] overflow-hidden bg-[var(--rp-teal)] px-6 py-7 text-[var(--rp-ink)]">
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-0"
+                style={stripeBackground(0.12)}
               />
-              <figcaption className="absolute bottom-4 left-4 bg-[var(--color-primary)] px-3 py-2 text-[0.52rem] font-bold uppercase tracking-[0.2em] text-white">
-                Wedding Day Pass
-              </figcaption>
-            </figure>
+              <Daisy className="absolute -right-3 -top-3 size-20 rotate-12 text-white/70" />
+              <Daisy className="absolute -bottom-6 -left-5 size-24 -rotate-12 text-[var(--color-primary)]" />
+              <div className="relative flex h-full min-h-[12.5rem] flex-col justify-between border-2 border-[var(--rp-ink)] bg-[var(--rp-paper)] px-5 py-5 shadow-[6px_6px_0_var(--rp-ink)]">
+                <div className="flex items-start justify-between gap-5">
+                  <div>
+                    <p className="text-[0.55rem] font-bold uppercase tracking-[0.24em] text-[var(--color-primary)]">
+                      Wedding Day Pass
+                    </p>
+                    <p className="mt-2 font-retro text-3xl leading-none">
+                      Admit Two
+                    </p>
+                  </div>
+                  <RetroSun className="w-20 shrink-0 text-[var(--rp-ink)]" />
+                </div>
+                <div className="mt-6 border-t-2 border-dashed border-[var(--rp-line)] pt-5">
+                  <p className="text-xs font-bold uppercase tracking-[0.12em]">
+                    {headlineDate
+                      ? formatLongDate(headlineDate)
+                      : "Tanggal akan diumumkan"}
+                  </p>
+                  <div className="mt-4 flex items-end justify-between gap-4">
+                    <p className="max-w-[12rem] text-xs leading-5 text-[var(--rp-muted)]">
+                      Akad nikah &amp; pesta resepsi
+                    </p>
+                    <span className="font-retro text-4xl leading-none text-[var(--color-primary)]">
+                      01·02
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
             <Schedule
               number="01"
               title="Akad Nikah"

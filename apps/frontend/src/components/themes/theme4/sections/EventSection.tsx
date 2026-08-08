@@ -2,14 +2,17 @@ import type { EventInfo } from "../../../../types/wedding";
 import { formatLongDate, formatTime } from "../../../../utils/formatDate";
 import Reveal from "../components/ThemeReveal";
 import {
+  ArchDivider,
   CalendarIcon,
+  geometricBackground,
+  IslamicArch,
+  KhatamStar,
   MapPinIcon,
   SectionHeading,
 } from "../components/ornaments";
 
 interface EventSectionProps {
   event: EventInfo;
-  photoUrl: string;
 }
 
 interface AgendaProps {
@@ -68,8 +71,8 @@ function Agenda({ number, title, date, location, mapsUrl }: AgendaProps) {
   );
 }
 
-/** Satu foto perayaan dan dua agenda dalam satu itinerary arsitektural. */
-export default function EventSection({ event, photoUrl }: EventSectionProps) {
+/** Portal mihrab dan dua agenda dalam satu itinerary arsitektural. */
+export default function EventSection({ event }: EventSectionProps) {
   return (
     <section id="events" className="im-section px-6 py-24">
       <div className="mx-auto max-w-md">
@@ -83,18 +86,27 @@ export default function EventSection({ event, photoUrl }: EventSectionProps) {
 
         <Reveal variant="zoom" className="mt-11">
           <div className="im-card overflow-hidden">
-            <figure className="relative aspect-[16/11] overflow-hidden">
-              <img
-                src={photoUrl}
-                alt="Momen perayaan"
-                loading="lazy"
-                className="size-full object-cover"
+            <div className="relative grid min-h-[17rem] place-items-center overflow-hidden bg-[var(--im-deep)] px-10 py-12 text-center">
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-0"
+                style={geometricBackground(0.16)}
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-[var(--im-deep)]/75 via-transparent to-transparent" />
-              <figcaption className="absolute bottom-5 left-5 text-[0.55rem] font-semibold uppercase tracking-[0.3em] text-white">
-                Walimatul &lsquo;Ursy
-              </figcaption>
-            </figure>
+              <IslamicArch className="pointer-events-none absolute bottom-0 left-1/2 h-[95%] w-auto -translate-x-1/2 text-white/25" />
+              <div className="relative max-w-xs">
+                <KhatamStar className="mx-auto size-8 text-[var(--im-clay)]" />
+                <p className="mt-5 font-arabic text-2xl text-white" lang="ar" dir="rtl">
+                  بَارَكَ اللَّهُ لَكُمَا
+                </p>
+                <p className="mt-4 text-[0.58rem] font-semibold uppercase tracking-[0.34em] text-white/65">
+                  Walimatul &lsquo;Ursy
+                </p>
+                <ArchDivider className="mx-auto mt-5 w-40 text-[var(--im-clay)]" />
+                <p className="mt-5 font-serif text-xl leading-snug text-white">
+                  {event.location_address || "Tempat penuh keberkahan"}
+                </p>
+              </div>
+            </div>
             <Agenda
               number="01"
               title="Akad Nikah"

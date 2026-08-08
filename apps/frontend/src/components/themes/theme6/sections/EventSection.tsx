@@ -11,7 +11,6 @@ import venueLine from "../../../../assets/theme6/venue-line.png";
 
 interface EventSectionProps {
   event: EventInfo;
-  photoUrl: string;
 }
 
 interface EventRowProps {
@@ -63,9 +62,9 @@ function EventRow({ index, title, date, location, mapsUrl }: EventRowProps) {
   );
 }
 
-export default function EventSection({ event, photoUrl }: EventSectionProps) {
+export default function EventSection({ event }: EventSectionProps) {
   return (
-    <section className="bg-[var(--va-vellum)] py-24">
+    <section id="events" className="bg-[var(--va-vellum)] py-24">
       <div className="px-7">
         <Reveal variant="up">
           <SectionTitle
@@ -78,23 +77,22 @@ export default function EventSection({ event, photoUrl }: EventSectionProps) {
 
       <Reveal variant="zoom" className="mt-9">
         <div className="relative h-[19rem] overflow-hidden bg-[var(--va-forest)]">
-          <img
-            src={photoUrl}
-            alt="Lokasi dan suasana acara"
-            loading="lazy"
-            className="h-full w-full object-cover saturate-[0.72]"
-          />
-          <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent_35%,rgba(19,38,30,0.82))]" />
+          <div className="absolute inset-5 border border-[var(--va-brass-soft)]/25" />
+          <div className="absolute inset-7 border border-dashed border-[var(--va-brass-soft)]/15" />
+          <div className="absolute inset-x-7 top-6 flex items-center justify-between text-[0.52rem] tracking-[0.22em] text-[var(--va-brass-soft)] uppercase">
+            <span>Venue archive</span>
+            <span>File no. 06</span>
+          </div>
           <img
             src={venueLine}
             alt=""
             aria-hidden="true"
-            className="absolute inset-x-0 bottom-0 w-full opacity-20 mix-blend-screen"
+            className="absolute -left-[8%] bottom-[4.6rem] w-[116%] opacity-55 mix-blend-screen"
           />
-          <div className="absolute inset-x-7 bottom-6 flex items-end justify-between text-[var(--va-vellum)]">
+          <div className="absolute inset-x-7 bottom-6 flex items-end justify-between border-t border-[var(--va-brass-soft)]/25 pt-4 text-[var(--va-vellum)]">
             <div>
               <p className="text-[0.55rem] tracking-[0.25em] text-[var(--va-brass-soft)] uppercase">
-                Destination file
+                Destination record
               </p>
               <p className="mt-2 max-w-[15rem] font-vintage text-xl leading-6">
                 {event.location_address || "Lokasi perayaan kami"}
